@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'SinhalaFont';
+  src: url('/sinhala-font.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SinhaNimsara';
+  src: url('/SINHA-Nimsara-2012_0.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-sinhala {
+  font-family: 'SinhalaFont', sans-serif;
+}
+
+.font-nimsara {
+  font-family: 'SinhaNimsara', sans-serif;
+}
+
 :root {
   --background: #f7f1ff;
   --foreground: #33254f;
