@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, CheckCircle2, MessageCircle, Play, Sparkles, Star, Users } from "lucide-react";
 import { PublicShell } from "@/components/public-shell";
@@ -16,10 +17,21 @@ export default function HomePage() {
   return <PublicShell>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(schema)}} />
     <section className="mx-auto max-w-7xl px-4 pb-12 pt-8 lg:px-8">
-      <div className="soft-panel grid-paper relative overflow-hidden p-7 md:p-12 lg:grid lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:gap-12">
+      <div className="soft-panel grid-paper relative overflow-hidden p-9 md:p-12 lg:grid lg:grid-cols-2 lg:items-center lg:gap-8">
         <div className="absolute -left-20 top-16 h-52 w-52 rounded-full bg-lavender-200/70 blur-3xl"/><div className="absolute -right-16 bottom-0 h-64 w-64 rounded-full bg-peach-200/60 blur-3xl"/>
         <div className="relative z-10"><div className="pill"><Sparkles size={16} className="text-lavender-600"/> Student-friendly Science learning</div><h1 className="mt-6 text-4xl font-black leading-[1.06] tracking-tight md:text-6xl">Make Science <span className="text-lavender-600">simple, interesting</span> and successful.</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-ink/65">Join Pasindu Udana for clear theory explanations, practical examples, revision activities, assignments, model papers and regular progress monitoring.</p><div className="mt-7 flex flex-wrap gap-3"><Link href="/timetable" className="gradient-button"><CalendarDays size={18}/> View Class Schedule</Link><Link href="/free-lessons" className="pill"><Play size={17}/> Watch Free Lessons</Link><Link href="/contact" className="pill"><MessageCircle size={17}/> WhatsApp Sir</Link></div><div className="mt-7 flex flex-wrap gap-5 text-sm font-bold text-ink/55"><span className="flex items-center gap-2"><CheckCircle2 size={17} className="text-emerald-500"/> Grades 8–11</span><span className="flex items-center gap-2"><CheckCircle2 size={17} className="text-emerald-500"/> Sinhala & English medium</span><span className="flex items-center gap-2"><CheckCircle2 size={17} className="text-emerald-500"/> Physical + Zoom</span></div></div>
-        <div className="relative mt-10 lg:mt-0"><div className="mx-auto max-w-md rounded-[2.2rem] bg-gradient-to-b from-lavender-200 to-[#bea1ef] p-5 shadow-soft"><div className="relative overflow-hidden rounded-[1.8rem] bg-white/45 p-6 text-center"><div className="absolute left-4 top-5 text-4xl animate-float">🧬</div><div className="absolute right-5 top-8 text-4xl animate-float">⚛️</div><div className="mx-auto grid h-56 w-56 place-items-center rounded-full bg-gradient-to-br from-peach-100 via-white to-lavender-100 text-8xl shadow-card">👨‍🏫</div><h2 className="mt-5 text-2xl font-black">Pasindu Udana</h2><p className="text-sm font-semibold text-ink/55">Science Teacher • Mentor • Paper Class Instructor</p></div></div><div className="absolute -bottom-5 -left-2 rounded-3xl bg-butter p-4 shadow-card"><strong className="block text-2xl">92%</strong><span className="text-xs font-bold text-ink/55">student attendance</span></div></div>
+        <div className="relative mt-4 flex justify-center lg:mt-0 z-10 w-full">
+          <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl">
+            <Image
+              src="/images/bg/hero-bg.png"
+              alt="Kalhara Nakandala Science LMS"
+              width={1200}
+              height={800}
+              priority
+              className="h-auto w-full scale-115 transform origin-center object-cover rounded-3xl transition-transform"
+            />
+          </div>
+        </div>
       </div>
     </section>
 
