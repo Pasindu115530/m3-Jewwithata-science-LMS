@@ -1,0 +1,1 @@
+export default function Loading(){return <div className="grid min-h-screen place-items-center p-5"><div className="soft-panel w-full max-w-3xl p-8"><div className="skeleton h-10 w-1/2 animate-shimmer rounded-2xl"/><div className="mt-5 grid gap-4 md:grid-cols-3">{[1,2,3].map(i=><div key={i} className="skeleton h-40 animate-shimmer rounded-3xl"/>)}</div></div></div>}

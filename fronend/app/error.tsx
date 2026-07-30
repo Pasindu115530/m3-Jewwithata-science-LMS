@@ -1,0 +1,2 @@
+"use client";
+export default function Error({reset}:{error:Error & {digest?:string};reset:()=>void}){return <div className="grid min-h-screen place-items-center p-5"><div className="soft-panel max-w-lg p-8 text-center"><div className="text-6xl">🧪</div><h1 className="mt-5 text-3xl font-black">Something reacted unexpectedly.</h1><p className="mt-3 text-ink/55">The demo page could not be displayed.</p><button onClick={reset} className="gradient-button mt-6">Try again</button></div></div>}

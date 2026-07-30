@@ -1,6 +1,0 @@
-{
-  "name": "Science Practical LMS",
-  "description": "Interactive Science Practical Learning Management System featuring soft neumorphic UI, live Zoom practicals, interactive lab simulators, student & teacher dashboards, timetables, and quizzes.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
