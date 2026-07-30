@@ -1,50 +1,446 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, CheckCircle2, MessageCircle, Play, Sparkles, Star, Users } from "lucide-react";
+import {
+  ArrowRight, CalendarDays, CheckCircle2, MessageCircle,
+  Play, Sparkles, Star, Atom, TrendingUp,
+} from "lucide-react";
 import { PublicShell } from "@/components/public-shell";
 import { Card, Badge, SectionHeading, TextLink } from "@/components/ui";
 import { classes, lessons, announcements, testimonials } from "@/lib/mock-data";
 import { createMetadata } from "@/lib/metadata";
 import { siteConfig } from "@/lib/site";
 
-export const metadata = createMetadata("Science Tuition Classes", "Colourful, personal Science tuition classes by Pasindu Udana for theory, revision, paper practice and online learning.", "/");
+export const metadata = createMetadata(
+  "Science Tuition Classes",
+  "Colourful, personal Science tuition classes by Pasindu Udana for theory, revision, paper practice and online learning.",
+  "/"
+);
 
 export default function HomePage() {
   const schema = {
-    "@context": "https://schema.org", "@type": "Person", name: siteConfig.teacher,
-    jobTitle: "Science Tuition Teacher", worksFor: { "@type": "Organization", name: siteConfig.name }, url: siteConfig.url
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: siteConfig.teacher,
+    jobTitle: "Science Tuition Teacher",
+    worksFor: { "@type": "Organization", name: siteConfig.name },
+    url: siteConfig.url,
   };
-  return <PublicShell>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(schema)}} />
-    <section className="mx-auto max-w-7xl px-4 pb-12 pt-8 lg:px-8">
-      <div className="soft-panel grid-paper relative overflow-hidden p-9 md:p-12 lg:grid lg:grid-cols-2 lg:items-center lg:gap-8">
-        <div className="absolute -left-20 top-16 h-52 w-52 rounded-full bg-lavender-200/70 blur-3xl"/><div className="absolute -right-16 bottom-0 h-64 w-64 rounded-full bg-peach-200/60 blur-3xl"/>
-        <div className="relative z-10"><div className="pill"><Sparkles size={20} className="text-lavender-600"/> Student-friendly Science learning</div><h1 className="font-sinhala mt-6 text-5xl font-normal leading-tight tracking-wide md:text-7xl">Ôú;hg <span className="text-lavender-600">úoHdj</span></h1><p className="mt-6 max-w-2xl text-lg leading-8 text-ink/65">Join Pasindu Udana for clear theory explanations, practical examples, revision activities, assignments, model papers and regular progress monitoring.</p><h2 className="font-nimsara mt-10 mb-10 text-5xl font-normal text-lavender-700">l,aydr kdlkao,</h2><div className="mt-7 flex flex-wrap gap-3"><Link href="/timetable" className="gradient-button"><CalendarDays size={18}/> View Class Schedule</Link><Link href="/free-lessons" className="pill"><Play size={17}/> Watch Free Lessons</Link><Link href="/contact" className="pill"><MessageCircle size={17}/> WhatsApp Sir</Link></div><div className="mt-7 flex flex-wrap gap-5 text-sm font-bold text-ink/55"><span className="flex items-center gap-2"><CheckCircle2 size={17} className="text-emerald-500"/> Grades 8–11</span><span className="flex items-center gap-2"><CheckCircle2 size={17} className="text-emerald-500"/> Sinhala & English medium</span><span className="flex items-center gap-2"><CheckCircle2 size={17} className="text-emerald-500"/> Physical + Zoom</span></div></div>
-        <div className="relative mt-4 flex justify-center lg:mt-0 z-10 w-full">
-          <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl">
-            <Image
-              src="/images/bg/hero-bg.png"
-              alt="Kalhara Nakandala Science LMS"
-              width={1200}
-              height={800}
-              priority
-              className="h-auto w-full scale-115 transform origin-center object-cover rounded-3xl transition-transform"
-            />
+
+  return (
+    <PublicShell>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+
+      {/* ══════════════════════════════════════════════════════════════
+          A. HERO — layered, watermark, floating badges
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="relative mx-auto max-w-7xl overflow-visible px-4 pb-4 pt-10 lg:px-8">
+        {/* Ambient blobs */}
+        <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-lavender-300/25 blur-3xl" />
+        <div className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full bg-peach-200/30 blur-3xl" />
+
+        {/* Watermark brand text */}
+        <div className="hero-watermark">KALHARA NAKANDALA</div>
+
+
+
+        {/* ── Main 3-column hero grid ── */}
+        <div className="relative z-10 mt-8 grid items-center gap-6 lg:grid-cols-[1fr_auto_1fr]">
+
+          {/* Left content column */}
+          <div className="space-y-6 text-center lg:text-left">
+            <h1 className="font-sinhala text-5xl font-normal leading-tight tracking-wide md:text-6xl">
+              Ôú;hg{" "}
+              <span className="text-lavender-600">úoHdj</span>
+            </h1>
+            <h2 className="font-nimsara text-4xl font-normal text-lavender-700">
+              l,aydr kdlkao,
+            </h2>
+            <p className="max-w-sm leading-7 text-ink/60 lg:max-w-xs">
+              Join Kalhara Nakandala for clear theory, revision, paper practice,
+              assignments and personal progress monitoring.
+            </p>
+            {/* Trust chips */}
+            <div className="flex flex-wrap justify-center gap-3 text-sm font-bold text-ink/55 lg:justify-start">
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-emerald-500" /> Grades 8–11</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-emerald-500" /> Sinhala &amp; English</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-emerald-500" /> Physical + Zoom</span>
+            </div>
+            {/* CTAs */}
+            <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
+              <Link href="/timetable" className="gradient-button rounded-full px-6">
+                <CalendarDays size={17} /> View Schedule
+              </Link>
+              <Link href="/free-lessons" className="pill">
+                <Play size={16} /> Free Lessons
+              </Link>
+            </div>
+          </div>
+
+          {/* Centre image — the anchor */}
+          <div className="relative flex justify-center">
+            {/* Floating LEFT badge — student count */}
+            <div
+              className="float-badge hidden lg:block"
+              style={{ top: "18%", left: "-5rem", animationDelay: "0s" }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-lavender-100 text-xl">🎓</div>
+                <div>
+                  <p className="text-lg font-black leading-tight text-ink">450+</p>
+                  <p className="text-xs font-semibold text-ink/55">Active Students</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Hero image */}
+            <div className="relative w-80 overflow-hidden rounded-[2.5rem] shadow-soft md:w-[26rem] lg:w-[32rem]">
+              <Image
+                src="/images/bg/hero-bg.png"
+                alt="Pasindu Udana Science Academy"
+                width={1000}
+                height={1100}
+                priority
+                className="h-auto w-full scale-135 transform object-cover transition-transform duration-900"
+              />
+              {/* Inner glow overlay */}
+              <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] ring-1 ring-lavender-400/20" />
+            </div>
+
+            {/* Floating RIGHT badge — next class */}
+            <div
+              className="float-badge hidden lg:block"
+              style={{ top: "22%", right: "-5.5rem", animationDelay: "1.8s" }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-peach-100 text-xl">📅</div>
+                <div>
+                  <p className="text-[11px] font-extrabold uppercase tracking-widest text-ink/40">Next Class</p>
+                  <p className="text-sm font-black text-ink">Grade 11 · Sunday</p>
+                  <p className="text-xs font-semibold text-ink/55">1:30 PM – 4:30 PM</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right stat cards column */}
+          <div className="flex flex-col items-center gap-4 lg:items-end">
+            <div className="soft-card flex items-center gap-3 p-4">
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-mintsoft text-xl">📈</div>
+              <div>
+                <p className="text-xl font-black text-emerald-600">90%</p>
+                <p className="text-xs font-semibold text-ink/55">Improved results</p>
+              </div>
+            </div>
+            <div className="soft-card flex items-center gap-3 p-4">
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-butter text-xl">🏆</div>
+              <div>
+                <p className="text-xl font-black text-amber-600">8+</p>
+                <p className="text-xs font-semibold text-ink/55">Years teaching</p>
+              </div>
+            </div>
+            <Link href="/contact" className="pill mt-1 text-sm">
+              <MessageCircle size={16} /> WhatsApp Sir
+            </Link>
           </div>
         </div>
-      </div>
-    </section>
 
-    <section className="mx-auto max-w-7xl px-4 py-10 lg:px-8"><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{[["450+","Active students","👩‍🎓"],["8+","Years teaching","🏆"],["120+","Free lessons","▶️"],["90%","Improved results","📈"],["14","Weekly classes","📅"]].map(([v,l,e])=><Card key={l} className="p-5 text-center"><div className="text-3xl">{e}</div><p className="mt-2 text-3xl font-black">{v}</p><p className="text-sm font-bold text-ink/50">{l}</p></Card>)}</div></section>
+        {/* Bottom pill CTA — centred under the hero image */}
+        <div className="relative z-10 mt-8 flex justify-center">
+          <Link
+            href="/timetable"
+            className="inline-flex items-center gap-2 rounded-full border-2 border-lavender-400/60 bg-white/60 px-7 py-3 text-sm font-bold text-lavender-700 shadow-card backdrop-blur-md transition hover:-translate-y-0.5 hover:border-lavender-500 hover:bg-white/80"
+          >
+            Open Class Schedule <ArrowRight size={16} />
+          </Link>
+        </div>
+      </section>
 
-    <section className="mx-auto max-w-7xl px-4 py-14 lg:px-8"><SectionHeading eyebrow="Available classes" title="Choose the class that fits your learning goal" text="Theory, revision, paper practice and hybrid learning options are organised by grade."/><div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">{classes.map((c,i)=><Card key={c.title+c.grade} className="p-6"><div className="flex items-center justify-between"><Badge tone={i%2?"pink":"lavender"}>{c.grade}</Badge><Badge tone={c.mode==="Online"?"blue":"green"}>{c.mode}</Badge></div><div className="mt-5 text-4xl">{["🔭","🧠","🧪","📝"][i]}</div><h3 className="mt-4 text-xl font-black">{c.title}</h3><div className="mt-4 space-y-2 text-sm text-ink/60"><p><strong className="text-ink">{c.day}</strong> • {c.time}</p><p>{c.location}</p><p>{c.fee} / month</p><p>{c.seats} seats remaining</p></div><Link href="/contact" className="gradient-button mt-5 w-full">Enrol now <ArrowRight size={17}/></Link></Card>)}</div><div className="mt-6"><TextLink href="/classes">View every class</TextLink></div></section>
+      {/* ══════════════════════════════════════════════════════════════
+          C. STATS & TRUST INDICATORS BAR — 3-column
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-3 lg:items-center">
 
-    <section className="mx-auto max-w-7xl px-4 py-14 lg:px-8"><div className="soft-panel p-7 md:p-10"><SectionHeading eyebrow="Why students choose this class" title="A complete learning system, not only a weekly lecture"/><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{["Simple explanations","Complete syllabus","Weekly assignments","Model papers","Progress monitoring","Recorded lessons","Exam preparation","WhatsApp support","Parent updates","Zoom classes"].map((x,i)=><div key={x} className="rounded-2xl bg-white/70 p-4 shadow-card"><div className="mb-3 grid h-10 w-10 place-items-center rounded-xl bg-lavender-100 text-lg">{["💡","📚","✍️","📄","📊","🎥","🎯","💬","👪","💻"][i]}</div><p className="font-black">{x}</p></div>)}</div></div></section>
+          {/* Col 1 — Mission blurb */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-lavender-400 to-lavender-700 text-white shadow-button">
+                <Atom size={22} />
+              </div>
+              <strong className="font-black text-ink">Pasindu Udana Science</strong>
+            </div>
+            <p className="max-w-xs text-sm leading-6 text-ink/60">
+              Personal, structured Science education for O/L students — combining
+              theory, revision and digital tools in one system.
+            </p>
+            <TextLink href="/classes">OUR SERVICES</TextLink>
+          </div>
 
-    <section className="mx-auto max-w-7xl px-4 py-14 lg:px-8"><SectionHeading eyebrow="Free lessons" title="Start learning before joining" text="Explore sample video lessons and downloadable notes for different grades."/><div className="grid gap-5 md:grid-cols-3">{lessons.map((l,i)=><Card key={l.title} className="overflow-hidden"><div className={`grid h-44 place-items-center text-7xl ${["bg-lavender-200","bg-peach-100","bg-butter"][i]}`}>{l.icon}</div><div className="p-5"><div className="flex gap-2"><Badge>{l.grade}</Badge><Badge tone="blue">{l.duration}</Badge></div><h3 className="mt-4 text-xl font-black">{l.title}</h3><p className="mt-1 text-sm text-ink/50">{l.topic} with Pasindu Udana</p><Link href="/free-lessons" className="gradient-button mt-5 w-full"><Play size={16}/> Watch free</Link></div></Card>)}</div></section>
+          {/* Col 2 — Bold heading badge */}
+          <div className="flex justify-center">
+            <div className="stats-highlight text-center">
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-lavender-500">Our Promise</p>
+              <p className="mt-1 text-xl font-black leading-tight text-ink">
+                CLEAR THEORY,<br />REAL RESULTS
+              </p>
+            </div>
+          </div>
 
-    <section className="mx-auto grid max-w-7xl gap-6 px-4 py-14 lg:grid-cols-2 lg:px-8"><div><SectionHeading eyebrow="Latest updates" title="Announcements for students and parents"/>{announcements.map(a=><Card key={a.title} className="mb-4 flex items-center gap-4 p-5"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-peach-100 text-xl">📣</div><div className="min-w-0 flex-1"><div className="flex flex-wrap gap-2"><Badge tone="pink">{a.category}</Badge><Badge tone="yellow">{a.priority}</Badge></div><h3 className="mt-2 font-black">{a.title}</h3><p className="text-xs text-ink/45">{a.date}</p></div></Card>)}</div><div><SectionHeading eyebrow="Student success" title="What our learners say"/>{testimonials.map(t=><Card key={t.name} className="mb-4 p-5"><div className="flex items-center justify-between"><div><p className="font-black">{t.name}</p><p className="text-xs text-ink/45">{t.grade}</p></div><div className="flex text-amber-400">{Array.from({length:t.rating}).map((_,i)=><Star key={i} size={15} fill="currentColor"/>)}</div></div><p className="mt-4 text-sm leading-6 text-ink/65">“{t.text}”</p></Card>)}</div></section>
+          {/* Col 3 — Hero stat */}
+          <div className="flex flex-col items-center gap-1 lg:items-end">
+            <p className="text-6xl font-black text-lavender-600">450+</p>
+            <p className="font-semibold text-ink/55">Active Students</p>
+            <TextLink href="/results">VIEW STATS</TextLink>
+          </div>
+        </div>
 
-    <section className="mx-auto max-w-7xl px-4 py-12 lg:px-8"><div className="relative overflow-hidden rounded-[2.2rem] bg-gradient-to-r from-lavender-600 to-[#a36ee9] p-8 text-white shadow-soft md:p-12"><div className="absolute right-8 top-1/2 -translate-y-1/2 text-8xl opacity-25">⚛️</div><div className="relative max-w-2xl"><p className="font-extrabold uppercase tracking-[.2em] text-white/70">Ready to begin?</p><h2 className="mt-3 text-3xl font-black md:text-5xl">Join Pasindu Udana’s Science class today.</h2><p className="mt-4 leading-7 text-white/75">View the timetable, ask about available seats and choose a physical or online class.</p><div className="mt-6 flex flex-wrap gap-3"><Link href="/contact" className="rounded-2xl bg-white px-5 py-3 font-black text-lavender-700 shadow-card">Contact Sir</Link><Link href="/student-login" className="rounded-2xl bg-white/15 px-5 py-3 font-black text-white ring-1 ring-white/30">Student Login</Link></div></div></div></section>
-  </PublicShell>
+        {/* Secondary stats strip */}
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { v: "120+", l: "Free Lessons", e: "▶️" },
+            { v: "8+", l: "Years Teaching", e: "🏆" },
+            { v: "90%", l: "Improved Results", e: "📈" },
+            { v: "14", l: "Weekly Classes", e: "📅" },
+          ].map(({ v, l, e }) => (
+            <Card key={l} className="p-4 text-center">
+              <div className="text-2xl">{e}</div>
+              <p className="mt-2 text-2xl font-black">{v}</p>
+              <p className="text-xs font-bold text-ink/50">{l}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          D. FEATURE BLOCK — 2-column split
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
+        <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:justify-between">
+
+          {/* Left — content */}
+          <div className="max-w-lg space-y-6 lg:flex-1">
+            <p className="text-sm font-extrabold uppercase tracking-[.18em] text-lavender-500">
+              Why students choose this class
+            </p>
+            <h2 className="text-4xl font-black leading-tight tracking-tight text-ink md:text-5xl">
+              A complete learning system,{" "}
+              <span className="text-lavender-600">not only a weekly lecture</span>
+            </h2>
+            <p className="leading-7 text-ink/60">
+              Every class is backed by assignments, recorded lessons, model papers
+              and WhatsApp support. Parents receive regular progress updates so
+              the whole family is aligned on results.
+            </p>
+
+            {/* Feature pills */}
+            <div className="flex flex-wrap gap-2">
+              {["Simple explanations", "Weekly assignments", "Model papers", "Recorded lessons", "WhatsApp support", "Exam preparation"].map((f) => (
+                <span key={f} className="rounded-full border border-lavender-200 bg-lavender-50 px-3 py-1.5 text-xs font-bold text-lavender-700">{f}</span>
+              ))}
+            </div>
+
+            <Link
+              href="/classes"
+              className="inline-flex items-center gap-2 font-black uppercase tracking-widest text-lavender-600 transition hover:text-lavender-800"
+            >
+              EXPLORE ALL CLASSES <ArrowRight size={16} />
+            </Link>
+          </div>
+
+          {/* Right — image with floating badge overlays */}
+          <div className="relative flex justify-center lg:flex-1">
+            {/* Main image */}
+            <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] shadow-soft">
+              <Image
+                src="/images/bg/hero-bg.png"
+                alt="Science learning in action"
+                width={800}
+                height={700}
+                className="h-auto w-full object-cover"
+              />
+              <div className="pointer-events-none absolute inset-0 rounded-[2rem] ring-1 ring-lavender-400/15" />
+            </div>
+
+            {/* Floating badge 1 — Assignment submitted */}
+            <div className="float-badge" style={{ bottom: "5rem", left: "-1.5rem", animationDelay: "0.5s" }}>
+              <div className="flex items-center gap-2.5">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-mintsoft text-base">✅</div>
+                <div>
+                  <p className="text-xs font-extrabold text-emerald-700">Assignment Submitted</p>
+                  <p className="text-[11px] text-ink/50">Assignment 06 — Grade 11</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Floating badge 2 — Result improved */}
+            <div className="float-badge" style={{ top: "4rem", right: "-1.5rem", animationDelay: "2.5s" }}>
+              <div className="flex items-center gap-2.5">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-lavender-100 text-base">
+                  <TrendingUp size={18} className="text-lavender-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-extrabold text-lavender-700">Result Improved</p>
+                  <p className="text-[11px] font-bold text-emerald-600">+23 marks this term</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          E. DARK NAVY CTA BLOCK — breakout icon, rounded, centered
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="mx-auto max-w-7xl px-4 py-4 lg:px-8">
+        <div className="dark-cta-block px-8 pb-14 pt-20 text-center md:px-16">
+          {/* Breakout atom at top */}
+          <div
+            className="absolute left-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[1.6rem] bg-gradient-to-br from-lavender-400 to-lavender-700 shadow-button"
+            style={{ top: 0 }}
+          >
+            <Atom size={38} className="text-white" />
+          </div>
+
+          {/* Content */}
+          <h2 className="text-3xl font-black leading-tight text-white md:text-5xl">
+            Join Pasindu Udana&apos;s<br />Science class today.
+          </h2>
+          <p className="mx-auto mt-5 max-w-lg leading-7 text-white/60">
+            View the timetable, ask about available seats and choose a physical or
+            online class that fits your schedule.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-white/30 bg-white/10 px-7 py-3 font-bold text-white backdrop-blur-sm transition hover:bg-white/20"
+            >
+              <MessageCircle size={17} /> Contact Sir
+            </Link>
+            <Link
+              href="/student-login"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 font-black text-lavender-700 shadow-card transition hover:-translate-y-0.5"
+            >
+              Student Login <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          F. "WHO WE SERVE" TRANSITION
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="mx-auto max-w-7xl px-4 pt-16 text-center lg:px-8">
+        <p className="text-xs font-extrabold uppercase tracking-[.25em] text-lavender-500">Who We Serve</p>
+        <h2 className="mt-2 text-3xl font-black tracking-tight text-ink md:text-4xl">
+          Structured learning for every grade
+        </h2>
+        <p className="mx-auto mt-3 max-w-xl leading-7 text-ink/55">
+          Theory, revision, paper practice and hybrid learning options organised
+          by grade level — from Grade 8 through O/L.
+        </p>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          CLASSES GRID
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          {classes.map((c, i) => (
+            <Card key={c.title + c.grade} className="p-6">
+              <div className="flex items-center justify-between">
+                <Badge tone={i % 2 ? "pink" : "lavender"}>{c.grade}</Badge>
+                <Badge tone={c.mode === "Online" ? "blue" : "green"}>{c.mode}</Badge>
+              </div>
+              <div className="mt-5 text-4xl">{["🔭", "🧠", "🧪", "📝"][i]}</div>
+              <h3 className="mt-4 text-xl font-black">{c.title}</h3>
+              <div className="mt-4 space-y-2 text-sm text-ink/60">
+                <p><strong className="text-ink">{c.day}</strong> • {c.time}</p>
+                <p>{c.location}</p>
+                <p>{c.fee} / month</p>
+                <p>{c.seats} seats remaining</p>
+              </div>
+              <Link href="/contact" className="gradient-button mt-5 w-full rounded-full">
+                Enrol now <ArrowRight size={17} />
+              </Link>
+            </Card>
+          ))}
+        </div>
+        <div className="mt-6">
+          <TextLink href="/classes">View every class</TextLink>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          FREE LESSONS
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="mx-auto max-w-7xl px-4 py-14 lg:px-8">
+        <SectionHeading
+          eyebrow="Free lessons"
+          title="Start learning before joining"
+          text="Explore sample video lessons and downloadable notes for different grades."
+        />
+        <div className="grid gap-5 md:grid-cols-3">
+          {lessons.map((l, i) => (
+            <Card key={l.title} className="overflow-hidden">
+              <div className={`grid h-44 place-items-center text-7xl ${["bg-lavender-200", "bg-peach-100", "bg-butter"][i]}`}>
+                {l.icon}
+              </div>
+              <div className="p-5">
+                <div className="flex gap-2">
+                  <Badge>{l.grade}</Badge>
+                  <Badge tone="blue">{l.duration}</Badge>
+                </div>
+                <h3 className="mt-4 text-xl font-black">{l.title}</h3>
+                <p className="mt-1 text-sm text-ink/50">{l.topic} with Pasindu Udana</p>
+                <Link href="/free-lessons" className="gradient-button mt-5 w-full rounded-full">
+                  <Play size={16} /> Watch free
+                </Link>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          ANNOUNCEMENTS + TESTIMONIALS
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="mx-auto grid max-w-7xl gap-6 px-4 py-14 lg:grid-cols-2 lg:px-8">
+        <div>
+          <SectionHeading eyebrow="Latest updates" title="Announcements for students and parents" />
+          {announcements.map((a) => (
+            <Card key={a.title} className="mb-4 flex items-center gap-4 p-5">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-peach-100 text-xl">📣</div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap gap-2">
+                  <Badge tone="pink">{a.category}</Badge>
+                  <Badge tone="yellow">{a.priority}</Badge>
+                </div>
+                <h3 className="mt-2 font-black">{a.title}</h3>
+                <p className="text-xs text-ink/45">{a.date}</p>
+              </div>
+            </Card>
+          ))}
+        </div>
+        <div>
+          <SectionHeading eyebrow="Student success" title="What our learners say" />
+          {testimonials.map((t) => (
+            <Card key={t.name} className="mb-4 p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-black">{t.name}</p>
+                  <p className="text-xs text-ink/45">{t.grade}</p>
+                </div>
+                <div className="flex text-amber-400">
+                  {Array.from({ length: t.rating }).map((_, i) => (
+                    <Star key={i} size={15} fill="currentColor" />
+                  ))}
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-ink/65">&ldquo;{t.text}&rdquo;</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+    </PublicShell>
+  );
 }

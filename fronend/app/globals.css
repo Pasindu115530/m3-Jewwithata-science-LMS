@@ -78,3 +78,53 @@ body {
   background: linear-gradient(90deg, rgba(255,255,255,.55) 25%, rgba(255,255,255,.95) 50%, rgba(255,255,255,.55) 75%);
   background-size: 200% 100%;
 }
+
+/* ── Hero watermark ─────────────────────────────── */
+.hero-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(4rem, 12vw, 9rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: rgba(114, 65, 197, 0.055);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* ── Float badge cards ──────────────────────────── */
+.float-badge {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 1.25rem;
+  box-shadow: 0 12px 32px rgba(90, 65, 124, 0.14), inset 0 1px 0 rgba(255,255,255,0.9);
+  padding: 0.85rem 1.1rem;
+  z-index: 20;
+  animation: float 5s ease-in-out infinite;
+}
+
+/* ── Dark navy CTA block ────────────────────────── */
+.dark-cta-block {
+  background: linear-gradient(135deg, #1e1150 0%, #2d1a72 60%, #1a0e42 100%);
+  border-radius: 2.5rem;
+  position: relative;
+  overflow: visible;
+}
+
+/* ── Stats highlight badge ──────────────────────── */
+.stats-highlight {
+  display: inline-block;
+  background: linear-gradient(135deg, rgba(141, 91, 232, 0.10), rgba(141, 91, 232, 0.04));
+  border: 1.5px solid rgba(141, 91, 232, 0.22);
+  border-radius: 1.25rem;
+  padding: 0.6rem 1.1rem;
+}
+

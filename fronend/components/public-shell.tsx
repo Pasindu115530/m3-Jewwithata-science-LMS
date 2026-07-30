@@ -19,7 +19,7 @@ export function PublicHeader() {
         </nav>
         <div className="flex items-center gap-2">
           <Link href="/student-login" className="hidden rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold shadow-card sm:block">Student Login</Link>
-          <Link href="/classes" className="gradient-button hidden py-2.5 sm:inline-flex"><Sparkles size={17}/> Join Class</Link>
+          <Link href="/classes" className="gradient-button hidden rounded-full px-6 py-2.5 sm:inline-flex"><Sparkles size={17}/> Join Class</Link>
           <button aria-label="Open menu" className="grid h-11 w-11 place-items-center rounded-2xl bg-white/80 shadow-card xl:hidden"><Menu size={20}/></button>
         </div>
       </div>
