@@ -18,17 +18,12 @@
   font-display: swap;
 }
 
-.font-sinhala {
-  font-family: 'SinhalaFont', sans-serif;
-}
-
-.font-nimsara {
-  font-family: 'SinhaNimsara', sans-serif;
-}
+.font-sinhala { font-family: 'SinhalaFont', sans-serif; }
+.font-nimsara { font-family: 'SinhaNimsara', sans-serif; }
 
 :root {
-  --background: #f7f1ff;
-  --foreground: #33254f;
+  --background: #f0f4ff;
+  --foreground: #001a5e;
 }
 
 * { box-sizing: border-box; }
@@ -36,17 +31,21 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0;
   color: var(--foreground);
+  /* Ambient gold blob top-left, navy blob top-right */
   background:
-    radial-gradient(circle at 6% 10%, rgba(196, 166, 255, .35), transparent 25%),
-    radial-gradient(circle at 92% 12%, rgba(255, 189, 178, .28), transparent 23%),
-    linear-gradient(145deg, #f4eeff 0%, #fff6f2 48%, #eff7ff 100%);
+    radial-gradient(circle at 5% 8%,  rgba(255,184,0, .20), transparent 28%),
+    radial-gradient(circle at 93% 10%, rgba(0, 37,131, .12), transparent 26%),
+    linear-gradient(150deg, #f5f7ff 0%, #fffdf0 48%, #eef3ff 100%);
   min-height: 100vh;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-::selection { background: #d8c4ff; color: #2f2147; }
+/* Selection: gold bg, navy text */
+::selection { background: #FFB800; color: #002583; }
 
 @layer components {
+
+  /* Glass card */
   .soft-panel {
     @apply rounded-4xl border border-white/70 bg-white/65 shadow-soft backdrop-blur-xl;
   }
@@ -54,28 +53,60 @@ body {
     @apply rounded-[1.6rem] border border-white/80 bg-white/75 shadow-card backdrop-blur-md transition duration-300;
   }
   .soft-card:hover { transform: translateY(-3px); }
+
+  /* Pill link / ghost button */
   .pill {
     @apply inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-4 py-2 text-sm font-semibold shadow-card;
   }
+
+  /* Primary CTA — navy fill, gold hover glow */
   .gradient-button {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-lavender-500 to-lavender-700 px-5 py-3 font-bold text-white shadow-button transition hover:-translate-y-0.5 hover:brightness-105;
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl
+           bg-[#002583] px-5 py-3 font-bold text-white shadow-button
+           transition hover:-translate-y-0.5 hover:brightness-110;
   }
+
+  /* Gold accent button (for secondary CTAs) */
+  .gold-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl
+           bg-[#FFB800] px-5 py-3 font-bold text-[#002583] shadow-button
+           transition hover:-translate-y-0.5 hover:brightness-105;
+  }
+
+  /* Form inputs */
   .pastel-input {
-    @apply w-full rounded-2xl border border-white/80 bg-white/70 px-4 py-3 text-sm outline-none shadow-card placeholder:text-ink/40 focus:ring-2 focus:ring-lavender-300;
+    @apply w-full rounded-2xl border border-white/80 bg-white/70 px-4 py-3 text-sm
+           outline-none shadow-card placeholder:text-ink/40
+           focus:ring-2 focus:ring-[#FFB800]/60;
   }
 }
 
+/* Subtle dot-grid background */
 .grid-paper {
-  background-image: linear-gradient(rgba(93, 59, 143, .05) 1px, transparent 1px), linear-gradient(90deg, rgba(93, 59, 143, .05) 1px, transparent 1px);
+  background-image:
+    linear-gradient(rgba(0,37,131,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,37,131,.05) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
+/* Donut chart colours */
 .donut {
-  background: conic-gradient(#8d5be8 0 42%, #ff97ad 42% 70%, #ffd36d 70% 84%, #7fd69c 84% 94%, #77b7ef 94% 100%);
+  background: conic-gradient(
+    #002583 0 42%,
+    #FFB800 42% 70%,
+    #4d83f5 70% 84%,
+    #7fd69c 84% 94%,
+    #7aa6ff 94% 100%
+  );
 }
 
+/* Skeleton loader */
 .skeleton {
-  background: linear-gradient(90deg, rgba(255,255,255,.55) 25%, rgba(255,255,255,.95) 50%, rgba(255,255,255,.55) 75%);
+  background: linear-gradient(90deg,
+    rgba(255,255,255,.55) 25%,
+    rgba(255,255,255,.95) 50%,
+    rgba(255,255,255,.55) 75%
+  );
   background-size: 200% 100%;
 }
 
@@ -89,7 +120,8 @@ body {
   font-size: clamp(4rem, 12vw, 9rem);
   font-weight: 900;
   letter-spacing: -0.04em;
-  color: rgba(114, 65, 197, 0.055);
+  /* Navy tint watermark */
+  color: rgba(0, 37, 131, 0.055);
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
@@ -97,34 +129,44 @@ body {
   overflow: hidden;
 }
 
-/* ── Float badge cards ──────────────────────────── */
+/* ── Floating badge cards ────────────────────────── */
 .float-badge {
   position: absolute;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255,255,255,0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255,255,255,0.75);
   border-radius: 1.25rem;
-  box-shadow: 0 12px 32px rgba(90, 65, 124, 0.14), inset 0 1px 0 rgba(255,255,255,0.9);
+  /* Gold-tinted shadow */
+  box-shadow: 0 12px 32px rgba(0,37,131,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
   padding: 0.85rem 1.1rem;
   z-index: 20;
   animation: float 5s ease-in-out infinite;
 }
 
-/* ── Dark navy CTA block ────────────────────────── */
+/* ── Dark navy CTA block ─────────────────────────── */
 .dark-cta-block {
-  background: linear-gradient(135deg, #1e1150 0%, #2d1a72 60%, #1a0e42 100%);
+  background: linear-gradient(135deg, #001754 0%, #002583 55%, #001240 100%);
   border-radius: 2.5rem;
   position: relative;
   overflow: visible;
 }
 
-/* ── Stats highlight badge ──────────────────────── */
+/* ── Stats highlight badge ───────────────────────── */
 .stats-highlight {
   display: inline-block;
-  background: linear-gradient(135deg, rgba(141, 91, 232, 0.10), rgba(141, 91, 232, 0.04));
-  border: 1.5px solid rgba(141, 91, 232, 0.22);
+  /* Gold-tinted badge */
+  background: linear-gradient(135deg, rgba(255,184,0,0.12), rgba(255,184,0,0.04));
+  border: 1.5px solid rgba(255,184,0,0.40);
   border-radius: 1.25rem;
   padding: 0.6rem 1.1rem;
 }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}

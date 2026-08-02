@@ -8,53 +8,56 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#33254f",
+        // ── Brand palette ──────────────────────────────
+        ink: "#001a5e",          // deep navy body text
+        // "lavender" slots → navy blue shades (#002583 family)
         lavender: {
-          50: "#faf7ff",
-          100: "#f1e9ff",
-          200: "#e4d5ff",
-          300: "#cbb2ff",
-          400: "#ac83f5",
-          500: "#8d5be8",
-          600: "#7241c5",
-          700: "#59329a"
+          50:  "#f0f4ff",
+          100: "#dce6ff",
+          200: "#b8cdff",
+          300: "#7aa6ff",
+          400: "#4d83f5",
+          500: "#0e4fd4",        // interactive accent
+          600: "#002583",        // ★ brand navy (primary)
+          700: "#001754",        // dark navy
         },
+        // "peach" slots → gold/amber shades (#FFB800 family)
         peach: {
-          50: "#fff8f5",
-          100: "#ffede6",
-          200: "#ffd9cc",
-          300: "#ffbca7",
-          400: "#fb9276"
+          50:  "#fffbf0",
+          100: "#fff3cc",
+          200: "#ffe799",
+          300: "#ffd44d",
+          400: "#FFB800",        // ★ brand gold
         },
-        skysoft: "#e8f2ff",
+        skysoft:  "#e8f0ff",
         mintsoft: "#e8f8ed",
-        butter: "#fff2c9"
+        butter:   "#fff8d6",
       },
       boxShadow: {
-        soft: "0 18px 45px rgba(103, 75, 151, .16)",
-        card: "0 10px 24px rgba(90, 65, 124, .12), inset 0 1px 0 rgba(255,255,255,.8)",
-        button: "0 8px 16px rgba(117, 76, 191, .25), inset 0 1px 0 rgba(255,255,255,.35)"
+        soft:   "0 18px 45px rgba(0, 37, 131, .14)",
+        card:   "0 10px 24px rgba(0, 37, 131, .10), inset 0 1px 0 rgba(255,255,255,.8)",
+        button: "0 8px 20px rgba(0, 37, 131, .30), inset 0 1px 0 rgba(255,255,255,.20)",
       },
       borderRadius: {
-        "4xl": "2rem"
+        "4xl": "2rem",
       },
       animation: {
-        float: "float 5s ease-in-out infinite",
-        shimmer: "shimmer 3s linear infinite"
+        float:   "float 5s ease-in-out infinite",
+        shimmer: "shimmer 3s linear infinite",
       },
       keyframes: {
         float: {
           "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-8px)" }
+          "50%":      { transform: "translateY(-8px)" },
         },
         shimmer: {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" }
-        }
-      }
-    }
+          "0%":   { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };
 
 export default config;

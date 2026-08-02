@@ -50,9 +50,9 @@ export default function HomePage() {
           <div className="space-y-6 text-center lg:text-left">
             <h1 className="font-sinhala text-5xl font-normal leading-tight tracking-wide md:text-6xl">
               Ôú;hg{" "}
-              <span className="text-lavender-600">úoHdj</span>
+              <span className="text-[#002583]">úoHdj</span>
             </h1>
-            <h2 className="font-nimsara text-4xl font-normal text-lavender-700">
+            <h2 className="font-nimsara text-4xl font-normal text-[#FFB800]">
               l,aydr kdlkao,
             </h2>
             <p className="max-w-sm leading-7 text-ink/60 lg:max-w-xs">
@@ -84,7 +84,7 @@ export default function HomePage() {
               style={{ top: "18%", left: "-5rem", animationDelay: "0s" }}
             >
               <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-lavender-100 text-xl">🎓</div>
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#002583]/10 text-xl">🎓</div>
                 <div>
                   <p className="text-lg font-black leading-tight text-ink">450+</p>
                   <p className="text-xs font-semibold text-ink/55">Active Students</p>
@@ -112,7 +112,7 @@ export default function HomePage() {
               style={{ top: "22%", right: "-5.5rem", animationDelay: "1.8s" }}
             >
               <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-peach-100 text-xl">📅</div>
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#FFB800]/20 text-xl">📅</div>
                 <div>
                   <p className="text-[11px] font-extrabold uppercase tracking-widest text-ink/40">Next Class</p>
                   <p className="text-sm font-black text-ink">Grade 11 · Sunday</p>
@@ -148,7 +148,7 @@ export default function HomePage() {
         <div className="relative z-10 mt-8 flex justify-center">
           <Link
             href="/timetable"
-            className="inline-flex items-center gap-2 rounded-full border-2 border-lavender-400/60 bg-white/60 px-7 py-3 text-sm font-bold text-lavender-700 shadow-card backdrop-blur-md transition hover:-translate-y-0.5 hover:border-lavender-500 hover:bg-white/80"
+            className="inline-flex items-center gap-2 rounded-full border-2 border-[#002583]/40 bg-white/70 px-7 py-3 text-sm font-bold text-[#002583] shadow-card backdrop-blur-md transition hover:-translate-y-0.5 hover:border-[#FFB800] hover:bg-white/90"
           >
             Open Class Schedule <ArrowRight size={16} />
           </Link>
@@ -164,7 +164,7 @@ export default function HomePage() {
           {/* Col 1 — Mission blurb */}
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-lavender-400 to-lavender-700 text-white shadow-button">
+              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#FFB800] text-[#002583] shadow-button">
                 <Atom size={22} />
               </div>
               <strong className="font-black text-ink">Pasindu Udana Science</strong>
@@ -179,7 +179,7 @@ export default function HomePage() {
           {/* Col 2 — Bold heading badge */}
           <div className="flex justify-center">
             <div className="stats-highlight text-center">
-              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-lavender-500">Our Promise</p>
+              <p className="text-xs font-extrabold uppercase tracking-[.18em] text-[#FFB800]">Our Promise</p>
               <p className="mt-1 text-xl font-black leading-tight text-ink">
                 CLEAR THEORY,<br />REAL RESULTS
               </p>
@@ -188,7 +188,7 @@ export default function HomePage() {
 
           {/* Col 3 — Hero stat */}
           <div className="flex flex-col items-center gap-1 lg:items-end">
-            <p className="text-6xl font-black text-lavender-600">450+</p>
+            <p className="text-6xl font-black text-[#002583]">450+</p>
             <p className="font-semibold text-ink/55">Active Students</p>
             <TextLink href="/results">VIEW STATS</TextLink>
           </div>
@@ -219,12 +219,12 @@ export default function HomePage() {
 
           {/* Left — content */}
           <div className="max-w-lg space-y-6 lg:flex-1">
-            <p className="text-sm font-extrabold uppercase tracking-[.18em] text-lavender-500">
+            <p className="text-sm font-extrabold uppercase tracking-[.18em] text-[#FFB800]">
               Why students choose this class
             </p>
             <h2 className="text-4xl font-black leading-tight tracking-tight text-ink md:text-5xl">
               A complete learning system,{" "}
-              <span className="text-lavender-600">not only a weekly lecture</span>
+              <span className="text-[#002583]">not only a weekly lecture</span>
             </h2>
             <p className="leading-7 text-ink/60">
               Every class is backed by assignments, recorded lessons, model papers
@@ -235,13 +235,13 @@ export default function HomePage() {
             {/* Feature pills */}
             <div className="flex flex-wrap gap-2">
               {["Simple explanations", "Weekly assignments", "Model papers", "Recorded lessons", "WhatsApp support", "Exam preparation"].map((f) => (
-                <span key={f} className="rounded-full border border-lavender-200 bg-lavender-50 px-3 py-1.5 text-xs font-bold text-lavender-700">{f}</span>
+                <span key={f} className="rounded-full border border-[#002583]/20 bg-[#002583]/5 px-3 py-1.5 text-xs font-bold text-[#002583]">{f}</span>
               ))}
             </div>
 
             <Link
               href="/classes"
-              className="inline-flex items-center gap-2 font-black uppercase tracking-widest text-lavender-600 transition hover:text-lavender-800"
+              className="inline-flex items-center gap-2 font-black uppercase tracking-widest text-[#002583] transition hover:text-[#FFB800]"
             >
               EXPLORE ALL CLASSES <ArrowRight size={16} />
             </Link>
@@ -258,7 +258,7 @@ export default function HomePage() {
                 height={700}
                 className="h-auto w-full object-cover"
               />
-              <div className="pointer-events-none absolute inset-0 rounded-[2rem] ring-1 ring-lavender-400/15" />
+              <div className="pointer-events-none absolute inset-0 rounded-[2rem] ring-1 ring-[#002583]/10" />
             </div>
 
             {/* Floating badge 1 — Assignment submitted */}
@@ -275,11 +275,11 @@ export default function HomePage() {
             {/* Floating badge 2 — Result improved */}
             <div className="float-badge" style={{ top: "4rem", right: "-1.5rem", animationDelay: "2.5s" }}>
               <div className="flex items-center gap-2.5">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-lavender-100 text-base">
-                  <TrendingUp size={18} className="text-lavender-600" />
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#FFB800]/15 text-base">
+                  <TrendingUp size={18} className="text-[#002583]" />
                 </div>
                 <div>
-                  <p className="text-xs font-extrabold text-lavender-700">Result Improved</p>
+                  <p className="text-xs font-extrabold text-[#002583]">Result Improved</p>
                   <p className="text-[11px] font-bold text-emerald-600">+23 marks this term</p>
                 </div>
               </div>
@@ -295,10 +295,10 @@ export default function HomePage() {
         <div className="dark-cta-block px-8 pb-14 pt-20 text-center md:px-16">
           {/* Breakout atom at top */}
           <div
-            className="absolute left-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[1.6rem] bg-gradient-to-br from-lavender-400 to-lavender-700 shadow-button"
+            className="absolute left-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[1.6rem] bg-[#FFB800] shadow-button"
             style={{ top: 0 }}
           >
-            <Atom size={38} className="text-white" />
+            <Atom size={38} className="text-[#002583]" />
           </div>
 
           {/* Content */}
@@ -318,7 +318,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/student-login"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 font-black text-lavender-700 shadow-card transition hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 rounded-full bg-[#FFB800] px-7 py-3 font-black text-[#002583] shadow-card transition hover:-translate-y-0.5"
             >
               Student Login <ArrowRight size={16} />
             </Link>
@@ -330,7 +330,7 @@ export default function HomePage() {
           F. "WHO WE SERVE" TRANSITION
       ══════════════════════════════════════════════════════════════ */}
       <section className="mx-auto max-w-7xl px-4 pt-16 text-center lg:px-8">
-        <p className="text-xs font-extrabold uppercase tracking-[.25em] text-lavender-500">Who We Serve</p>
+        <p className="text-xs font-extrabold uppercase tracking-[.25em] text-[#FFB800]">Who We Serve</p>
         <h2 className="mt-2 text-3xl font-black tracking-tight text-ink md:text-4xl">
           Structured learning for every grade
         </h2>
@@ -382,7 +382,7 @@ export default function HomePage() {
         <div className="grid gap-5 md:grid-cols-3">
           {lessons.map((l, i) => (
             <Card key={l.title} className="overflow-hidden">
-              <div className={`grid h-44 place-items-center text-7xl ${["bg-lavender-200", "bg-peach-100", "bg-butter"][i]}`}>
+              <div className={`grid h-44 place-items-center text-7xl ${["bg-[#002583]/10", "bg-[#FFB800]/20", "bg-butter"][i]}`}>
                 {l.icon}
               </div>
               <div className="p-5">
