@@ -9,7 +9,7 @@ import { studentMenu, teacherMenu } from "@/lib/mock-data";
 
 const iconMap: Record<string, ReactNode> = {
   Dashboard: <LayoutDashboard size={19}/>, "Free Lessons": <BookOpen size={19}/>, "Weekly Timetable": <CalendarDays size={19}/>,
-  "Live Classes": <Video size={19}/>, Assignments: <CheckSquare size={19}/>, Payments: <CreditCard size={19}/>,
+  "Live Classes": <Video size={19}/>, "Zoom Links": <Video size={19}/>, Assignments: <CheckSquare size={19}/>, Payments: <CreditCard size={19}/>,
   "Payment History": <WalletCards size={19}/>, Attendance: <ClipboardCheck size={19}/>, Notifications: <Bell size={19}/>,
   Profile: <UserRound size={19}/>, Settings: <Settings size={19}/>, "Today’s Classes": <CalendarDays size={19}/>,
   Students: <Users size={19}/>, "Payment Approvals": <WalletCards size={19}/>, Announcements: <Megaphone size={19}/>

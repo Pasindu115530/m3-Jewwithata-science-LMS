@@ -31,7 +31,7 @@ export const studentMenu = [
 ] as const;
 
 export const teacherMenu = [
-  ["Dashboard", "/teacher/dashboard"], ["Today’s Classes", "/teacher/classes"], ["Students", "/teacher/students"],
+  ["Dashboard", "/teacher/dashboard"], ["Today’s Classes", "/teacher/classes"], ["Zoom Links", "/teacher/zoom-links"], ["Students", "/teacher/students"],
   ["Attendance", "/teacher/attendance"], ["Weekly Timetable", "/teacher/timetable"], ["Assignments", "/teacher/assignments"],
   ["Payment Approvals", "/teacher/payments"], ["Announcements", "/teacher/announcements"], ["Profile", "/teacher/profile"],
   ["Settings", "/teacher/settings"]
