@@ -29,7 +29,7 @@ export async function createStudentService(input: StudentInput): Promise<CreateS
     // 2. Validate input with Zod
     const validationResult = studentSchema.safeParse(input);
     if (!validationResult.success) {
-      const firstError = validationResult.error.errors[0]?.message || "Invalid input data.";
+      const firstError = validationResult.error.issues[0]?.message || "Invalid input data.";
       return {
         success: false,
         error: firstError,

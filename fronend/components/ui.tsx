@@ -11,7 +11,7 @@ export function Badge({
   tone = "navy",
 }: {
   children: ReactNode;
-  tone?: "navy" | "gold" | "lavender" | "green" | "pink" | "yellow" | "blue";
+  tone?: "navy" | "gold" | "lavender" | "green" | "pink" | "yellow" | "blue" | "purple";
 }) {
   const tones: Record<string, string> = {
     navy:    "bg-[#002583]/10 text-[#002583]",
@@ -21,6 +21,7 @@ export function Badge({
     pink:    "bg-peach-100 text-rose-700",
     yellow:  "bg-butter text-amber-700",
     blue:    "bg-skysoft text-blue-700",
+    purple:  "bg-purple-100 text-purple-700",
   };
   return (
     <span className={`rounded-full px-3 py-1 text-xs font-bold ${tones[tone] ?? tones.navy}`}>
