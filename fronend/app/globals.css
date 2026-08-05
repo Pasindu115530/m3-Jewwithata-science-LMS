@@ -18,30 +18,44 @@
   font-display: swap;
 }
 
-.font-sinhala { font-family: 'SinhalaFont', sans-serif; }
-.font-nimsara { font-family: 'SinhaNimsara', sans-serif; }
+.font-sinhala {
+  font-family: 'SinhalaFont', sans-serif;
+}
+
+.font-nimsara {
+  font-family: 'SinhaNimsara', sans-serif;
+}
 
 :root {
   --background: #f0f4ff;
   --foreground: #001a5e;
 }
 
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   color: var(--foreground);
   /* Ambient gold blob top-left, navy blob top-right */
   background:
-    radial-gradient(circle at 5% 8%,  rgba(255,184,0, .20), transparent 28%),
-    radial-gradient(circle at 93% 10%, rgba(0, 37,131, .12), transparent 26%),
+    radial-gradient(circle at 5% 8%, rgba(255, 184, 0, .20), transparent 28%),
+    radial-gradient(circle at 93% 10%, rgba(0, 37, 131, .12), transparent 26%),
     linear-gradient(150deg, #f5f7ff 0%, #fffdf0 48%, #eef3ff 100%);
   min-height: 100vh;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 /* Selection: gold bg, navy text */
-::selection { background: #FFB800; color: #002583; }
+::selection {
+  background: #FFB800;
+  color: #002583;
+}
 
 @layer components {
 
@@ -49,10 +63,14 @@ body {
   .soft-panel {
     @apply rounded-4xl border border-white/70 bg-white/65 shadow-soft backdrop-blur-xl;
   }
+
   .soft-card {
     @apply rounded-[1.6rem] border border-white/80 bg-white/75 shadow-card backdrop-blur-md transition duration-300;
   }
-  .soft-card:hover { transform: translateY(-3px); }
+
+  .soft-card:hover {
+    transform: translateY(-3px);
+  }
 
   /* Pill link / ghost button */
   .pill {
@@ -61,52 +79,43 @@ body {
 
   /* Primary CTA — navy fill, gold hover glow */
   .gradient-button {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl
-           bg-[#002583] px-5 py-3 font-bold text-white shadow-button
-           transition hover:-translate-y-0.5 hover:brightness-110;
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-[#002583] px-5 py-3 font-bold text-white shadow-button transition hover:-translate-y-0.5 hover:brightness-110;
   }
 
   /* Gold accent button (for secondary CTAs) */
   .gold-button {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl
-           bg-[#FFB800] px-5 py-3 font-bold text-[#002583] shadow-button
-           transition hover:-translate-y-0.5 hover:brightness-105;
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-[#FFB800] px-5 py-3 font-bold text-[#002583] shadow-button transition hover:-translate-y-0.5 hover:brightness-105;
   }
 
   /* Form inputs */
   .pastel-input {
-    @apply w-full rounded-2xl border border-white/80 bg-white/70 px-4 py-3 text-sm
-           outline-none shadow-card placeholder:text-ink/40
-           focus:ring-2 focus:ring-[#FFB800]/60;
+    @apply w-full rounded-2xl border border-white/80 bg-white/70 px-4 py-3 text-sm outline-none shadow-card placeholder:text-ink/40 focus:ring-2 focus:ring-[#FFB800]/60;
   }
 }
 
 /* Subtle dot-grid background */
 .grid-paper {
   background-image:
-    linear-gradient(rgba(0,37,131,.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,37,131,.05) 1px, transparent 1px);
+    linear-gradient(rgba(0, 37, 131, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 37, 131, .05) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
 /* Donut chart colours */
 .donut {
-  background: conic-gradient(
-    #002583 0 42%,
-    #FFB800 42% 70%,
-    #4d83f5 70% 84%,
-    #7fd69c 84% 94%,
-    #7aa6ff 94% 100%
-  );
+  background: conic-gradient(#002583 0 42%,
+      #FFB800 42% 70%,
+      #4d83f5 70% 84%,
+      #7fd69c 84% 94%,
+      #7aa6ff 94% 100%);
 }
 
 /* Skeleton loader */
 .skeleton {
   background: linear-gradient(90deg,
-    rgba(255,255,255,.55) 25%,
-    rgba(255,255,255,.95) 50%,
-    rgba(255,255,255,.55) 75%
-  );
+      rgba(255, 255, 255, .55) 25%,
+      rgba(255, 255, 255, .95) 50%,
+      rgba(255, 255, 255, .55) 75%);
   background-size: 200% 100%;
 }
 
@@ -132,13 +141,13 @@ body {
 /* ── Floating badge cards ────────────────────────── */
 .float-badge {
   position: absolute;
-  background: rgba(255,255,255,0.88);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.75);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   border-radius: 1.25rem;
   /* Gold-tinted shadow */
-  box-shadow: 0 12px 32px rgba(0,37,131,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
+  box-shadow: 0 12px 32px rgba(0, 37, 131, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   padding: 0.85rem 1.1rem;
   z-index: 20;
   animation: float 5s ease-in-out infinite;
@@ -156,17 +165,30 @@ body {
 .stats-highlight {
   display: inline-block;
   /* Gold-tinted badge */
-  background: linear-gradient(135deg, rgba(255,184,0,0.12), rgba(255,184,0,0.04));
-  border: 1.5px solid rgba(255,184,0,0.40);
+  background: linear-gradient(135deg, rgba(255, 184, 0, 0.12), rgba(255, 184, 0, 0.04));
+  border: 1.5px solid rgba(255, 184, 0, 0.40);
   border-radius: 1.25rem;
   padding: 0.6rem 1.1rem;
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-8px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
+
 @keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }

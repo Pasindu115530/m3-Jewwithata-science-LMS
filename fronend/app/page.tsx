@@ -12,7 +12,7 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata = createMetadata(
   "Science Tuition Classes",
-  "Colourful, personal Science tuition classes by Pasindu Udana for theory, revision, paper practice and online learning.",
+  "Colourful, personal Science tuition classes by Kalhara Nakandala for theory, revision, paper practice and online learning.",
   "/"
 );
 
@@ -93,10 +93,10 @@ export default function HomePage() {
             </div>
 
             {/* Hero image */}
-            <div className="relative w-80 overflow-hidden rounded-[2.5rem] shadow-soft md:w-[26rem] lg:w-[32rem]">
+            <div className="relative w-80 overflow-hidden rounded-[2.5rem] md:w-[26rem] lg:w-[32rem]">
               <Image
                 src="/images/bg/hero-bg.png"
-                alt="Pasindu Udana Science Academy"
+                alt="Kalhara Nakandala Science Academy"
                 width={1000}
                 height={1100}
                 priority
@@ -167,7 +167,7 @@ export default function HomePage() {
               <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#FFB800] text-[#002583] shadow-button">
                 <Atom size={22} />
               </div>
-              <strong className="font-black text-ink">Pasindu Udana Science</strong>
+              <strong className="font-black text-ink">Kalhara Nakandala Science</strong>
             </div>
             <p className="max-w-xs text-sm leading-6 text-ink/60">
               Personal, structured Science education for O/L students — combining
@@ -303,7 +303,7 @@ export default function HomePage() {
 
           {/* Content */}
           <h2 className="text-3xl font-black leading-tight text-white md:text-5xl">
-            Join Pasindu Udana&apos;s<br />Science class today.
+            Join Kalhara Nakandala&apos;s<br />Science class today.
           </h2>
           <p className="mx-auto mt-5 max-w-lg leading-7 text-white/60">
             View the timetable, ask about available seats and choose a physical or
@@ -391,7 +391,7 @@ export default function HomePage() {
                   <Badge tone="blue">{l.duration}</Badge>
                 </div>
                 <h3 className="mt-4 text-xl font-black">{l.title}</h3>
-                <p className="mt-1 text-sm text-ink/50">{l.topic} with Pasindu Udana</p>
+                <p className="mt-1 text-sm text-ink/50">{l.topic} with Kalhara Nakandala</p>
                 <Link href="/free-lessons" className="gradient-button mt-5 w-full rounded-full">
                   <Play size={16} /> Watch free
                 </Link>
