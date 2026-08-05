@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LockKeyhole, Mail, Loader2 } from "lucide-react";
+import { LockKeyhole, Mail, Loader2, Eye, EyeOff } from "lucide-react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Brand } from "@/components/brand";
@@ -11,6 +11,7 @@ import { Brand } from "@/components/brand";
 export default function TeacherLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -25,7 +26,11 @@ export default function TeacherLoginPage() {
       router.push("/teacher/dashboard");
     } catch (err: any) {
       console.error("Login error:", err);
-      if (err.code === "auth/invalid-credential" || err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+      if (
+        err.code === "auth/invalid-credential" ||
+        err.code === "auth/user-not-found" ||
+        err.code === "auth/wrong-password"
+      ) {
         setError("Invalid email or password.");
       } else if (err.code === "auth/too-many-requests") {
         setError("Too many failed attempts. Please try again later.");
@@ -81,13 +86,21 @@ export default function TeacherLoginPage() {
               <div className="relative mt-2">
                 <LockKeyhole className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" size={18} />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pastel-input pl-11"
+                  className="pastel-input pl-11 pr-11"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink/75"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </label>
             <button
