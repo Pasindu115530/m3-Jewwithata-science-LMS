@@ -16,6 +16,8 @@ export const metadata = createMetadata(
   "/"
 );
 
+import { LiquidStatRectCard } from "@/components/liquid-hero-card";
+
 export default function HomePage() {
   const schema = {
     "@context": "https://schema.org",
@@ -33,7 +35,7 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════════════
           A. HERO — layered, watermark, floating badges
       ══════════════════════════════════════════════════════════════ */}
-      <section className="relative mx-auto max-w-7xl overflow-visible px-4 pb-4 pt-10 lg:px-8">
+      <section className="relative mx-auto max-w-7xl overflow-visible px-4 pb-0 pt-10 lg:px-8">
         {/* Ambient blobs */}
         <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-lavender-300/25 blur-3xl" />
         <div className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full bg-peach-200/30 blur-3xl" />
@@ -45,8 +47,6 @@ export default function HomePage() {
             <span>KALHARA NAKANDALA • SCIENCE ACADEMY • </span>
           </div>
         </div>
-
-
 
         {/* ── Main 3-column hero grid ── */}
         <div className="relative z-10 mt-8 grid items-center gap-6 lg:grid-cols-[1fr_auto_1fr]">
@@ -70,95 +70,112 @@ export default function HomePage() {
               <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-emerald-500" /> Sinhala &amp; English</span>
               <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-emerald-500" /> Physical + Zoom</span>
             </div>
-            {/* CTAs */}
-            <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
-              <Link href="/timetable" className="gradient-button rounded-full px-6">
-                <CalendarDays size={17} /> View Schedule
-              </Link>
-              <Link href="/free-lessons" className="pill">
-                <Play size={16} /> Free Lessons
-              </Link>
-            </div>
           </div>
 
-          {/* Centre image — the anchor */}
+          {/* Centre image — Previous View restored */}
           <div className="relative flex justify-center">
-            {/* Floating LEFT badge — student count */}
-            <div
-              className="float-badge hidden lg:block"
-              style={{ top: "18%", left: "-5rem", animationDelay: "0s" }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#002583]/10 text-xl">🎓</div>
-                <div>
-                  <p className="text-lg font-black leading-tight text-ink">450+</p>
-                  <p className="text-xs font-semibold text-ink/55">Active Students</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Hero image */}
-            <div className="relative w-80 overflow-hidden rounded-[2.5rem] md:w-[26rem] lg:w-[32rem]">
+            {/* Hero image — bottom-anchored view */}
+            <div className="relative w-80 overflow-hidden rounded-[2.5rem] md:w-[28rem] lg:w-[32rem]" style={{ height: "560px" }}>
               <Image
                 src="/images/bg/hero-bg.png"
                 alt="Kalhara Nakandala Science Academy"
                 width={1000}
                 height={1100}
                 priority
-                className="h-auto w-full scale-135 transform object-cover transition-transform duration-900"
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700"
+                style={{ objectPosition: "center 50%" }}
               />
               {/* Inner glow overlay */}
               <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] ring-1 ring-lavender-400/20" />
             </div>
-
-            {/* Floating RIGHT badge — next class */}
-            <div
-              className="float-badge hidden lg:block"
-              style={{ top: "22%", right: "-5.5rem", animationDelay: "1.8s" }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#FFB800]/20 text-xl">📅</div>
-                <div>
-                  <p className="text-[11px] font-extrabold uppercase tracking-widest text-ink/40">Next Class</p>
-                  <p className="text-sm font-black text-ink">Grade 11 · Sunday</p>
-                  <p className="text-xs font-semibold text-ink/55">1:30 PM – 4:30 PM</p>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Right stat cards column */}
-          <div className="flex flex-col items-center gap-4 lg:items-end">
-            <div className="soft-card flex items-center gap-3 p-4">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-mintsoft text-xl">📈</div>
-              <div>
-                <p className="text-xl font-black text-emerald-600">90%</p>
-                <p className="text-xs font-semibold text-ink/55">Improved results</p>
-              </div>
-            </div>
-            <div className="soft-card flex items-center gap-3 p-4">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-butter text-xl">🏆</div>
-              <div>
-                <p className="text-xl font-black text-amber-600">8+</p>
-                <p className="text-xs font-semibold text-ink/55">Years teaching</p>
-              </div>
-            </div>
-            <Link href="/contact" className="pill mt-1 text-sm">
+          {/* Right column — Liquid Glass Stat Rectangular Cards stacked one down one */}
+          <div className="flex flex-col items-center gap-3.5 lg:items-end">
+            <LiquidStatRectCard
+              icon="🎓"
+              title="450+"
+              subtitle="Active Students"
+              variant="gold"
+            />
+            <LiquidStatRectCard
+              icon="📅"
+              title="Next Class"
+              subtitle="Grade 11 · Sunday"
+              variant="navy"
+            />
+            <LiquidStatRectCard
+              icon="📈"
+              title="90%"
+              subtitle="Improved Results"
+              variant="white"
+            />
+            <LiquidStatRectCard
+              icon="🏆"
+              title="8+ Years"
+              subtitle="Teaching Science"
+              variant="gold"
+            />
+            <Link href="/contact" className="pill mt-1 w-full max-w-[260px] justify-center text-sm">
               <MessageCircle size={16} /> WhatsApp Sir
             </Link>
           </div>
         </div>
+      </section>
 
-        {/* Bottom pill CTA — centred under the hero image */}
-        <div className="relative z-10 mt-8 flex justify-center">
+      {/* ── Hero horizon CTA bar ── */}
+      <div className="relative w-full overflow-hidden" aria-label="Quick actions">
+        {/* Top glow edge */}
+        <div
+          className="absolute inset-x-0 top-0 h-[2px]"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent 0%, #1a3fa8 15%, #4B7FFF 50%, #1a3fa8 85%, transparent 100%)",
+            boxShadow: "0 0 12px 2px rgba(75,127,255,0.45)",
+          }}
+        />
+
+        {/* Bold navy bar body */}
+        <div
+          className="flex items-center justify-center gap-4 px-6 py-5 sm:gap-6 sm:px-10"
+          style={{
+            background:
+              "linear-gradient(135deg, #001d6e 0%, #002583 40%, #003199 70%, #001d6e 100%)",
+          }}
+        >
+
+          {/* Buttons */}
           <Link
             href="/timetable"
-            className="inline-flex items-center gap-2 rounded-full border-2 border-[#002583]/40 bg-white/70 px-7 py-3 text-sm font-bold text-[#002583] shadow-card backdrop-blur-md transition hover:-translate-y-0.5 hover:border-[#FFB800] hover:bg-white/90"
+            className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:brightness-110"
+            style={{
+              background: "linear-gradient(135deg, #FFB800 0%, #d69600 100%)",
+              color: "#002583",
+              boxShadow: "0 4px 16px rgba(255,184,0,0.35)",
+            }}
           >
-            Open Class Schedule <ArrowRight size={16} />
+            <CalendarDays size={16} /> View Schedule
           </Link>
+
+          <Link
+            href="/free-lessons"
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white/20"
+          >
+            <Play size={16} /> Free Lessons
+          </Link>
+
         </div>
-      </section>
+
+        {/* Bottom glow edge */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-[2px]"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent 0%, #1a3fa8 15%, #4B7FFF 50%, #1a3fa8 85%, transparent 100%)",
+            boxShadow: "0 0 12px 2px rgba(75,127,255,0.45)",
+          }}
+        />
+      </div>
 
       {/* ══════════════════════════════════════════════════════════════
           C. STATS & TRUST INDICATORS BAR — 3-column
