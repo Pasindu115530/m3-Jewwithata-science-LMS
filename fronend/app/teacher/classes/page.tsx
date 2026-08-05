@@ -7,6 +7,7 @@ import {
   getDocs, 
   deleteDoc, 
   doc, 
+  updateDoc,
   serverTimestamp, 
   query, 
   orderBy 
@@ -16,6 +17,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { Card, Badge } from "@/components/ui";
 import { 
   Plus, 
+  Pencil,
   Trash2, 
   Clock, 
   MapPin, 
@@ -43,6 +45,7 @@ export default function TeacherClassesPage() {
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingClassId, setEditingClassId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,14 +92,45 @@ export default function TeacherClassesPage() {
     fetchClasses();
   }, []);
 
-  // Add new class
-  const handleCreateClass = async (e: React.FormEvent) => {
+  const openCreateModal = () => {
+    setEditingClassId(null);
+    setTitle("");
+    setGrade("Grade 10");
+    setType("Theory");
+    setMode("Online (Zoom)");
+    setLocation("Nugegoda");
+    setDayOfWeek("Saturday");
+    setStartTime("08:30");
+    setEndTime("10:30");
+    setFee(3000);
+    setError(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (c: ClassItem) => {
+    if (!c.id) return;
+    setEditingClassId(c.id);
+    setTitle(c.title);
+    setGrade(c.grade);
+    setType(c.type);
+    setMode(c.mode);
+    setLocation(c.location || "Nugegoda");
+    setDayOfWeek(c.dayOfWeek);
+    setStartTime(c.startTime);
+    setEndTime(c.endTime);
+    setFee(c.fee);
+    setError(null);
+    setIsModalOpen(true);
+  };
+
+  // Add or Update class
+  const handleSaveClass = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
 
     try {
-      const newClass: Omit<ClassItem, "id"> = {
+      const classData = {
         title,
         grade,
         type,
@@ -106,17 +140,22 @@ export default function TeacherClassesPage() {
         startTime,
         endTime,
         fee: Number(fee),
-        createdAt: serverTimestamp(),
       };
 
-      await addDoc(collection(db, "classes"), newClass);
-      
-      setTitle("");
+      if (editingClassId) {
+        await updateDoc(doc(db, "classes", editingClassId), classData);
+      } else {
+        await addDoc(collection(db, "classes"), {
+          ...classData,
+          createdAt: serverTimestamp(),
+        });
+      }
+
       setIsModalOpen(false);
       await fetchClasses();
     } catch (err: any) {
-      console.error("Error creating class:", err);
-      setError("Failed to create class. Please try again.");
+      console.error("Error saving class:", err);
+      setError("Failed to save class. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -148,7 +187,7 @@ export default function TeacherClassesPage() {
           </p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={openCreateModal}
           className="gradient-button flex items-center gap-2"
         >
           <Plus size={18} /> Add New Class
@@ -183,13 +222,22 @@ export default function TeacherClassesPage() {
                       {c.type}
                     </Badge>
                   </div>
-                  <button
-                    onClick={() => c.id && handleDeleteClass(c.id)}
-                    className="rounded-lg p-1.5 text-ink/35 transition hover:bg-red-50 hover:text-red-600"
-                    title="Delete Class"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openEditModal(c)}
+                      className="rounded-lg p-1.5 text-ink/35 transition hover:bg-lavender-100 hover:text-lavender-700"
+                      title="Edit Class"
+                    >
+                      <Pencil size={17} />
+                    </button>
+                    <button
+                      onClick={() => c.id && handleDeleteClass(c.id)}
+                      className="rounded-lg p-1.5 text-ink/35 transition hover:bg-red-50 hover:text-red-600"
+                      title="Delete Class"
+                    >
+                      <Trash2 size={17} />
+                    </button>
+                  </div>
                 </div>
 
                 <h2 className="mt-4 text-xl font-black">{c.title}</h2>
@@ -222,12 +270,14 @@ export default function TeacherClassesPage() {
         </div>
       )}
 
-      {/* Add Class Modal */}
+      {/* Add / Edit Class Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 backdrop-blur-sm">
           <div className="soft-panel w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 md:p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl">
             <div className="flex items-center justify-between border-b pb-4">
-              <h2 className="text-2xl font-black">Create New Class</h2>
+              <h2 className="text-2xl font-black">
+                {editingClassId ? "Edit Class" : "Create New Class"}
+              </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="rounded-full p-2 text-ink/40 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -236,7 +286,7 @@ export default function TeacherClassesPage() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateClass} className="mt-6 space-y-4">
+            <form onSubmit={handleSaveClass} className="mt-6 space-y-4">
               {error && (
                 <div className="rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-600">
                   {error}
@@ -380,7 +430,13 @@ export default function TeacherClassesPage() {
                   disabled={submitting}
                   className="gradient-button flex-1 justify-center"
                 >
-                  {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save Class"}
+                  {submitting ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : editingClassId ? (
+                    "Update Class"
+                  ) : (
+                    "Save Class"
+                  )}
                 </button>
               </div>
             </form>
