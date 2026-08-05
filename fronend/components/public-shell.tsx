@@ -1,46 +1,72 @@
+"use client";
+
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Menu, Sparkles } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { ArrowUpRight, Atom, Menu, Sparkles } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { siteConfig } from "@/lib/site";
 
 const links = [
-  ["Home", "/"], ["About Sir", "/about-sir"], ["Classes", "/classes"], ["Free Lessons", "/free-lessons"],
-  ["Gallery", "/gallery"], ["Timetable", "/timetable"], ["Results", "/results"], ["Announcements", "/announcements"], ["Contact", "/contact"]
+  ["Home", "/"],
+  ["Time Table", "/timetable"],
+  ["Classes", "/classes"],
+  ["Student Login", "/student-login"],
 ] as const;
 
 export function PublicHeader() {
+  const pathname = usePathname();
+
   return (
-    <header className="sticky top-0 z-40 border-b border-[#002583]/10 bg-white/80 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 lg:px-8">
-        <Brand />
-        <nav className="hidden items-center gap-5 text-sm font-bold text-ink/70 xl:flex">
-          {links.map(([label, href]) => (
-            <Link key={href} href={href} className="transition hover:text-[#002583]">
-              {label}
-            </Link>
-          ))}
+    <header className="sticky top-4 z-50 flex w-full justify-center px-4">
+      {/* ── Floating Capsule Glass Navbar (Reference Image Style) ── */}
+      <div className="flex items-center gap-1 rounded-full border border-[#002583]/20 bg-white/80 p-1.5 shadow-[0_10px_35px_rgba(0,37,131,0.15)] backdrop-blur-2xl transition-all duration-300 hover:border-[#002583]/35 sm:gap-2">
+
+        {/* Far Left: Atom Brand Icon Capsule */}
+        <Link
+          href="/"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#002583] text-[#FFB800] shadow-sm transition hover:scale-105"
+          title="Kalhara Nakandala Science Academy"
+        >
+          <Atom size={19} className="animate-spin-slow" />
+        </Link>
+
+        {/* Center Links (Desktop) */}
+        <nav className="hidden items-center gap-1 text-xs font-bold sm:flex md:text-sm">
+          {links.map(([label, href]) => {
+            const isActive = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`rounded-full px-4 py-2 transition-all duration-200 ${
+                  isActive
+                    ? "border border-[#002583]/30 bg-[#002583] text-white shadow-sm"
+                    : "text-ink/75 hover:bg-[#002583]/10 hover:text-[#002583]"
+                }`}
+              >
+                {label}
+              </Link>
+            );
+          })}
         </nav>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/student-login"
-            className="hidden rounded-2xl border border-[#002583]/20 bg-white px-4 py-2 text-sm font-bold text-[#002583] shadow-card sm:block"
-          >
-            Student Login
-          </Link>
-          <Link
-            href="/classes"
-            className="gradient-button hidden rounded-full px-6 py-2.5 sm:inline-flex"
-          >
-            <Sparkles size={17} /> Join Class
-          </Link>
-          <button
-            aria-label="Open menu"
-            className="grid h-11 w-11 place-items-center rounded-2xl bg-white shadow-card xl:hidden"
-          >
-            <Menu size={20} />
-          </button>
-        </div>
+
+        {/* Far Right: "Join Class ↗" Capsule Button */}
+        <Link
+          href="/classes"
+          className="inline-flex items-center gap-1.5 rounded-full border border-[#FFB800]/50 bg-[#002583] px-4 py-2 text-xs font-extrabold text-white shadow-button transition duration-200 hover:-translate-y-0.5 hover:bg-[#001d66] hover:shadow-lg sm:px-5 sm:text-sm"
+        >
+          <span>Join Class</span>
+          <ArrowUpRight size={16} className="text-[#FFB800]" />
+        </Link>
+
+        {/* Mobile Toggle Button */}
+        <button
+          aria-label="Open menu"
+          className="grid h-9 w-9 place-items-center rounded-full bg-[#002583]/10 text-[#002583] transition hover:bg-[#002583]/20 sm:hidden"
+        >
+          <Menu size={18} />
+        </button>
       </div>
     </header>
   );

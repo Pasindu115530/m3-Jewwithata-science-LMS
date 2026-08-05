@@ -38,8 +38,13 @@ export default function HomePage() {
         <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-lavender-300/25 blur-3xl" />
         <div className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full bg-peach-200/30 blur-3xl" />
 
-        {/* Watermark brand text */}
-        <div className="hero-watermark">KALHARA NAKANDALA</div>
+        {/* Watermark brand text — endless loop track */}
+        <div className="hero-watermark">
+          <div className="hero-watermark-track">
+            <span>KALHARA NAKANDALA • SCIENCE ACADEMY • </span>
+            <span>KALHARA NAKANDALA • SCIENCE ACADEMY • </span>
+          </div>
+        </div>
 
 
 
@@ -48,11 +53,11 @@ export default function HomePage() {
 
           {/* Left content column */}
           <div className="space-y-6 text-center lg:text-left">
-            <h1 className="font-sinhala text-5xl font-normal leading-tight tracking-wide md:text-6xl">
+            <h1 className="font-sinhala text-6xl font-normal leading-tight tracking-wide md:text-8xl">
               Ôú;hg{" "}
               <span className="text-[#002583]">úoHdj</span>
             </h1>
-            <h2 className="font-nimsara text-4xl font-normal text-[#FFB800]">
+            <h2 className="font-nimsara text-5xl font-normal text-[#FFB800]">
               l,aydr kdlkao,
             </h2>
             <p className="max-w-sm leading-7 text-ink/60 lg:max-w-xs">

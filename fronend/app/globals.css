@@ -119,23 +119,40 @@ body {
   background-size: 200% 100%;
 }
 
-/* ── Hero watermark ─────────────────────────────── */
+@keyframes marquee-loop {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ── Hero watermark continuous loop ─────────────────────────── */
 .hero-watermark {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(4rem, 12vw, 9rem);
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  /* Navy tint watermark */
-  color: rgba(0, 37, 131, 0.055);
+  top: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
   z-index: 0;
-  overflow: hidden;
+}
+
+.hero-watermark-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-loop 28s linear infinite;
+  font-size: clamp(4rem, 10vw, 8.5rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: rgba(0, 37, 131, 0.055);
+}
+
+.hero-watermark-track span {
+  padding-right: 2rem;
 }
 
 /* ── Floating badge cards ────────────────────────── */
@@ -151,6 +168,10 @@ body {
   padding: 0.85rem 1.1rem;
   z-index: 20;
   animation: float 5s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: sci-spin-slow 12s linear infinite;
 }
 
 /* ── Dark navy CTA block ─────────────────────────── */
