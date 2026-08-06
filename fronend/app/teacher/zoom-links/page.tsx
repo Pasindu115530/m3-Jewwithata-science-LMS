@@ -107,11 +107,14 @@ export default function ZoomLinksPage() {
     return new Date().getTime() < new Date(item.zoomUrlExpiry).getTime();
   };
 
+  const [isPublished, setIsPublished] = useState(true);
+
   // Open modal to add or edit Zoom link
-  const openZoomModal = (c: ClassItem) => {
+  const openZoomModal = (c: ClassItem & { isPublished?: boolean }) => {
     setSelectedClass(c);
     setZoomUrl(c.zoomUrl && isZoomLinkActive(c) ? c.zoomUrl : "");
     setZoomPasscode(c.zoomPasscode || "");
+    setIsPublished(c.isPublished !== false);
     setError(null);
     setIsModalOpen(true);
   };
@@ -132,6 +135,7 @@ export default function ZoomLinksPage() {
       await updateDoc(doc(db, "classes", selectedClass.id), {
         zoomUrl,
         zoomPasscode,
+        isPublished,
         zoomUrlExpiry: expiryDate.toISOString(),
       });
 
@@ -380,6 +384,19 @@ export default function ZoomLinksPage() {
                   placeholder="e.g. 123456"
                   className="pastel-input mt-1.5"
                 />
+              </div>
+
+              <div className="flex items-center gap-3 rounded-2xl bg-lavender-50 p-3 border border-lavender-200">
+                <input
+                  type="checkbox"
+                  id="isPublishedCheck"
+                  checked={isPublished}
+                  onChange={(e) => setIsPublished(e.target.checked)}
+                  className="h-4 w-4 rounded text-lavender-600 focus:ring-lavender-500"
+                />
+                <label htmlFor="isPublishedCheck" className="text-xs font-extrabold text-ink cursor-pointer">
+                  Publish Live Session for Enrolled Students
+                </label>
               </div>
 
               <div className="rounded-xl bg-amber-50 p-3 text-xs font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">

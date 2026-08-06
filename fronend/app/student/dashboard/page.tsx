@@ -1,7 +1,14 @@
-import { BookOpen, CalendarCheck, CheckSquare, CreditCard } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard-shell";
-import { ActivityList, BarChartCard, DonutCard, StatCard, WelcomeBanner } from "@/components/dashboard-widgets";
-import { Card, Badge } from "@/components/ui";
-import { dashboardMetadata } from "@/lib/metadata";
-export const metadata = dashboardMetadata;
-export default function Page(){return <DashboardShell role="student" active="Dashboard"><WelcomeBanner/><div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><StatCard icon={<CalendarCheck/>} label="Attendance" value="92%" note="+3% this month"/><StatCard icon={<CheckSquare/>} label="Pending assignments" value="3" note="1 due tomorrow" tone="pink"/><StatCard icon={<BookOpen/>} label="Completed lessons" value="34" note="+6 this month" tone="yellow"/><StatCard icon={<CreditCard/>} label="July payment" value="Paid" note="Approved 04 Jul" tone="blue"/></div><div className="mt-5 grid gap-5 xl:grid-cols-[1.35fr_.65fr]"><BarChartCard/><DonutCard/></div><div className="mt-5 grid gap-5 xl:grid-cols-[1fr_1fr]"><ActivityList/><Card className="overflow-hidden"><div className="grid min-h-52 place-items-center bg-gradient-to-br from-[#d8c4ff] to-[#ffc9bc] p-6 text-center"><div><div className="text-6xl">🔭</div><Badge tone="pink">Next class</Badge><h2 className="mt-3 text-2xl font-black">Grade 10 O/L Science</h2><p className="mt-2 text-sm text-ink/55">Saturday • 8:30 AM • Maharagama</p><button className="gradient-button mt-5">View class details</button></div></div></Card></div><div className="mt-5 rounded-[2rem] bg-gradient-to-r from-lavender-500 to-lavender-700 p-6 text-white shadow-soft"><div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center"><div><p className="text-sm font-bold text-white/70">Weekly goal</p><h2 className="mt-1 text-2xl font-black">Complete two more lessons ⭐</h2><p className="mt-1 text-sm text-white/70">You are 78% of the way there.</p></div><button className="rounded-2xl bg-white px-5 py-3 font-black text-lavender-700">Explore lessons</button></div></div></DashboardShell>}
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+export default function StudentDashboardPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/student/courses");
+  }, [router]);
+
+  return null;
+}
