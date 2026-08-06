@@ -164,3 +164,5 @@ export const teacherMenu = [
   ["Payment Approvals", "/teacher/payments"], ["Announcements", "/teacher/announcements"], ["Profile", "/teacher/profile"],
   ["Settings", "/teacher/settings"]
 ] as const;
+
+
