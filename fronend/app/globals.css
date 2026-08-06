@@ -19,6 +19,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: '4UMalith';
+  src: url('/4u-malith.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 .font-sinhala {
   font-family: 'SinhalaFont', sans-serif;
 }
@@ -26,6 +34,11 @@
 .font-nimsara {
   font-family: 'SinhaNimsara', sans-serif;
 }
+
+.font-malith {
+  font-family: '4UMalith', sans-serif;
+}
+
 
 :root {
   --background: #f0f4ff;

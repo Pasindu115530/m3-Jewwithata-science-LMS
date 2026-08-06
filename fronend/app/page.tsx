@@ -74,13 +74,12 @@ export default function HomePage() {
               Ôú;hg{" "}
               <span className="text-[#002583]">úoHdj</span>
             </h1>
+            <p className="font-malith max-w-sm leading-7 text-xl text-ink/60 lg:max-w-xs">
+              bf.kSu hkq úNd.hla iu;aùu muKla fkdj" oekqu" úYajdih iy ksjerÈ Ñka;kh f.dvke.Suhs¡ ta .ufka úYajdikSh uÕfmkajkakd ùug wms lemù isáuq¡
+            </p>
             <h2 className="font-nimsara text-5xl font-normal text-[#FFB800]">
               l,aydr kdlkao,
             </h2>
-            <p className="max-w-sm leading-7 text-ink/60 lg:max-w-xs">
-              Join Kalhara Nakandala for clear theory, revision, paper practice,
-              assignments and personal progress monitoring.
-            </p>
             {/* Trust chips */}
             <div className="flex flex-wrap justify-center gap-3 text-sm font-bold text-ink/55 lg:justify-start">
               <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-emerald-500" /> Grades 8–11</span>
@@ -302,7 +301,7 @@ export default function HomePage() {
             {/* Main image */}
             <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] shadow-soft">
               <Image
-                src="/images/bg/hero-bg.png"
+                src="/images/bg/profileinfo.JPEG"
                 alt="Science learning in action"
                 width={800}
                 height={700}
@@ -394,28 +393,72 @@ export default function HomePage() {
           CLASSES GRID
       ══════════════════════════════════════════════════════════════ */}
       <section className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {classes.map((c, i) => (
-            <Card key={c.title + c.grade} className="p-6">
-              <div className="flex items-center justify-between">
-                <Badge tone={i % 2 ? "pink" : "lavender"}>{c.grade}</Badge>
-                <Badge tone={c.mode === "Online" ? "blue" : "green"}>{c.mode}</Badge>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {classes.map((c) => (
+            <Card
+              key={c.grade + c.title}
+              className="group relative flex flex-col overflow-hidden rounded-[1.75rem] border border-white/80 bg-white/75 p-0 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:border-white hover:bg-white/90 hover:shadow-[0_20px_40px_rgba(0,37,131,0.12)]"
+            >
+              {c.titleImage && (
+                <div className="relative w-full overflow-hidden">
+                  <Image
+                    src={c.titleImage}
+                    alt={c.fullTitle || c.title}
+                    width={600}
+                    height={340}
+                    className="h-auto w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                  />
+                </div>
+              )}
+              <div className="flex flex-1 flex-col p-5">
+                <h3 className="mb-4 text-base font-extrabold tracking-tight text-zinc-900">
+                  {c.fullTitle || `${c.grade} (${c.title})`}
+                </h3>
+                {c.paperClass && (
+                  <div className="mb-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/60 p-3.5 backdrop-blur-md">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                        <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                        {c.paperClass.name}
+                      </span>
+                      <span className="rounded-full bg-emerald-100/80 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
+                        {c.paperClass.status}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs font-medium text-zinc-700">
+                      {c.paperClass.schedule}
+                    </p>
+                  </div>
+                )}
+                {c.theoryClass && (
+                  <div className="mb-4 rounded-2xl border border-dashed border-zinc-200 bg-white/60 p-3.5 backdrop-blur-md">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500">
+                        <span className="inline-block h-2 w-2 rounded-full bg-zinc-400" />
+                        {c.theoryClass.name}
+                      </span>
+                      <span className="rounded-full bg-zinc-200/70 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-600">
+                        {c.theoryClass.status}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs font-normal leading-relaxed text-zinc-500">
+                      {c.theoryClass.note}
+                    </p>
+                  </div>
+                )}
+                <div className="mt-auto flex flex-wrap gap-2.5 pt-2">
+                  <Link href="/contact" className="gradient-button flex-1 py-2.5 text-xs">
+                    Enrol now
+                  </Link>
+                  <Link href="/contact" className="pill px-3 py-2 text-xs">
+                    <MessageCircle size={15} /> WhatsApp
+                  </Link>
+                </div>
               </div>
-              <div className="mt-5 text-4xl">{["🔭", "🧠", "🧪", "📝"][i]}</div>
-              <h3 className="mt-4 text-xl font-black">{c.title}</h3>
-              <div className="mt-4 space-y-2 text-sm text-ink/60">
-                <p><strong className="text-ink">{c.day}</strong> • {c.time}</p>
-                <p>{c.location}</p>
-                <p>{c.fee} / month</p>
-                <p>{c.seats} seats remaining</p>
-              </div>
-              <Link href="/contact" className="gradient-button mt-5 w-full rounded-full">
-                Enrol now <ArrowRight size={17} />
-              </Link>
             </Card>
           ))}
         </div>
-        <div className="mt-6">
+        <div className="mt-8 text-center">
           <TextLink href="/classes">View every class</TextLink>
         </div>
       </section>

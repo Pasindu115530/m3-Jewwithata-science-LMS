@@ -103,11 +103,11 @@ function Card({ item, dimmed, onHoverStart, onHoverEnd }: CardProps) {
         opacity: dimmed ? 0.55 : 1,
       }}
       className={cn(
-        "group relative flex flex-col items-center text-center gap-3 overflow-hidden rounded-2xl border p-5 cursor-pointer select-none",
-        "border-zinc-200/80 bg-white/90 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.04)]",
-        "dark:border-white/10 dark:bg-white/5 dark:shadow-none",
-        "transition-[border-color,shadow] duration-300",
-        "hover:border-zinc-300 hover:shadow-xl dark:hover:border-white/20"
+        "group relative flex flex-col items-center text-center gap-3 overflow-hidden rounded-2xl border-2 p-5 cursor-pointer select-none",
+        "bg-white/90 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.04)]",
+        "dark:bg-white/5 dark:shadow-none",
+        "transition-all duration-300",
+        "hover:shadow-xl hover:scale-[1.02]"
       )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -117,6 +117,7 @@ function Card({ item, dimmed, onHoverStart, onHoverEnd }: CardProps) {
         rotateX,
         rotateY,
         transformPerspective: 900,
+        borderColor: `${item.color}40`,
       }}
       transition={{ duration: 0.18, ease: "easeOut" }}
     >
