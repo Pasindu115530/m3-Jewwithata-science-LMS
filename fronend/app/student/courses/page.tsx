@@ -150,8 +150,11 @@ export default function StudentCoursesPage() {
           });
 
           // Separate into Enrolled and Available
-          const enrolledList = matchingGradeClasses.filter((c) => enrolled.includes(c.id));
-          const availableList = matchingGradeClasses.filter((c) => !enrolled.includes(c.id));
+          // Matches if course ID is in enrolled list OR mock ID grade matches enrolled course
+          const enrolledList = allGradeClasses.filter((c) => 
+            enrolled.includes(c.id) || enrolled.some((eId) => eId.includes(c.grade.toLowerCase().replace(/\s+/g, "")))
+          );
+          const availableList = matchingGradeClasses.filter((c) => !enrolledList.some((e) => e.id === c.id));
 
           setEnrolledCourses(enrolledList);
           setAvailableCourses(availableList);
