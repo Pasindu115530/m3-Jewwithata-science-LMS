@@ -4,14 +4,15 @@ import { useState, useEffect } from "react";
 import { 
   collection, 
   getDocs, 
-  doc, 
-  updateDoc,
-  query, 
-  orderBy 
+  deleteDoc,
+  doc
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { db, app } from "@/lib/firebase";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { TeacherGuard } from "@/components/teacher-guard";
 import { Card, Badge } from "@/components/ui";
+import { EmptyState } from "@/components/empty-state";
 import { 
   Video, 
   Loader2, 
@@ -21,408 +22,466 @@ import {
   Plus,
   X,
   Play,
-  CheckCircle2
+  CheckCircle2,
+  Trash2,
+  Users,
+  Copy,
+  Check
 } from "lucide-react";
 
 export interface ClassItem {
-  id?: string;
+  id: string;
   title: string;
   grade: string;
-  type: "Theory" | "Paper" | "Revision";
-  mode: "Online (Zoom)" | "Physical";
-  location?: string;
-  dayOfWeek: string;
+  type?: string;
+  mode?: string;
+}
+
+export interface LiveClassItem {
+  id: string;
+  classId: string;
+  zoomMeetingId: string;
+  meetingUUID: string;
+  joinUrl: string;
+  startUrl: string;
+  passcode: string;
+  topic: string;
+  courseId: string;
+  courseTitle: string;
+  grade: string;
   startTime: string;
-  endTime: string;
-  fee: number;
-  zoomUrl?: string;
-  zoomPasscode?: string;
-  zoomUrlExpiry?: string; // ISO date string when link expires
+  durationMinutes: number;
+  description?: string;
+  status: "scheduled" | "active" | "completed";
+  attendanceProcessed: boolean;
   createdAt?: any;
 }
 
-const DAY_ORDER: Record<string, number> = {
-  Sunday: 0,
-  Monday: 1,
-  Tuesday: 2,
-  Wednesday: 3,
-  Thursday: 4,
-  Friday: 5,
-  Saturday: 6,
-};
-
 export default function ZoomLinksPage() {
-  const [classes, setClasses] = useState<ClassItem[]>([]);
+  const [courses, setCourses] = useState<ClassItem[]>([]);
+  const [liveClasses, setLiveClasses] = useState<LiveClassItem[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Modal state for adding/updating Zoom link to a specific class
-  const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
+
+  // Create Meeting Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Zoom form states
-  const [zoomUrl, setZoomUrl] = useState("");
-  const [zoomPasscode, setZoomPasscode] = useState("");
+  // Form Fields
+  const [topic, setTopic] = useState("");
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [meetingDate, setMeetingDate] = useState("");
+  const [meetingTime, setMeetingTime] = useState("08:30");
+  const [durationMinutes, setDurationMinutes] = useState(60);
+  const [description, setDescription] = useState("");
 
-  const fetchClasses = async () => {
+  const functions = getFunctions(app);
+
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const q = query(collection(db, "classes"), orderBy("createdAt", "desc"));
-      const snapshot = await getDocs(q);
-      let items = snapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
+      // 1. Fetch Teacher Courses
+      const coursesSnap = await getDocs(collection(db, "classes"));
+      const courseItems = coursesSnap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
       })) as ClassItem[];
-      
-      // Filter for online classes or show all online capable
-      items = items.filter((c) => c.mode === "Online (Zoom)");
-      setClasses(items);
-    } catch (err) {
-      console.error("Error fetching classes:", err);
-      try {
-        const snapshot = await getDocs(collection(db, "classes"));
-        let items = snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        })) as ClassItem[];
-        items = items.filter((c) => c.mode === "Online (Zoom)");
-        setClasses(items);
-      } catch (innerErr) {
-        console.error("Fallback error:", innerErr);
+      setCourses(courseItems);
+      if (courseItems.length > 0 && !selectedCourseId) {
+        setSelectedCourseId(courseItems[0].id);
       }
+
+      // 2. Fetch Live Classes Meetings
+      const liveSnap = await getDocs(collection(db, "liveClasses"));
+      const liveItems = liveSnap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      })) as LiveClassItem[];
+
+      liveItems.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+      setLiveClasses(liveItems);
+    } catch (err) {
+      console.error("Error fetching Zoom meetings data:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchClasses();
+    fetchData();
+    const today = new Date().toISOString().split("T")[0];
+    setMeetingDate(today);
   }, []);
 
-  // Helper: check if a zoom link is expired (expired if past expiry timestamp)
-  const isZoomLinkActive = (item: ClassItem) => {
-    if (!item.zoomUrl) return false;
-    if (!item.zoomUrlExpiry) return true; // default active if no expiry set
-    return new Date().getTime() < new Date(item.zoomUrlExpiry).getTime();
-  };
-
-  const [isPublished, setIsPublished] = useState(true);
-
-  // Open modal to add or edit Zoom link
-  const openZoomModal = (c: ClassItem & { isPublished?: boolean }) => {
-    setSelectedClass(c);
-    setZoomUrl(c.zoomUrl && isZoomLinkActive(c) ? c.zoomUrl : "");
-    setZoomPasscode(c.zoomPasscode || "");
-    setIsPublished(c.isPublished !== false);
+  const openCreateModal = () => {
+    setTopic("");
     setError(null);
+    const today = new Date().toISOString().split("T")[0];
+    setMeetingDate(today);
+    setMeetingTime("08:30");
+    setDurationMinutes(60);
+    setDescription("");
     setIsModalOpen(true);
   };
 
-  // Save Zoom Link for a class (set expiry to 24 hours / 1 day after end of class)
-  const handleSaveZoomLink = async (e: React.FormEvent) => {
+  const handleCreateMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedClass || !selectedClass.id) return;
+    if (!selectedCourseId) {
+      setError("Please select a course for this meeting.");
+      return;
+    }
+
+    const selectedCourse = courses.find((c) => c.id === selectedCourseId);
+    if (!selectedCourse) return;
 
     setSubmitting(true);
     setError(null);
 
     try {
-      // Calculate 24 hour expiry from current time
-      const expiryDate = new Date();
-      expiryDate.setHours(expiryDate.getHours() + 24);
+      // Build ISO Start Time string
+      const startTimeIso = new Date(`${meetingDate}T${meetingTime}:00`).toISOString();
 
-      await updateDoc(doc(db, "classes", selectedClass.id), {
-        zoomUrl,
-        zoomPasscode,
-        isPublished,
-        zoomUrlExpiry: expiryDate.toISOString(),
+      // Call Cloud Function to create Zoom Meeting via Server-to-Server OAuth
+      const createZoomFn = httpsCallable(functions, "createZoomMeeting");
+      await createZoomFn({
+        topic,
+        courseId: selectedCourse.id,
+        courseTitle: selectedCourse.title,
+        grade: selectedCourse.grade,
+        startTime: startTimeIso,
+        durationMinutes: Number(durationMinutes),
+        description,
       });
 
       setIsModalOpen(false);
-      await fetchClasses();
+      await fetchData();
     } catch (err: any) {
-      console.error("Error updating Zoom link:", err);
-      setError("Failed to update Zoom link.");
+      console.error("Error creating Zoom meeting:", err);
+      setError(err.message || "Failed to create Zoom meeting via Zoom API.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Find next upcoming online class
-  const getNextClass = (): ClassItem | null => {
-    if (classes.length === 0) return null;
+  const handleDeleteMeeting = async (item: LiveClassItem) => {
+    if (!confirm(`Are you sure you want to delete the meeting "${item.topic}"?`)) return;
 
-    const now = new Date();
-    const currentDayIdx = now.getDay();
-    const currentTimeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-
-    // Sort classes by day of week starting from current day
-    const sorted = [...classes].sort((a, b) => {
-      let dayDiffA = (DAY_ORDER[a.dayOfWeek] - currentDayIdx + 7) % 7;
-      let dayDiffB = (DAY_ORDER[b.dayOfWeek] - currentDayIdx + 7) % 7;
-
-      if (dayDiffA === 0 && a.startTime < currentTimeStr) dayDiffA = 7;
-      if (dayDiffB === 0 && b.startTime < currentTimeStr) dayDiffB = 7;
-
-      if (dayDiffA !== dayDiffB) return dayDiffA - dayDiffB;
-      return a.startTime.localeCompare(b.startTime);
-    });
-
-    return sorted[0] || null;
+    try {
+      const deleteZoomFn = httpsCallable(functions, "deleteZoomMeeting");
+      await deleteZoomFn({
+        classId: item.id,
+        zoomMeetingId: item.zoomMeetingId,
+      });
+      fetchData();
+    } catch (err) {
+      console.error("Error deleting meeting:", err);
+      // Fallback local Firestore delete if CF fails
+      try {
+        await deleteDoc(doc(db, "liveClasses", item.id));
+        fetchData();
+      } catch (inner) {
+        console.error("Fallback delete error:", inner);
+      }
+    }
   };
 
-  const nextClass = getNextClass();
+  const handleProcessAttendance = async (item: LiveClassItem) => {
+    try {
+      const processAttFn = httpsCallable(functions, "processAttendance");
+      await processAttFn({ classId: item.id });
+      alert("Attendance processed successfully!");
+      fetchData();
+    } catch (err: any) {
+      console.error("Error processing attendance:", err);
+      alert(err.message || "Failed to process attendance.");
+    }
+  };
+
+  const handleCopyLink = (id: string, url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   return (
-    <DashboardShell role="teacher" active="Zoom Links">
-      {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-sm font-extrabold uppercase tracking-[.18em] text-lavender-600">
-            Teacher Portal
-          </p>
-          <h1 className="mt-2 text-3xl font-black md:text-4xl">Online Zoom Classes</h1>
-          <p className="mt-2 text-ink/55">
-            Manage live Zoom links for online classes. Links automatically reset after class duration ends.
-          </p>
-        </div>
-      </div>
-
-      {/* Featured Next Class Card */}
-      {nextClass && (
-        <div className="mt-6 rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6 text-white shadow-xl">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-black uppercase tracking-wider text-white">
-                  🔥 Next Upcoming Class
-                </span>
-                <span className="text-xs font-bold text-white/80">{nextClass.grade}</span>
-              </div>
-              <h2 className="mt-3 text-2xl font-black md:text-3xl">{nextClass.title}</h2>
-              <p className="mt-1 flex items-center gap-3 text-sm font-semibold text-white/90">
-                <span className="flex items-center gap-1">
-                  <Calendar size={16} /> {nextClass.dayOfWeek}
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Clock size={16} /> {nextClass.startTime} - {nextClass.endTime}
-                </span>
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              {nextClass.zoomUrl && isZoomLinkActive(nextClass) ? (
-                <a
-                  href={nextClass.zoomUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="gradient-button flex items-center gap-2 bg-white text-blue-900 shadow-lg hover:bg-slate-100"
-                >
-                  <Play size={18} className="fill-current" /> Start Zoom Class Now
-                </a>
-              ) : (
-                <button
-                  onClick={() => openZoomModal(nextClass)}
-                  className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-900 shadow-lg hover:bg-slate-100"
-                >
-                  + Add Zoom Link & Start
-                </button>
-              )}
-            </div>
+    <TeacherGuard>
+      <DashboardShell role="teacher" active="Zoom Links">
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-extrabold uppercase tracking-[.18em] text-lavender-600">
+              Teacher Portal
+            </p>
+            <h1 className="mt-2 text-3xl font-black md:text-4xl">Zoom Meetings & Live Classes</h1>
+            <p className="mt-2 text-ink/55">
+              Automatically create Zoom meetings and manage live class schedules for students.
+            </p>
           </div>
-        </div>
-      )}
 
-      {/* Classes Grid */}
-      {loading ? (
-        <div className="mt-10 flex flex-col items-center justify-center p-12 text-ink/50">
-          <Loader2 className="h-8 w-8 animate-spin text-lavender-600" />
-          <p className="mt-3 text-sm font-bold">Loading online classes...</p>
+          <button
+            onClick={openCreateModal}
+            className="gradient-button px-6 py-3 text-xs shadow-md shrink-0 cursor-pointer flex items-center gap-2"
+          >
+            <Plus size={16} /> Create Zoom Meeting
+          </button>
         </div>
-      ) : classes.length === 0 ? (
-        <Card className="mt-8 p-12 text-center">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-blue-100 text-3xl">
-            💻
+
+        {/* Content Section */}
+        {loading ? (
+          <div className="mt-12 flex flex-col items-center justify-center p-12 text-ink/50">
+            <Loader2 className="h-8 w-8 animate-spin text-lavender-600" />
+            <p className="mt-3 text-sm font-bold">Loading Zoom meetings...</p>
           </div>
-          <h3 className="mt-4 text-xl font-black">No Online Zoom Classes Found</h3>
-          <p className="mt-2 text-sm text-ink/55">
-            Create an online class in "Today's Classes" first to manage its Zoom link here.
-          </p>
-        </Card>
-      ) : (
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {classes.map((c) => {
-            const hasActiveLink = isZoomLinkActive(c);
-            return (
-              <Card key={c.id} className="flex flex-col justify-between p-6">
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Badge tone="pink">{c.grade}</Badge>
-                      <Badge tone="purple">{c.type}</Badge>
-                    </div>
-                    {hasActiveLink ? (
-                      <Badge tone="green">Link Active</Badge>
-                    ) : (
-                      <Badge tone="yellow">No Active Link</Badge>
-                    )}
-                  </div>
+        ) : liveClasses.length === 0 ? (
+          <div className="mt-8">
+            <EmptyState
+              emoji="📹"
+              title="No Zoom Meetings Created"
+              description="Create your first automated Zoom meeting for an upcoming theory or paper class."
+              actionLabel="Create Zoom Meeting"
+              actionOnClick={openCreateModal}
+            />
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {liveClasses.map((item) => {
+              const startDate = new Date(item.startTime);
+              const formattedDate = startDate.toLocaleDateString("en-US", {
+                weekday: "short",
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              });
+              const formattedTime = startDate.toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
 
-                  <h2 className="mt-4 text-xl font-black">{c.title}</h2>
+              const isCompleted = item.status === "completed";
 
-                  <div className="mt-3 space-y-2 text-sm font-medium text-ink/75">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="text-lavender-600" size={16} />
-                      <span>Every {c.dayOfWeek}</span>
+              return (
+                <Card key={item.id} className="flex flex-col justify-between p-6 bg-white/90">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Badge tone="purple">{item.grade}</Badge>
+                      <Badge tone={isCompleted ? "green" : "lavender"}>
+                        {isCompleted ? "Completed" : "Scheduled"}
+                      </Badge>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="text-lavender-600" size={16} />
-                      <span>
-                        {c.startTime} - {c.endTime}
-                      </span>
+
+                    <h3 className="mt-4 text-xl font-black text-ink leading-snug">{item.topic}</h3>
+                    <p className="mt-1 text-xs font-bold text-lavender-700">{item.courseTitle}</p>
+
+                    <div className="mt-4 space-y-2 text-xs font-bold text-ink/70">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={14} className="text-lavender-600 shrink-0" />
+                        <span>{formattedDate}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock size={14} className="text-lavender-600 shrink-0" />
+                        <span>{formattedTime} ({item.durationMinutes} mins)</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-amber-50 p-2.5 rounded-xl border border-amber-100 text-amber-900">
+                        <span>🔑 Passcode: <span className="font-mono text-sm">{item.passcode}</span></span>
+                      </div>
                     </div>
                   </div>
 
-                  {hasActiveLink ? (
-                    <div className="mt-4 rounded-2xl bg-blue-50 p-4 dark:bg-blue-950/40">
-                      <div className="flex items-center justify-between text-xs font-bold text-blue-900 dark:text-blue-200">
-                        <span>ZOOM MEETING LINK</span>
-                        <span className="text-emerald-600 flex items-center gap-1">
-                          <CheckCircle2 size={14} /> Ready
-                        </span>
-                      </div>
-                      {c.zoomPasscode && (
-                        <p className="mt-1 text-xs text-ink/70">
-                          Passcode: <code className="font-bold">{c.zoomPasscode}</code>
-                        </p>
-                      )}
-                      <div className="mt-3 flex gap-2">
-                        <a
-                          href={c.zoomUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="gradient-button flex flex-1 items-center justify-center gap-1.5 py-2 text-xs"
-                        >
-                          <Play size={14} /> Start / Join Class
-                        </a>
-                        <button
-                          onClick={() => openZoomModal(c)}
-                          className="pill text-xs"
-                        >
-                          Edit Link
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-center dark:bg-slate-800/40">
-                      <p className="text-xs font-bold text-ink/50">
-                        Link formatted / ended after previous class.
-                      </p>
+                  <div className="mt-6 space-y-2 pt-4 border-t border-ink/5">
+                    {/* Host Start Button */}
+                    <a
+                      href={item.startUrl || item.joinUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-center gap-2 w-full rounded-2xl bg-lavender-600 px-4 py-2.5 text-xs font-black text-white hover:bg-lavender-700 transition shadow-sm"
+                    >
+                      <Play size={14} /> Start Meeting as Host
+                    </a>
+
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={() => openZoomModal(c)}
-                        className="gradient-button mt-3 w-full justify-center text-xs"
+                        onClick={() => handleCopyLink(item.id, item.joinUrl)}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-lavender-100 px-3 py-2 text-xs font-bold text-lavender-700 hover:bg-lavender-200 transition"
                       >
-                        <Plus size={15} /> Add Zoom Link
+                        {copiedId === item.id ? (
+                          <>
+                            <Check size={13} /> Copied Student Link
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={13} /> Copy Student Link
+                          </>
+                        )}
+                      </button>
+
+                      {isCompleted ? (
+                        <button
+                          onClick={() => handleProcessAttendance(item)}
+                          className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition"
+                          title="Process / Recalculate Attendance"
+                        >
+                          <Users size={15} />
+                        </button>
+                      ) : null}
+
+                      <button
+                        onClick={() => handleDeleteMeeting(item)}
+                        className="grid h-9 w-9 place-items-center rounded-xl bg-rose-100 text-rose-700 hover:bg-rose-200 transition"
+                        title="Delete Meeting"
+                      >
+                        <Trash2 size={15} />
                       </button>
                     </div>
-                  )}
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        {/* CREATE MEETING MODAL */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
+            <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl md:p-8 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-ink/10 pb-4">
+                <div>
+                  <p className="text-xs font-extrabold uppercase text-lavender-600">Zoom API Integration</p>
+                  <h3 className="mt-0.5 text-xl font-black text-ink">Create Zoom Meeting</h3>
                 </div>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Add / Edit Zoom Modal */}
-      {isModalOpen && selectedClass && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="soft-panel w-full max-w-lg p-6 md:p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl">
-            <div className="flex items-center justify-between border-b pb-4">
-              <div>
-                <h2 className="text-xl font-black">Add / Edit Zoom Link</h2>
-                <p className="text-xs font-bold text-lavender-600">{selectedClass.title} ({selectedClass.grade})</p>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="grid h-9 w-9 place-items-center rounded-2xl bg-ink/5 text-ink/60 hover:bg-ink/10"
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="rounded-full p-2 text-ink/40 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <X size={20} />
-              </button>
-            </div>
 
-            <form onSubmit={handleSaveZoomLink} className="mt-6 space-y-4">
               {error && (
-                <div className="rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-600">
+                <div className="mt-4 rounded-2xl bg-rose-50 p-4 text-xs font-bold text-rose-700 border border-rose-200">
                   {error}
                 </div>
               )}
 
-              <div>
-                <label className="block text-xs font-extrabold uppercase text-ink/60">
-                  Zoom Meeting URL
-                </label>
-                <input
-                  type="url"
-                  required
-                  value={zoomUrl}
-                  onChange={(e) => setZoomUrl(e.target.value)}
-                  placeholder="https://us02web.zoom.us/j/..."
-                  className="pastel-input mt-1.5"
-                />
-              </div>
+              <form onSubmit={handleCreateMeeting} className="mt-6 space-y-4">
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-ink/60">
+                    Target Course *
+                  </label>
+                  <select
+                    value={selectedCourseId}
+                    onChange={(e) => setSelectedCourseId(e.target.value)}
+                    className="pastel-input mt-1.5 w-full font-bold"
+                    required
+                  >
+                    {courses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        [{c.grade}] {c.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-xs font-extrabold uppercase text-ink/60">
-                  Meeting Passcode (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={zoomPasscode}
-                  onChange={(e) => setZoomPasscode(e.target.value)}
-                  placeholder="e.g. 123456"
-                  className="pastel-input mt-1.5"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-ink/60">
+                    Meeting Topic / Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Unit 05 - Electricity Theory Live Session"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    className="pastel-input mt-1.5 w-full"
+                  />
+                </div>
 
-              <div className="flex items-center gap-3 rounded-2xl bg-lavender-50 p-3 border border-lavender-200">
-                <input
-                  type="checkbox"
-                  id="isPublishedCheck"
-                  checked={isPublished}
-                  onChange={(e) => setIsPublished(e.target.checked)}
-                  className="h-4 w-4 rounded text-lavender-600 focus:ring-lavender-500"
-                />
-                <label htmlFor="isPublishedCheck" className="text-xs font-extrabold text-ink cursor-pointer">
-                  Publish Live Session for Enrolled Students
-                </label>
-              </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-ink/60">
+                      Date *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={meetingDate}
+                      onChange={(e) => setMeetingDate(e.target.value)}
+                      className="pastel-input mt-1.5 w-full"
+                    />
+                  </div>
 
-              <div className="rounded-xl bg-amber-50 p-3 text-xs font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-                ℹ️ This Zoom link will remain active for 24 hours and then automatically expire after the class is completed.
-              </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-ink/60">
+                      Start Time *
+                    </label>
+                    <input
+                      type="time"
+                      required
+                      value={meetingTime}
+                      onChange={(e) => setMeetingTime(e.target.value)}
+                      className="pastel-input mt-1.5 w-full"
+                    />
+                  </div>
+                </div>
 
-              <div className="flex gap-3 pt-4 border-t">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="pill flex-1 justify-center"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="gradient-button flex-1 justify-center"
-                >
-                  {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save & Start Class"}
-                </button>
-              </div>
-            </form>
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-ink/60">
+                    Duration (Minutes) *
+                  </label>
+                  <select
+                    value={durationMinutes}
+                    onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                    className="pastel-input mt-1.5 w-full font-bold"
+                  >
+                    <option value={30}>30 Minutes</option>
+                    <option value={45}>45 Minutes</option>
+                    <option value={60}>60 Minutes (1 Hour)</option>
+                    <option value={90}>90 Minutes (1.5 Hours)</option>
+                    <option value={120}>120 Minutes (2 Hours)</option>
+                    <option value={180}>180 Minutes (3 Hours)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-ink/60">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Brief description or instructions for students..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="pastel-input mt-1.5 w-full resize-none"
+                  />
+                </div>
+
+                <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-ink/10">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="rounded-2xl border border-ink/10 px-5 py-2.5 text-xs font-bold text-ink/70 hover:bg-ink/5"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="gradient-button px-6 py-2.5 text-xs shadow-md cursor-pointer flex items-center gap-2"
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" /> Creating Zoom Meeting...
+                      </>
+                    ) : (
+                      <>Create Meeting</>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-    </DashboardShell>
+        )}
+      </DashboardShell>
+    </TeacherGuard>
   );
 }

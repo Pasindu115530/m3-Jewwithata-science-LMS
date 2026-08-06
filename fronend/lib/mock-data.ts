@@ -43,14 +43,15 @@ export const testimonials = [
 export const studentMenu = [
   ["My Courses", "/student/courses"],
   ["Live Classes", "/student/live-classes"],
+  ["Recordings", "/student/recordings"],
   ["Payments", "/student/payments"],
   ["Payment History", "/student/payment-history"],
   ["Profile", "/student/profile"]
 ] as const;
 
 export const teacherMenu = [
-  ["Dashboard", "/teacher/dashboard"], ["Today’s Classes", "/teacher/classes"], ["Zoom Links", "/teacher/zoom-links"], ["Students", "/teacher/students"],
-  ["Attendance", "/teacher/attendance"], ["Weekly Timetable", "/teacher/timetable"], ["Assignments", "/teacher/assignments"],
+  ["Dashboard", "/teacher/dashboard"], ["Today’s Classes", "/teacher/classes"], ["Live Classes", "/teacher/zoom-links"], ["Tutes", "/teacher/tutes"], ["Recordings", "/teacher/recordings"], ["Students", "/teacher/students"],
+  ["Attendance", "/teacher/attendance"],
   ["Payment Approvals", "/teacher/payments"], ["Announcements", "/teacher/announcements"], ["Profile", "/teacher/profile"],
   ["Settings", "/teacher/settings"]
 ] as const;

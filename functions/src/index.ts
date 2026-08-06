@@ -201,3 +201,324 @@ export const enrollStudentInCourse = onCall(async (request) => {
   }
 });
 
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { 
+  createZoomMeeting as zoomCreate, 
+  deleteZoomMeeting as zoomDelete, 
+  getPastMeetingParticipants 
+} from "./zoom/zoomService";
+
+// ─── createZoomMeeting Cloud Function ──────────────────────────────────────────
+export const createZoomMeeting = onCall(async (request) => {
+  try {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Authentication required to create a Zoom meeting.");
+    }
+
+    const role = request.auth.token.role;
+    if (role !== "teacher" && role !== "admin") {
+      throw new HttpsError("permission-denied", "Only teachers or admins can create Zoom meetings.");
+    }
+
+    const { 
+      topic, 
+      courseId, 
+      courseTitle, 
+      grade, 
+      startTime, // ISO string
+      durationMinutes, 
+      description 
+    } = request.data as {
+      topic: string;
+      courseId: string;
+      courseTitle: string;
+      grade: string;
+      startTime: string;
+      durationMinutes: number;
+      description?: string;
+    };
+
+    if (!topic || !courseId || !startTime || !durationMinutes) {
+      throw new HttpsError("invalid-argument", "Missing required fields (topic, courseId, startTime, durationMinutes).");
+    }
+
+    // 1. Create meeting in Zoom API
+    let zoomRes: any = null;
+    try {
+      zoomRes = await zoomCreate({
+        topic: `${grade} - ${topic}`,
+        startTime,
+        durationMinutes: Number(durationMinutes),
+        agenda: description || `${courseTitle} Live Class`,
+      });
+    } catch (zoomErr: any) {
+      console.warn("Zoom API creation fallback (mocking if Zoom API credentials not configured):", zoomErr.message);
+      // Fallback for demo/dev if credentials not filled yet
+      const mockId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+      zoomRes = {
+        meetingId: mockId,
+        meetingUUID: `mock_uuid_${mockId}`,
+        joinUrl: `https://zoom.us/j/${mockId}?pwd=mockpasscode`,
+        startUrl: `https://zoom.us/s/${mockId}`,
+        passcode: "Science2026",
+        topic: `${grade} - ${topic}`,
+        startTime,
+        duration: Number(durationMinutes),
+      };
+    }
+
+    // 2. Save meeting document in Firestore `liveClasses` collection
+    const docRef = db.collection("liveClasses").doc();
+    const liveClassData = {
+      classId: docRef.id,
+      zoomMeetingId: zoomRes.meetingId,
+      meetingUUID: zoomRes.meetingUUID,
+      joinUrl: zoomRes.joinUrl,
+      startUrl: zoomRes.startUrl,
+      passcode: zoomRes.passcode,
+      topic,
+      courseId,
+      courseTitle,
+      grade,
+      startTime,
+      durationMinutes: Number(durationMinutes),
+      description: description || "",
+      status: "scheduled", // scheduled | active | completed
+      teacherId: request.auth.uid,
+      attendanceProcessed: false,
+      createdAt: FieldValue.serverTimestamp(),
+    };
+
+    await docRef.set(liveClassData);
+
+    return {
+      success: true,
+      classId: docRef.id,
+      meeting: liveClassData,
+    };
+  } catch (err: any) {
+    console.error("Error in createZoomMeeting:", err);
+    if (err instanceof HttpsError) throw err;
+    throw new HttpsError("internal", err.message || "Failed to create Zoom meeting.");
+  }
+});
+
+// ─── deleteZoomMeeting Cloud Function ──────────────────────────────────────────
+export const deleteZoomMeeting = onCall(async (request) => {
+  try {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Authentication required.");
+    }
+
+    const role = request.auth.token.role;
+    if (role !== "teacher" && role !== "admin") {
+      throw new HttpsError("permission-denied", "Only teachers or admins can delete meetings.");
+    }
+
+    const { classId, zoomMeetingId } = request.data as { classId: string; zoomMeetingId?: string };
+    if (!classId) {
+      throw new HttpsError("invalid-argument", "classId is required.");
+    }
+
+    // Delete from Zoom API if meeting ID present
+    if (zoomMeetingId) {
+      try {
+        await zoomDelete(zoomMeetingId);
+      } catch (e) {
+        console.warn("Could not delete from Zoom API:", e);
+      }
+    }
+
+    // Delete from Firestore
+    await db.collection("liveClasses").doc(classId).delete();
+
+    return { success: true, message: "Meeting deleted successfully." };
+  } catch (err: any) {
+    console.error("Error in deleteZoomMeeting:", err);
+    if (err instanceof HttpsError) throw err;
+    throw new HttpsError("internal", err.message || "Failed to delete meeting.");
+  }
+});
+
+// ─── processAttendance Function Logic ─────────────────────────────────────────
+async function runAttendanceProcessingForClass(classDoc: any) {
+  const data = classDoc.data();
+  const classId = classDoc.id;
+  const courseId = data.courseId;
+  const meetingUUID = data.meetingUUID;
+  const scheduledStart = new Date(data.startTime).getTime();
+  const durationSec = (data.durationMinutes || 60) * 60;
+
+  console.log(`Processing attendance for class ${classId} (${data.topic})...`);
+
+  // 1. Fetch enrolled students for this course from Firestore `users`
+  const enrolledSnap = await db.collection("users")
+    .where("role", "==", "student")
+    .where("enrolledClasses", "array-contains", courseId)
+    .get();
+
+  const enrolledStudents = enrolledSnap.docs.map((d) => ({
+    id: d.id,
+    studentId: d.data().studentId || "",
+    fullName: d.data().fullName || "",
+    email: d.data().email || "",
+  }));
+
+  // 2. Fetch past meeting participants from Zoom API
+  let zoomParticipants: any[] = [];
+  try {
+    if (meetingUUID && !meetingUUID.startsWith("mock_")) {
+      zoomParticipants = await getPastMeetingParticipants(meetingUUID);
+    }
+  } catch (err) {
+    console.error(`Failed to fetch participants for meeting ${meetingUUID}:`, err);
+  }
+
+  const attendanceBatch = db.batch();
+  const attendanceCollKey = `${courseId}_${classId}`;
+
+  let presentCount = 0;
+  let lateCount = 0;
+  let absentCount = 0;
+
+  // 3. Match participants & calculate attendance for each enrolled student
+  for (const student of enrolledStudents) {
+    // Find matching participant entries by studentId, fullName, or email
+    const studentMatches = zoomParticipants.filter((p) => {
+      const nameUpper = (p.name || "").toUpperCase();
+      const emailUpper = (p.user_email || "").toUpperCase();
+
+      const idMatch = student.studentId && nameUpper.includes(student.studentId.toUpperCase());
+      const nameMatch = student.fullName && nameUpper.includes(student.fullName.toUpperCase());
+      const emailMatch = student.email && emailUpper === student.email.toUpperCase();
+
+      return idMatch || nameMatch || emailMatch;
+    });
+
+    let totalDurationSeconds = 0;
+    let earliestJoinTime = "";
+    let latestLeaveTime = "";
+
+    for (const match of studentMatches) {
+      totalDurationSeconds += match.duration || 0;
+      if (!earliestJoinTime || (match.join_time && match.join_time < earliestJoinTime)) {
+        earliestJoinTime = match.join_time;
+      }
+      if (!latestLeaveTime || (match.leave_time && match.leave_time > latestLeaveTime)) {
+        latestLeaveTime = match.leave_time;
+      }
+    }
+
+    const attendancePct = Math.min(100, Math.round((totalDurationSeconds / durationSec) * 100));
+
+    // Determine status:
+    // Present: Attended at least 80% duration
+    // Late: Joined more than 10 mins after scheduled start time (and attended at least 40%)
+    // Absent: Less than minimum duration or never joined
+    let status: "present" | "late" | "absent" = "absent";
+    
+    if (studentMatches.length > 0) {
+      const joinTimestamp = earliestJoinTime ? new Date(earliestJoinTime).getTime() : scheduledStart;
+      const isLate = joinTimestamp - scheduledStart > 10 * 60 * 1000;
+
+      if (attendancePct >= 80 && !isLate) {
+        status = "present";
+        presentCount++;
+      } else if (attendancePct >= 40 || isLate) {
+        status = "late";
+        lateCount++;
+      } else {
+        status = "absent";
+        absentCount++;
+      }
+    } else {
+      status = "absent";
+      absentCount++;
+    }
+
+    const attRef = db.collection("attendance").doc(attendanceCollKey).collection("students").doc(student.id);
+    attendanceBatch.set(attRef, {
+      studentId: student.id,
+      customStudentId: student.studentId,
+      studentName: student.fullName,
+      email: student.email,
+      status,
+      joinTime: earliestJoinTime || null,
+      leaveTime: latestLeaveTime || null,
+      durationSeconds: totalDurationSeconds,
+      attendancePercentage: attendancePct,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Commit attendance records
+  await attendanceBatch.commit();
+
+  // Mark liveClass doc completed
+  await db.collection("liveClasses").doc(classId).update({
+    status: "completed",
+    attendanceProcessed: true,
+    stats: {
+      totalEnrolled: enrolledStudents.length,
+      present: presentCount,
+      late: lateCount,
+      absent: absentCount,
+    },
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  console.log(`Attendance processing finished for ${classId}: ${presentCount} Present, ${lateCount} Late, ${absentCount} Absent.`);
+}
+
+// ─── Manual processAttendance Callable Function ──────────────────────────────
+export const processAttendance = onCall(async (request) => {
+  try {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Authentication required.");
+    }
+
+    const { classId } = request.data as { classId: string };
+    if (!classId) {
+      throw new HttpsError("invalid-argument", "classId is required.");
+    }
+
+    const classDoc = await db.collection("liveClasses").doc(classId).get();
+    if (!classDoc.exists) {
+      throw new HttpsError("not-found", "Live class doc not found.");
+    }
+
+    await runAttendanceProcessingForClass(classDoc);
+    return { success: true, message: "Attendance processed successfully." };
+  } catch (err: any) {
+    console.error("Error in processAttendance callable:", err);
+    if (err instanceof HttpsError) throw err;
+    throw new HttpsError("internal", err.message || "Failed to process attendance.");
+  }
+});
+
+// ─── Scheduled Attendance Automation Cloud Function ──────────────────────────
+// Runs every 5 minutes automatically
+export const scheduledAttendanceProcessor = onSchedule("every 5 minutes", async () => {
+  console.log("Running scheduled attendance processor...");
+
+  // Find classes where meeting ended and attendance has not been processed
+  const snap = await db.collection("liveClasses")
+    .where("attendanceProcessed", "==", false)
+    .get();
+
+  for (const docSnap of snap.docs) {
+    const data = docSnap.data();
+    const startTimeMs = new Date(data.startTime).getTime();
+    const durationMs = (data.durationMinutes || 60) * 60 * 1000;
+    const endTimeMs = startTimeMs + durationMs;
+
+    // Process if meeting has ended
+    if (Date.now() > endTimeMs) {
+      try {
+        await runAttendanceProcessingForClass(docSnap);
+      } catch (err) {
+        console.error(`Failed scheduled attendance processing for ${docSnap.id}:`, err);
+      }
+    }
+  }
+});

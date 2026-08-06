@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`soft-card ${className}`}>{children}</div>;
+export function Card({ children, className = "", ...props }: { children: ReactNode; className?: string } & React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={`soft-card ${className}`} {...props}>{children}</div>;
 }
 
 export function Badge({
