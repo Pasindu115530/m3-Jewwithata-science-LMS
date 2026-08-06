@@ -25,7 +25,7 @@ const iconMap: Record<string, ReactNode> = {
 export function DashboardShell({ role, active, children }: { role: "student" | "teacher"; active: string; children: ReactNode }) {
   const router = useRouter();
   const menu = role === "student" ? studentMenu : teacherMenu;
-  const person = role === "student" ? "Mia Perera" : "Pasindu Udana";
+  const person = role === "student" ? "Mia Perera" : "Kalhara Nakandala";
   const subtitle = role === "student" ? "Grade 10 Student" : "Science Teacher";
 
   const handleSignOut = async () => {
@@ -39,7 +39,7 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
 
   const profileData = {
     name: person,
-    email: role === "student" ? "mia.perera@student.kalaharascience.lk" : "pasindu.udana@kalaharascience.lk",
+    email: role === "student" ? "mia.perera@student.kalaharascience.lk" : "lms.kalhara@gmail.com",
     role: role,
     grade: role === "student" ? "Grade 10" : "Teacher",
     status: role === "student" ? "Active Student" : "Verified Teacher",
@@ -47,37 +47,78 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
 
   return (
     <div className="min-h-screen p-3 md:p-5">
-      <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-[1480px] overflow-hidden rounded-[2.25rem] border border-white/80 bg-[#fff9f7]/75 shadow-soft backdrop-blur-xl">
-        <aside className="hidden w-64 shrink-0 flex-col bg-gradient-to-b from-[#bfa7f4] via-[#9e7de4] to-[#8764d3] p-5 text-white lg:flex">
-          <div className="rounded-3xl bg-white/70 p-3"><Brand/></div>
-          <div className="mt-7 flex items-center gap-3 px-2">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/25 text-2xl shadow-card">{role === "student" ? "👩‍🎓" : "👨‍🏫"}</div>
-            <div><p className="font-black">{person}</p><p className="text-xs text-white/75">{subtitle}</p></div>
+      <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-[1480px] overflow-hidden rounded-[2.25rem] border border-white/80 bg-gradient-to-br from-[#f0f4ff]/90 via-white/80 to-[#fffdf0]/90 shadow-soft backdrop-blur-xl">
+        
+        {/* Sidebar - Brand Blue (#002583) theme */}
+        <aside className="hidden w-64 shrink-0 flex-col bg-gradient-to-b from-[#002583] via-[#001d68] to-[#001548] p-5 text-white lg:flex">
+          <div className="rounded-3xl bg-white/95 p-3 shadow-sm">
+            <Brand/>
           </div>
-          <nav className="mt-7 flex flex-1 flex-col gap-1.5">
+
+          {/* User Badge */}
+          <div className="mt-6 flex items-center gap-3 px-2">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 text-2xl shadow-card backdrop-blur-md">
+              {role === "student" ? "👩‍🎓" : "👨‍🏫"}
+            </div>
+            <div>
+              <p className="font-black text-white">{person}</p>
+              <p className="text-xs font-semibold text-peach-300">{subtitle}</p>
+            </div>
+          </div>
+
+          {/* Nav Links */}
+          <nav className="mt-6 flex flex-1 flex-col gap-1.5">
             {menu.map(([label, href]) => {
               const selected = active === label;
-              return <Link key={href} href={href} className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition ${selected ? "bg-white text-lavender-700 shadow-card" : "text-white/90 hover:bg-white/15"}`}>{iconMap[label]}{label}</Link>
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition-all duration-200 ${
+                    selected
+                      ? "bg-[#FFB800] text-[#002583] shadow-button scale-[1.02]"
+                      : "text-white/90 hover:bg-white/15 hover:text-white"
+                  }`}
+                >
+                  {iconMap[label]}
+                  {label}
+                </Link>
+              );
             })}
           </nav>
-          <div className="rounded-3xl bg-gradient-to-br from-[#ffd8ca] to-[#f49daf] p-5 text-ink shadow-card">
+
+          {/* Side Banner - Brand Yellow (#FFB800) */}
+          <div className="rounded-3xl bg-gradient-to-br from-[#FFB800] via-[#ffa800] to-[#ffd44d] p-5 text-[#002583] shadow-card">
             <div className="text-4xl">{role === "student" ? "⭐" : "🚀"}</div>
-            <p className="mt-3 font-black">{role === "student" ? "Keep learning!" : "Grow your class"}</p>
-            <p className="mt-1 text-xs leading-5 text-ink/60">{role === "student" ? "Small progress every day creates big results." : "Everything you need is organised in one place."}</p>
+            <p className="mt-3 font-black text-lg">{role === "student" ? "Keep learning!" : "Grow your class"}</p>
+            <p className="mt-1 text-xs font-bold leading-5 text-[#002583]/80">
+              {role === "student" ? "Small progress every day creates big results." : "Everything you need is organised in one place."}
+            </p>
           </div>
         </aside>
+
+        {/* Main Content View */}
         <div className="min-w-0 flex-1">
-          <header className="flex items-center gap-3 border-b border-white/80 px-4 py-4 md:px-7">
-            <button className="grid h-11 w-11 place-items-center rounded-2xl bg-white/80 shadow-card lg:hidden" aria-label="Open sidebar"><Menu size={20}/></button>
-            <div className="relative hidden max-w-xl flex-1 md:block"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" size={18}/><input className="pastel-input pl-11" placeholder="Search lessons, classes, students..."/></div>
+          <header className="flex items-center gap-3 border-b border-lavender-200/80 px-4 py-4 md:px-7">
+            <button className="grid h-11 w-11 place-items-center rounded-2xl bg-white shadow-card lg:hidden" aria-label="Open sidebar">
+              <Menu size={20} className="text-[#002583]" />
+            </button>
+
+            <div className="relative hidden max-w-xl flex-1 md:block">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-lavender-500" size={18}/>
+              <input className="pastel-input pl-11" placeholder="Search lessons, classes, students..."/>
+            </div>
+
             <div className="ml-auto flex items-center gap-3">
-              <button className="relative grid h-11 w-11 place-items-center rounded-2xl bg-white/80 shadow-card">
-                <Bell size={19}/>
-                <span className="absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-rose-400 text-[9px] font-black text-white">3</span>
+              <button className="relative grid h-11 w-11 place-items-center rounded-2xl bg-white shadow-card hover:bg-lavender-50 transition">
+                <Bell size={19} className="text-[#002583]"/>
+                <span className="absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-[#FFB800] text-[9px] font-black text-[#002583]">3</span>
               </button>
+
               <ProfileDropdown data={profileData} onSignOut={handleSignOut} />
             </div>
           </header>
+
           <main className="p-4 md:p-7">{children}</main>
         </div>
       </div>

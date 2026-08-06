@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { LockKeyhole, Mail, Loader2, Eye, EyeOff } from "lucide-react";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -46,26 +47,49 @@ export default function TeacherLoginPage() {
   return (
     <PublicShell>
       <div className="grid min-h-[85vh] place-items-center p-4 py-8">
-        <div className="soft-panel grid w-full max-w-5xl overflow-hidden lg:grid-cols-2">
-          <div className="hidden bg-gradient-to-br from-lavender-300 to-lavender-600 p-10 text-white lg:block">
-            <Brand />
-            <div className="mt-24 text-8xl">👨‍🏫</div>
-            <h1 className="mt-6 text-4xl font-black">Welcome back.</h1>
-            <p className="mt-3 max-w-sm leading-7 text-white/75">
-              Access your personalised students, classes, attendance and payment approvals.
-            </p>
+        <div className="soft-panel grid w-full max-w-5xl overflow-hidden border-2 border-lavender-200/90 shadow-2xl lg:grid-cols-2">
+          {/* Left Branding Side - Fitted loginbg.png image filling the blue container */}
+          <div className="relative hidden min-h-[500px] flex-col justify-between overflow-hidden bg-[#072b82] p-8 text-white lg:flex">
+            {/* Full cover background image fitting the blue square */}
+            <Image
+              src="/images/bg/loginbg.png"
+              alt="Science LMS Teacher Login Background"
+              fill
+              className="object-cover object-center"
+              priority
+            />
+
+            {/* Soft gradient overlay for text legibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#051c59]/90 via-[#072b82]/30 to-[#072b82]/70 pointer-events-none" />
+
+            <div className="relative z-10">
+              <Brand />
+            </div>
+
+            <div className="relative z-10 mt-auto pt-28">
+              <span className="inline-block rounded-full bg-[#FFB800] px-3 py-1 text-[11px] font-black text-[#002583] shadow-md">
+                Teacher Portal
+              </span>
+              <h1 className="mt-3 text-3xl font-black text-white drop-shadow-md">
+                Teacher Login
+              </h1>
+              <p className="mt-2 max-w-sm text-xs font-bold leading-relaxed text-white/95 drop-shadow-sm">
+                Access your students, classes, attendance and payment approvals.
+              </p>
+            </div>
           </div>
+
           <div className="p-7 md:p-12">
             <div className="lg:hidden">
               <Brand />
             </div>
-            <p className="mt-10 text-sm font-extrabold uppercase tracking-[.18em] text-lavender-600">Teacher Login</p>
-            <h2 className="mt-3 text-3xl font-black">Sign in to your portal</h2>
-            <p className="mt-2 text-sm text-ink/50">Enter your credentials to access the teacher dashboard.</p>
+            <p className="mt-6 text-sm font-extrabold uppercase tracking-[.18em] text-[#002583]">Teacher Login</p>
+            <h2 className="mt-2 text-3xl font-black text-ink">Sign in to your portal</h2>
+            <p className="mt-2 text-sm text-ink/60">Enter your credentials to access the teacher dashboard.</p>
 
             <form onSubmit={handleLogin} className="mt-7 space-y-4">
               {error && (
-                <div className="rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600 dark:bg-red-950/40 dark:text-red-400">
+                <div className="rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-600 dark:bg-red-950/40 dark:text-red-400">
                   {error}
                 </div>
               )}
@@ -119,7 +143,7 @@ export default function TeacherLoginPage() {
                   "Sign In"
                 )}
               </button>
-              <Link href="/" className="block text-center text-sm font-bold text-lavender-700">
+              <Link href="/" className="block text-center text-sm font-bold text-[#002583] hover:underline">
                 Return to public website
               </Link>
             </form>

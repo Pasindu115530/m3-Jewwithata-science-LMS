@@ -7,7 +7,7 @@ export function createMetadata(title: string, description: string, path = "/"): 
   return {
     title: fullTitle,
     description,
-    keywords: ["Science tuition", "Pasindu Udana", "Sri Lanka tuition", "online Science class", "revision class"],
+    keywords: ["Science tuition", "Kalhara Science", "Sri Lanka tuition", "online Science class", "revision class"],
     alternates: { canonical },
     openGraph: {
       title: fullTitle,

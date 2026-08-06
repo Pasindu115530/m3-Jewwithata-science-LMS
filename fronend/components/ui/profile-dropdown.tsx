@@ -60,18 +60,18 @@ export default function ProfileDropdown({
       label: "My Profile",
       value: data.grade || (role === "student" ? "Grade 10" : "Teacher"),
       href: profileHref,
-      icon: <User className="h-4 w-4 text-purple-600" />,
+      icon: <User className="h-4 w-4 text-lavender-600" />,
     },
     {
       label: role === "student" ? "Payments & Fees" : "Payment Approvals",
-      value: data.status || "Active",
+      value: data.status || "Active Student",
       href: paymentsHref,
-      icon: <CreditCard className="h-4 w-4 text-purple-600" />,
+      icon: <CreditCard className="h-4 w-4 text-lavender-600" />,
     },
     {
       label: "Account Settings",
       href: settingsHref,
-      icon: <Settings className="h-4 w-4 text-purple-600" />,
+      icon: <Settings className="h-4 w-4 text-lavender-600" />,
     },
   ];
 
@@ -88,7 +88,7 @@ export default function ProfileDropdown({
       );
     }
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-full bg-lavender-100 text-lg font-black text-lavender-700">
+      <div className="flex h-full w-full items-center justify-center rounded-full bg-peach-100 text-base font-black text-amber-800">
         {role === "student" ? "👩‍🎓" : "👨‍🏫"}
       </div>
     );
@@ -100,19 +100,20 @@ export default function ProfileDropdown({
         <div className="group relative">
           <DropdownMenuTrigger asChild>
             <button
-              className="flex items-center gap-3 md:gap-5 rounded-2xl border border-lavender-200/80 bg-white/90 p-2 md:p-2.5 transition-all duration-200 hover:border-lavender-300 hover:bg-white hover:shadow-card focus:outline-none"
+              className="flex items-center gap-3 md:gap-5 rounded-2xl border-2 border-lavender-200 bg-gradient-to-r from-white via-lavender-50/40 to-peach-50/50 p-2 md:p-2.5 shadow-sm transition-all duration-200 hover:border-peach-400 hover:shadow-card hover:bg-white focus:outline-none"
               type="button"
             >
               <div className="flex-1 text-left hidden sm:block">
-                <div className="font-extrabold text-sm text-ink leading-tight">
+                <div className="font-black text-sm text-ink leading-tight">
                   {data.name}
                 </div>
-                <div className="text-xs font-semibold text-ink/50 leading-tight">
+                <div className="text-xs font-bold text-lavender-600/80 leading-tight">
                   {data.email}
                 </div>
               </div>
               <div className="relative">
-                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-lavender-400 via-purple-500 to-lavender-600 p-0.5 shadow-sm">
+                {/* Yellow / Gold Glowing Avatar Ring */}
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-peach-400 via-amber-400 to-yellow-500 p-0.5 shadow-md shadow-peach-400/40">
                   <div className="h-full w-full overflow-hidden rounded-full bg-white">
                     {renderAvatar()}
                   </div>
@@ -121,20 +122,18 @@ export default function ProfileDropdown({
             </button>
           </DropdownMenuTrigger>
 
-          {/* Curved line indicator */}
+          {/* Bending line indicator in site blue & yellow */}
           <div
             className={cn(
               "absolute top-1/2 -right-3 -translate-y-1/2 transition-all duration-200",
-              isOpen ? "opacity-100" : "opacity-50 group-hover:opacity-100"
+              isOpen ? "opacity-100 scale-110" : "opacity-60 group-hover:opacity-100"
             )}
           >
             <svg
               aria-hidden="true"
               className={cn(
-                "transition-all duration-200",
-                isOpen
-                  ? "scale-110 text-lavender-600"
-                  : "text-ink/30 group-hover:text-ink/60"
+                "transition-colors duration-200",
+                isOpen ? "text-peach-400" : "text-lavender-600 group-hover:text-peach-400"
               )}
               fill="none"
               height="24"
@@ -146,32 +145,34 @@ export default function ProfileDropdown({
                 fill="none"
                 stroke="currentColor"
                 strokeLinecap="round"
-                strokeWidth="1.75"
+                strokeWidth="2"
               />
             </svg>
           </div>
 
           <DropdownMenuContent
             align="end"
-            className="data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 w-64 origin-top-right rounded-2xl border border-lavender-200/80 bg-white/95 p-2 shadow-soft backdrop-blur-md data-[state=closed]:animate-out data-[state=open]:animate-in"
-            sideOffset={6}
+            className="w-64 origin-top-right rounded-2xl border-2 border-lavender-200 bg-white p-2 shadow-2xl shadow-lavender-900/15"
+            sideOffset={8}
           >
             <div className="space-y-1">
               {menuItems.map((item) => (
                 <DropdownMenuItem asChild key={item.label}>
                   <Link
-                    className="group flex cursor-pointer items-center rounded-xl border border-transparent p-2.5 transition-all duration-150 hover:bg-lavender-50/80 hover:shadow-xs"
+                    className="group flex cursor-pointer items-center rounded-xl border border-transparent p-2.5 transition-all duration-150 hover:border-lavender-200 hover:bg-gradient-to-r hover:from-lavender-50 hover:to-peach-50/60"
                     href={item.href}
                   >
-                    <div className="flex flex-1 items-center gap-2.5">
-                      {item.icon}
-                      <span className="whitespace-nowrap font-bold text-xs text-ink transition-colors group-hover:text-purple-700">
+                    <div className="flex flex-1 items-center gap-3">
+                      <div className="grid h-7 w-7 place-items-center rounded-lg bg-lavender-100/70 text-lavender-600 group-hover:bg-peach-400 group-hover:text-ink transition-colors">
+                        {item.icon}
+                      </div>
+                      <span className="whitespace-nowrap font-extrabold text-xs text-ink group-hover:text-lavender-700">
                         {item.label}
                       </span>
                     </div>
                     <div className="ml-auto flex-shrink-0">
                       {item.value && (
-                        <span className="rounded-lg bg-lavender-100/80 px-2 py-0.5 font-extrabold text-[10px] text-purple-700">
+                        <span className="rounded-full bg-peach-100 border border-peach-300 px-2.5 py-0.5 font-black text-[10px] text-amber-900 shadow-2xs">
                           {item.value}
                         </span>
                       )}
@@ -186,11 +187,13 @@ export default function ProfileDropdown({
             <DropdownMenuItem asChild>
               <button
                 onClick={onSignOut}
-                className="group flex w-full cursor-pointer items-center gap-2.5 rounded-xl border border-transparent bg-rose-50 p-2.5 transition-all duration-150 hover:bg-rose-100/80"
+                className="group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-rose-200/80 bg-rose-50 p-2.5 transition-all duration-150 hover:border-rose-300 hover:bg-rose-100"
                 type="button"
               >
-                <LogOut className="h-4 w-4 text-rose-600 group-hover:text-rose-700" />
-                <span className="font-extrabold text-xs text-rose-600 group-hover:text-rose-700">
+                <div className="grid h-7 w-7 place-items-center rounded-lg bg-rose-100 text-rose-600 group-hover:bg-rose-200">
+                  <LogOut className="h-4 w-4" />
+                </div>
+                <span className="font-black text-xs text-rose-600 group-hover:text-rose-700">
                   Sign Out
                 </span>
               </button>

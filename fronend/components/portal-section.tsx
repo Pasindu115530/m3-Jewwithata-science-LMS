@@ -29,5 +29,65 @@ const teacherData: Record<string,{title:string;description:string;active:string;
 
 export function PortalSection({role,section}:{role:"student"|"teacher";section:string}){
   const d = role === "student" ? studentData[section] : teacherData[section];
-  return <DashboardShell role={role} active={d.active}><div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><p className="text-sm font-extrabold uppercase tracking-[.18em] text-lavender-600">{role} portal</p><h1 className="mt-2 text-3xl font-black md:text-4xl">{d.title}</h1><p className="mt-2 text-ink/55">{d.description}</p></div><button className="gradient-button">{role==="teacher"?<UserPlus size={17}/>:<Download size={17}/>} {role==="teacher"?"Create new":"Download summary"}</button></div><div className="mt-6 grid gap-4 md:grid-cols-3">{d.items.map((x,i)=><Card className="p-5" key={x}><div className="flex items-start justify-between"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-lavender-100 text-2xl">{d.emoji}</div><button className="text-ink/35"><MoreHorizontal size={19}/></button></div><h2 className="mt-5 text-lg font-black">{x}</h2><div className="mt-3 flex gap-2"><Badge tone={i===0?"pink":i===1?"yellow":"green"}>{i===0?"Action needed":i===1?"In progress":"Completed"}</Badge></div><p className="mt-4 text-sm leading-6 text-ink/55">Realistic placeholder content for this UI section. Connect Firebase services later.</p><button className="mt-5 flex items-center gap-2 text-sm font-black text-lavender-700"><Eye size={16}/> View details</button></Card>)}</div><Card className="mt-6 p-5"><div className="flex flex-col gap-4 md:flex-row md:items-center"><div className="relative flex-1"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" size={18}/><input className="pastel-input pl-11" placeholder={`Search ${d.title.toLowerCase()}...`}/></div><button className="pill"><CalendarDays size={17}/> Filter date</button><button className="pill"><FileText size={17}/> Export</button></div><div className="mt-5 overflow-hidden rounded-2xl border border-white/80"><div className="grid grid-cols-[1.2fr_.8fr_.8fr_auto] gap-3 bg-lavender-100 p-4 text-xs font-black uppercase tracking-wide"><span>Item</span><span>Status</span><span>Updated</span><span>Action</span></div>{d.items.concat(d.items).map((x,i)=><div key={i} className="grid grid-cols-[1.2fr_.8fr_.8fr_auto] items-center gap-3 border-t border-white/80 bg-white/45 p-4 text-sm"><span className="font-bold">{x}</span><span><Badge tone={i%2?"green":"yellow"}>{i%2?"Active":"Pending"}</Badge></span><span className="text-ink/45">{i+1} day ago</span><button className="grid h-9 w-9 place-items-center rounded-xl bg-white shadow-card"><MoreHorizontal size={16}/></button></div>)}</div></Card></DashboardShell>
+  return (
+    <DashboardShell role={role} active={d.active}>
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[.18em] text-[#002583]">{role} portal</p>
+          <h1 className="mt-2 text-3xl font-black text-ink md:text-4xl">{d.title}</h1>
+          <p className="mt-2 text-ink/60 font-medium">{d.description}</p>
+        </div>
+        <button className="gold-button">
+          {role==="teacher"?<UserPlus size={17}/>:<Download size={17}/>}
+          {role==="teacher"?"Create new":"Download summary"}
+        </button>
+      </div>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        {d.items.map((x,i)=>(
+          <Card className="p-5 border border-lavender-200/80" key={x}>
+            <div className="flex items-start justify-between">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-peach-100 text-2xl">{d.emoji}</div>
+              <button className="text-ink/35 hover:text-ink"><MoreHorizontal size={19}/></button>
+            </div>
+            <h2 className="mt-5 text-lg font-black text-ink">{x}</h2>
+            <div className="mt-3 flex gap-2">
+              <Badge tone={i===0?"yellow":i===1?"purple":"green"}>{i===0?"Action needed":i===1?"In progress":"Completed"}</Badge>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-ink/60 font-medium">Topic notes and practice questions updated for 2026 curriculum.</p>
+            <button className="mt-5 flex items-center gap-2 text-sm font-black text-[#002583] hover:underline">
+              <Eye size={16}/> View details
+            </button>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="mt-6 p-5 border border-lavender-200/80">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" size={18}/>
+            <input className="pastel-input pl-11" placeholder={`Search ${d.title.toLowerCase()}...`}/>
+          </div>
+          <button className="pill text-[#002583]"><CalendarDays size={17}/> Filter date</button>
+          <button className="pill text-[#002583]"><FileText size={17}/> Export</button>
+        </div>
+        <div className="mt-5 overflow-hidden rounded-2xl border border-lavender-200">
+          <div className="grid grid-cols-[1.2fr_.8fr_.8fr_auto] gap-3 bg-lavender-100/90 p-4 text-xs font-black uppercase tracking-wide text-[#002583]">
+            <span>Item</span>
+            <span>Status</span>
+            <span>Updated</span>
+            <span>Action</span>
+          </div>
+          {d.items.concat(d.items).map((x,i)=>(
+            <div key={i} className="grid grid-cols-[1.2fr_.8fr_.8fr_auto] items-center gap-3 border-t border-lavender-100 bg-white/70 p-4 text-sm">
+              <span className="font-bold text-ink">{x}</span>
+              <span><Badge tone={i%2?"green":"yellow"}>{i%2?"Active":"Pending"}</Badge></span>
+              <span className="text-ink/60 font-semibold">{i+1} day ago</span>
+              <button className="grid h-9 w-9 place-items-center rounded-xl bg-white shadow-card hover:bg-lavender-50"><MoreHorizontal size={16}/></button>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </DashboardShell>
+  );
 }

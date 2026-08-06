@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { LockKeyhole, Mail, Loader2, Phone, KeyRound, ArrowRight, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -106,16 +107,37 @@ export default function StudentLoginPage() {
   return (
     <PublicShell>
       <div className="grid min-h-[85vh] place-items-center p-4 py-8">
-      <div className="soft-panel grid w-full max-w-5xl overflow-hidden lg:grid-cols-2">
-        {/* Left Branding Side */}
-        <div className="hidden bg-gradient-to-br from-lavender-300 to-lavender-600 p-10 text-white lg:block">
-          <Brand />
-          <div className="mt-24 text-8xl">👩‍🎓</div>
-          <h1 className="mt-6 text-4xl font-black">Welcome back.</h1>
-          <p className="mt-3 max-w-sm leading-7 text-white/75">
-            Access your personalised lessons, classes, assignments and progress.
-          </p>
-        </div>
+        <div className="soft-panel grid w-full max-w-5xl overflow-hidden border-2 border-lavender-200/90 shadow-2xl lg:grid-cols-2">
+          {/* Left Branding Side - Fitted loginbg.png image filling the blue container */}
+          <div className="relative hidden min-h-[500px] flex-col justify-between overflow-hidden bg-[#072b82] p-8 text-white lg:flex">
+            {/* Full cover background image fitting the blue square */}
+            <Image
+              src="/images/bg/loginbg.png"
+              alt="Science LMS Student Login Background"
+              fill
+              className="object-cover object-center"
+              priority
+            />
+
+            {/* Soft gradient overlay for text legibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#051c59]/90 via-[#072b82]/20 to-[#072b82]/05 pointer-events-none" />
+
+            <div className="relative z-10">
+              
+            </div>
+
+            <div className="relative z-10 mt-auto pt-28">
+              <span className="inline-block rounded-full bg-[#FFB800] px-3 py-1 text-[11px] font-black text-[#002583] shadow-md">
+                Student Portal
+              </span>
+              <h1 className="mt-3 text-3xl font-black text-white drop-shadow-md">
+                Welcome back!
+              </h1>
+              <p className="mt-2 max-w-sm text-xs font-bold leading-relaxed text-white/95 drop-shadow-sm">
+                Access your personalised Science lessons, classes, assignments and progress.
+              </p>
+            </div>
+          </div>
 
         {/* Right Form Side */}
         <div className="p-7 md:p-12">
