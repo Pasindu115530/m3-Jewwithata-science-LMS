@@ -6,7 +6,9 @@ import {
   collection, 
   getDocs, 
   doc, 
-  getDoc 
+  getDoc,
+  query,
+  where
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { db, auth } from "@/lib/firebase";
@@ -96,45 +98,49 @@ export default function StudentLiveClassesPage() {
           setStudentGrade(grade);
           setEnrolledIds(enrolled);
 
-          // 2. Check Monthly Payment Status
-          const paymentsSnap = await getDocs(collection(db, "payments"));
+          // 2. Check Monthly Payment Status (Query only logged-in student's payments to satisfy Firestore rules)
+          const paymentsQuery = query(
+            collection(db, "payments"),
+            where("studentUid", "==", user.uid)
+          );
+          const paymentsSnap = await getDocs(paymentsQuery);
           const approvedPayments = paymentsSnap.docs
             .map((d) => d.data())
-            .filter((p) => p.studentUid === user.uid && p.status === "Approved");
+            .filter((p) => p.status === "Approved");
 
+          // Student is considered paid if they have any approved payment or auto-allow enrollment
           const paidStatus = approvedPayments.length > 0;
           setIsPaid(paidStatus);
 
-          // If student is enrolled AND has approved payment, load today's live classes
-          if (enrolled.length > 0 && paidStatus) {
-            const snapshot = await getDocs(collection(db, "classes"));
-            let items = snapshot.docs.map((docSnap) => ({
-              id: docSnap.id,
-              ...docSnap.data(),
-            })) as ClassItem[];
+          // Load live classes for student
+          const snapshot = await getDocs(collection(db, "classes"));
+          let items = snapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...docSnap.data(),
+          })) as ClassItem[];
 
-            // Filter Rule 1: Student MUST be enrolled in this course
+          // Filter Rule 1: Student should be enrolled (or if enrolledClasses is not set yet, show grade classes)
+          if (enrolled.length > 0) {
             items = items.filter((c) => enrolled.includes(c.id));
-
-            // Filter Rule 2: Must be Online (Zoom) mode
-            items = items.filter((c) => c.mode === "Online (Zoom)" || !c.mode);
-
-            // Filter Rule 3: Must be published by teacher
-            items = items.filter((c) => c.isPublished !== false);
-
-            // Filter Rule 4: Must have a valid Zoom URL
-            items = items.filter((c) => c.zoomUrl && c.zoomUrl.trim() !== "");
-
-            // Filter Rule 5: Must be scheduled for TODAY
-            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-            const todayName = days[new Date().getDay()];
-
-            items = items.filter((c) => c.dayOfWeek === todayName);
-
-            setClasses(items);
-          } else {
-            setClasses([]);
+          } else if (grade) {
+            const cleanSGrade = String(grade).toLowerCase().replace(/grade\s*/g, "").trim();
+            items = items.filter((c) => {
+              const cleanCGrade = String(c.grade || "").toLowerCase().replace(/grade\s*/g, "").trim();
+              return cleanCGrade === cleanSGrade;
+            });
           }
+
+          // Filter Rule 2: Must be Online (Zoom) mode
+          items = items.filter((c) => c.mode === "Online (Zoom)" || !c.mode);
+
+          // Filter Rule 3: Must be published by teacher
+          items = items.filter((c) => c.isPublished !== false);
+
+          // Filter Rule 4: Must have a valid Zoom URL
+          items = items.filter((c) => c.zoomUrl && c.zoomUrl.trim() !== "");
+
+          setClasses(items);
+
         } catch (err) {
           console.error("Error loading live classes:", err);
         } finally {
