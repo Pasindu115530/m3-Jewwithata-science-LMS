@@ -9,9 +9,11 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
 export function Badge({
   children,
   tone = "navy",
+  className = "",
 }: {
   children: ReactNode;
   tone?: "navy" | "gold" | "lavender" | "green" | "pink" | "yellow" | "blue" | "purple";
+  className?: string;
 }) {
   const tones: Record<string, string> = {
     navy:    "bg-[#002583]/10 text-[#002583]",
@@ -24,7 +26,7 @@ export function Badge({
     purple:  "bg-purple-100 text-purple-700",
   };
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-bold ${tones[tone] ?? tones.navy}`}>
+    <span className={`rounded-full px-3 py-1 text-xs font-bold ${tones[tone] ?? tones.navy} ${className}`}>
       {children}
     </span>
   );
