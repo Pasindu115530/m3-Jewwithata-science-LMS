@@ -11,31 +11,12 @@ export function TeacherGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
         router.replace("/teacher-login");
-        setLoading(false);
-        return;
-      }
-
-      // Check custom claim role
-      const tokenResult = await currentUser.getIdTokenResult(true);
-      const role = tokenResult.claims.role as string | undefined;
-
-      if (role === "admin") {
-        // Admin logged into teacher login → redirect to admin dashboard
-        router.replace("/admin/dashboard");
-        setLoading(false);
-        return;
-      }
-
-      if (role === "teacher" || role === "admin") {
-        setUser(currentUser);
       } else {
-        // Student or unknown role → deny access
-        router.replace("/teacher-login");
+        setUser(currentUser);
       }
-
       setLoading(false);
     });
 
