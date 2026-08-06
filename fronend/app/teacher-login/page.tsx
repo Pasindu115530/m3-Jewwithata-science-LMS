@@ -83,7 +83,7 @@ export default function TeacherLoginPage() {
             />
 
             {/* Soft gradient overlay for text legibility */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#051c59]/90 via-[#072b82]/30 to-[#072b82]/70 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#051c59]/100 via-[#072b82]/20 to-[#072b82]/05 pointer-events-none" />
 
             <div className="relative z-10">
               

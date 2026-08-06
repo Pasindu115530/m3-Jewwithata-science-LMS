@@ -153,7 +153,7 @@ export default function HomePage() {
               {/* Content with WhatsApp Logo */}
               <span className="relative flex items-center gap-2 text-base font-bold text-emerald-950">
                 <FaWhatsapp className="h-5 w-5 text-emerald-950" />
-                WhatsApp Sir
+                WhatsApp
               </span>
 
               {/* Hover Sheen */}
