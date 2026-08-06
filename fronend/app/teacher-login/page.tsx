@@ -24,7 +24,30 @@ export default function TeacherLoginPage() {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Verify Role
+      const tokenResult = await user.getIdTokenResult();
+      const tokenRole = tokenResult.claims.role;
+
+      const { doc, getDoc } = await import("firebase/firestore");
+      const { db } = await import("@/lib/firebase");
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const docRole = userDoc.exists() ? userDoc.data()?.role : null;
+
+      const isTeacherOrAdmin =
+        tokenRole === "teacher" ||
+        tokenRole === "admin" ||
+        docRole === "teacher" ||
+        docRole === "admin";
+
+      if (!isTeacherOrAdmin) {
+        await auth.signOut();
+        setError("Access Denied: Student accounts cannot log in to the Teacher Portal.");
+        return;
+      }
+
       router.push("/teacher/dashboard");
     } catch (err: any) {
       console.error("Login error:", err);
