@@ -21,31 +21,22 @@ function normalizePhoneLocal(phone: string): string {
   return cleaned;
 }
 
-// Helper: send SMS via text.lk API
+// Helper: send SMS via text.lk HTTP API
 async function sendSmsTextLk(recipientPhone: string, message: string): Promise<boolean> {
-  const token = "6391|wxBuhnjBsvpT6fBayumubRBxm9andmxWSAYPsL9W503ffb90";
-  const url = "https://app.text.lk/api/v3/sms/send";
-
-  const payload = {
-    recipient: recipientPhone,
-    sender_id: "TextLKDemo",
-    message: message,
-  };
+  const token: string = process.env.TEXTLK_API_TOKEN!;
+  const senderId: string = process.env.TEXTLK_SENDER_ID!;
+  
+  const url = new URL("https://app.text.lk/api/http/sms/send");
+  url.searchParams.append("recipient", recipientPhone);
+  url.searchParams.append("sender_id", senderId);
+  url.searchParams.append("message", message);
+  url.searchParams.append("api_token", token);  
 
   try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
+    const res = await fetch(url.toString());
     const data = (await res.json()) as any;
-    console.log("text.lk API Response:", data);
-    return res.ok && (data.status === "success" || data.code === 200 || !!data.data);
+    console.log("text.lk HTTP API Response:", data);
+    return res.ok && (data.status === "success" || data.code === 200 || data.status === 200 || !!data.data);
   } catch (err) {
     console.error("Failed to send SMS via text.lk:", err);
     return false;
