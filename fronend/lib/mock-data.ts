@@ -36,3 +36,9 @@ export const teacherMenu = [
   ["Payment Approvals", "/teacher/payments"], ["Announcements", "/teacher/announcements"], ["Profile", "/teacher/profile"],
   ["Settings", "/teacher/settings"]
 ] as const;
+
+export const adminMenu = [
+  ["Dashboard", "/admin/dashboard"], ["Students", "/admin/students"], ["Today's Classes", "/teacher/classes"],
+  ["Zoom Links", "/teacher/zoom-links"], ["Payment Approvals", "/teacher/payments"], ["Announcements", "/teacher/announcements"],
+  ["Settings", "/teacher/settings"]
+] as const;

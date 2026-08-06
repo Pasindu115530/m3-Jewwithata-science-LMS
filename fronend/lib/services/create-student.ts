@@ -1,8 +1,6 @@
-import { auth } from "@/lib/firebase";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { app } from "@/lib/firebase";
 import { StudentInput, studentSchema } from "@/lib/validations/student";
-import { generateSequentialStudentId, generateStudentEmail } from "./student-id";
-import { checkDuplicateContactNumbers, saveStudentDocument } from "./student-firestore";
-import { createStudentAuthUser } from "./student-auth";
 
 export interface CreateStudentResult {
   success: boolean;
@@ -13,52 +11,33 @@ export interface CreateStudentResult {
 }
 
 /**
- * Main Orchestrator for Creating a Student in Firebase Auth and Firestore.
+ * Creates a student by calling the secure Cloud Function.
+ * The Cloud Function verifies the caller's role and handles
+ * Auth + Firestore creation server-side.
  */
-export async function createStudentService(input: StudentInput): Promise<CreateStudentResult> {
+export async function createStudentService(
+  input: StudentInput
+): Promise<CreateStudentResult> {
   try {
-    // 1. Verify Admin Authentication
-    const currentAdmin = auth.currentUser;
-    if (!currentAdmin) {
-      return {
-        success: false,
-        error: "Unauthorized: Only authenticated admins/teachers can create students.",
-      };
-    }
-
-    // 2. Validate input with Zod
+    // Validate input with Zod before sending to the server
     const validationResult = studentSchema.safeParse(input);
     if (!validationResult.success) {
-      const firstError = validationResult.error.issues[0]?.message || "Invalid input data.";
-      return {
-        success: false,
-        error: firstError,
-      };
+      const firstError =
+        validationResult.error.issues[0]?.message || "Invalid input data.";
+      return { success: false, error: firstError };
     }
 
-    const validData = validationResult.data;
+    const functions = getFunctions(app);
+    const createStudent = httpsCallable<StudentInput, CreateStudentResult>(
+      functions,
+      "createStudent"
+    );
 
-    // 3. Check for Duplicate Mobile / WhatsApp Numbers
-    await checkDuplicateContactNumbers(validData.mobileNumber, validData.whatsappNumber);
-
-    // 4. Generate Sequential Student ID & Email
-    const studentId = await generateSequentialStudentId();
-    const studentEmail = generateStudentEmail(studentId);
-
-    // 5. Create Firebase Authentication User
-    const studentUid = await createStudentAuthUser(studentEmail, validData.password);
-
-    // 6. Save Student Document into Firestore
-    await saveStudentDocument(studentUid, studentId, studentEmail, validData, currentAdmin.uid);
-
-    return {
-      success: true,
-      uid: studentUid,
-      studentId,
-      email: studentEmail,
-    };
+    const result = await createStudent(validationResult.data);
+    return result.data;
   } catch (err: any) {
     console.error("createStudentService Error:", err);
+    // Firebase callable functions return error in err.message
     return {
       success: false,
       error: err.message || "An unexpected error occurred while creating the student.",

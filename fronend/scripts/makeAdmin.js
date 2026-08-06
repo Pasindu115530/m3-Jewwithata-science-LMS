@@ -8,7 +8,7 @@ initializeApp({
   credential: cert(serviceAccount),
 });
 
-const uid = "";
+const uid = "KG6gdCn90XYfeUpYyTGqoUoSYu82";
 
 getAuth()
   .setCustomUserClaims(uid, {
