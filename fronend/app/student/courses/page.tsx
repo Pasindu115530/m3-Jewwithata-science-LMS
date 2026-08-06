@@ -16,14 +16,13 @@ import { StudentGuard } from "@/components/student-guard";
 import { Card, Badge } from "@/components/ui";
 import { CourseDetailView } from "@/components/course-detail-view";
 import { EmptyState } from "@/components/empty-state";
-import { classes as mockClasses } from "@/lib/mock-data";
 import { 
   BookOpen, 
   Loader2, 
   Calendar, 
   Clock, 
   Lock, 
-  CheckCircle2, 
+  CheckCircle2,         
   AlertCircle,
   CreditCard,
   ChevronRight,
@@ -114,47 +113,25 @@ export default function StudentCoursesPage() {
           setIsPaid(paidStatus);
           setCheckingPayment(false);
 
-          // 3. Fetch All Classes from Firestore + Fallback from mock-data
+          // 3. Fetch All Classes directly from Firestore
           const classesSnap = await getDocs(collection(db, "classes"));
-          const firestoreClasses = classesSnap.docs.map((docSnap) => ({
+          const allFirestoreClasses = classesSnap.docs.map((docSnap) => ({
             id: docSnap.id,
             ...docSnap.data(),
           })) as CourseItem[];
 
-          // Format mock classes to match CourseItem structure
-          const formattedMockClasses: CourseItem[] = mockClasses.map((mc, idx) => ({
-            id: `mock-class-${mc.grade.toLowerCase().replace(/\s+/g, "")}-${idx}`,
-            title: mc.fullTitle || `${mc.grade} ${mc.title}`,
-            grade: mc.grade,
-            dayOfWeek: mc.day,
-            startTime: mc.time?.split("–")[0]?.trim(),
-            endTime: mc.time?.split("–")[1]?.trim(),
-            fee: mc.fee,
-            mode: mc.mode,
-          }));
-
-          // Merge Firestore classes with mock classes (avoiding duplicates)
-          const allGradeClasses = [
-            ...firestoreClasses,
-            ...formattedMockClasses.filter(
-              (mc) => !firestoreClasses.some((fc) => fc.grade === mc.grade && fc.title === mc.title)
-            ),
-          ];
-
-          // Filter strictly by Grade
-          const matchingGradeClasses = allGradeClasses.filter((c) => {
-            if (!c.grade) return false;
-            const cleanCGrade = c.grade.toLowerCase().replace(/grade\s*/g, "").trim();
-            const cleanSGrade = grade.toLowerCase().replace(/grade\s*/g, "").trim();
+          // Filter classes by Student's Grade (if grade is specified, match grade; otherwise show all available classes)
+          const matchingGradeClasses = allFirestoreClasses.filter((c) => {
+            if (!c.grade) return true;
+            if (!grade) return true; // Show all if student grade is not set on profile
+            const cleanCGrade = String(c.grade).toLowerCase().replace(/grade\s*/g, "").trim();
+            const cleanSGrade = String(grade).toLowerCase().replace(/grade\s*/g, "").trim();
             return cleanCGrade === cleanSGrade || c.grade === grade;
           });
 
-          // Separate into Enrolled and Available
-          // Matches if course ID is in enrolled list OR mock ID grade matches enrolled course
-          const enrolledList = allGradeClasses.filter((c) => 
-            enrolled.includes(c.id) || enrolled.some((eId) => eId.includes(c.grade.toLowerCase().replace(/\s+/g, "")))
-          );
-          const availableList = matchingGradeClasses.filter((c) => !enrolledList.some((e) => e.id === c.id));
+          // Separate into Enrolled and Available based on exact ID matches
+          const enrolledList = matchingGradeClasses.filter((c) => enrolled.includes(c.id));
+          const availableList = matchingGradeClasses.filter((c) => !enrolled.includes(c.id));
 
           setEnrolledCourses(enrolledList);
           setAvailableCourses(availableList);
