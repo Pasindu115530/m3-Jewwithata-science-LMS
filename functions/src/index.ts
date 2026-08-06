@@ -21,13 +21,26 @@ function normalizePhoneLocal(phone: string): string {
   return cleaned;
 }
 
+// Helper: Format phone to Sri Lankan international format without plus (e.g. 94771234567)
+function formatPhoneForTextLk(phone: string): string {
+  let cleaned = phone.replace(/\D/g, "");
+  if (cleaned.startsWith("0")) {
+    cleaned = "94" + cleaned.substring(1);
+  } else if (!cleaned.startsWith("94")) {
+    cleaned = "94" + cleaned;
+  }
+  return cleaned;
+}
+
 // Helper: send SMS via text.lk HTTP API
 async function sendSmsTextLk(recipientPhone: string, message: string): Promise<boolean> {
-  const token: string = process.env.TEXTLK_API_TOKEN!;
-  const senderId: string = process.env.TEXTLK_SENDER_ID!;
+  const token: string = process.env.TEXTLK_API_TOKEN || "6391|wxBuhnjBsvpT6fBayumubRBxm9andmxWSAYPsL9W503ffb90";
+  const senderId: string = "TextLKDemo";
   
+  const recipientFormatted = formatPhoneForTextLk(recipientPhone);
+
   const url = new URL("https://app.text.lk/api/http/sms/send");
-  url.searchParams.append("recipient", recipientPhone);
+  url.searchParams.append("recipient", recipientFormatted);
   url.searchParams.append("sender_id", senderId);
   url.searchParams.append("message", message);
   url.searchParams.append("api_token", token);  
