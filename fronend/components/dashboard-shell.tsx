@@ -1,11 +1,17 @@
+"use client";
+
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Bell, BookOpen, CalendarDays, CheckSquare, ClipboardCheck, CreditCard, FileText, LayoutDashboard,
   Megaphone, Menu, PlayCircle, Search, Settings, UserRound, Users, Video, WalletCards
 } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { studentMenu, teacherMenu } from "@/lib/mock-data";
+import ProfileDropdown from "@/components/ui/profile-dropdown";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
 
 const iconMap: Record<string, ReactNode> = {
   Dashboard: <LayoutDashboard size={19}/>, "My Courses": <BookOpen size={19}/>, Tutes: <FileText size={19}/>,
@@ -17,9 +23,28 @@ const iconMap: Record<string, ReactNode> = {
 };
 
 export function DashboardShell({ role, active, children }: { role: "student" | "teacher"; active: string; children: ReactNode }) {
+  const router = useRouter();
   const menu = role === "student" ? studentMenu : teacherMenu;
   const person = role === "student" ? "Mia Perera" : "Pasindu Udana";
   const subtitle = role === "student" ? "Grade 10 Student" : "Science Teacher";
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      router.push(role === "student" ? "/student-login" : "/teacher-login");
+    } catch (err) {
+      console.error("Sign out error:", err);
+    }
+  };
+
+  const profileData = {
+    name: person,
+    email: role === "student" ? "mia.perera@student.kalaharascience.lk" : "pasindu.udana@kalaharascience.lk",
+    role: role,
+    grade: role === "student" ? "Grade 10" : "Teacher",
+    status: role === "student" ? "Active Student" : "Verified Teacher",
+  };
+
   return (
     <div className="min-h-screen p-3 md:p-5">
       <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-[1480px] overflow-hidden rounded-[2.25rem] border border-white/80 bg-[#fff9f7]/75 shadow-soft backdrop-blur-xl">
@@ -45,7 +70,13 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
           <header className="flex items-center gap-3 border-b border-white/80 px-4 py-4 md:px-7">
             <button className="grid h-11 w-11 place-items-center rounded-2xl bg-white/80 shadow-card lg:hidden" aria-label="Open sidebar"><Menu size={20}/></button>
             <div className="relative hidden max-w-xl flex-1 md:block"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" size={18}/><input className="pastel-input pl-11" placeholder="Search lessons, classes, students..."/></div>
-            <div className="ml-auto flex items-center gap-2"><button className="relative grid h-11 w-11 place-items-center rounded-2xl bg-white/80 shadow-card"><Bell size={19}/><span className="absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-rose-400 text-[9px] font-black text-white">3</span></button><div className="grid h-11 w-11 place-items-center rounded-2xl bg-lavender-200 text-xl shadow-card">{role === "student" ? "👩‍🎓" : "👨‍🏫"}</div></div>
+            <div className="ml-auto flex items-center gap-3">
+              <button className="relative grid h-11 w-11 place-items-center rounded-2xl bg-white/80 shadow-card">
+                <Bell size={19}/>
+                <span className="absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-rose-400 text-[9px] font-black text-white">3</span>
+              </button>
+              <ProfileDropdown data={profileData} onSignOut={handleSignOut} />
+            </div>
           </header>
           <main className="p-4 md:p-7">{children}</main>
         </div>
