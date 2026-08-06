@@ -152,10 +152,11 @@ export const testimonials = [
 ];
 
 export const studentMenu = [
-  ["Dashboard", "/student/dashboard"], ["Free Lessons", "/student/free-lessons"], ["Weekly Timetable", "/student/timetable"],
-  ["Live Classes", "/student/live-classes"], ["Assignments", "/student/assignments"], ["Payments", "/student/payments"],
-  ["Payment History", "/student/payment-history"], ["Attendance", "/student/attendance"], ["Notifications", "/student/notifications"],
-  ["Profile", "/student/profile"], ["Settings", "/student/settings"]
+  ["My Courses", "/student/courses"],
+  ["Live Classes", "/student/live-classes"],
+  ["Payments", "/student/payments"],
+  ["Payment History", "/student/payment-history"],
+  ["Profile", "/student/profile"]
 ] as const;
 
 export const teacherMenu = [

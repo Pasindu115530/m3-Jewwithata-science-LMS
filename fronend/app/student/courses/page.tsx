@@ -16,6 +16,7 @@ import { StudentGuard } from "@/components/student-guard";
 import { Card, Badge } from "@/components/ui";
 import { CourseDetailView } from "@/components/course-detail-view";
 import { EmptyState } from "@/components/empty-state";
+import { classes as mockClasses } from "@/lib/mock-data";
 import { 
   BookOpen, 
   Loader2, 
@@ -113,13 +114,32 @@ export default function StudentCoursesPage() {
           setIsPaid(paidStatus);
           setCheckingPayment(false);
 
-          // 3. Fetch All Classes and filter strictly by Student's Grade
+          // 3. Fetch All Classes from Firestore + Fallback from mock-data
           const classesSnap = await getDocs(collection(db, "classes"));
-          const allGradeClasses = classesSnap.docs
-            .map((docSnap) => ({
-              id: docSnap.id,
-              ...docSnap.data(),
-            })) as CourseItem[];
+          const firestoreClasses = classesSnap.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...docSnap.data(),
+          })) as CourseItem[];
+
+          // Format mock classes to match CourseItem structure
+          const formattedMockClasses: CourseItem[] = mockClasses.map((mc, idx) => ({
+            id: `mock-class-${mc.grade.toLowerCase().replace(/\s+/g, "")}-${idx}`,
+            title: mc.fullTitle || `${mc.grade} ${mc.title}`,
+            grade: mc.grade,
+            dayOfWeek: mc.day,
+            startTime: mc.time?.split("–")[0]?.trim(),
+            endTime: mc.time?.split("–")[1]?.trim(),
+            fee: mc.fee,
+            mode: mc.mode,
+          }));
+
+          // Merge Firestore classes with mock classes (avoiding duplicates)
+          const allGradeClasses = [
+            ...firestoreClasses,
+            ...formattedMockClasses.filter(
+              (mc) => !firestoreClasses.some((fc) => fc.grade === mc.grade && fc.title === mc.title)
+            ),
+          ];
 
           // Filter strictly by Grade
           const matchingGradeClasses = allGradeClasses.filter((c) => {
