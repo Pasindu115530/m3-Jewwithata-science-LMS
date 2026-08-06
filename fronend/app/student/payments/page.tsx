@@ -215,7 +215,7 @@ export default function StudentPaymentsPage() {
       // Upload file to Firebase Storage (or mock URL if offline)
       let downloadUrl = "";
       try {
-        const storagePath = `payment_proofs/${userUid}_${Date.now()}_${file.name}`;
+        const storagePath = `payment_proofs/${userUid}/${Date.now()}_${file.name}`;
         const storageRef = ref(storage, storagePath);
         const uploadTask = uploadBytesResumable(storageRef, file);
 
