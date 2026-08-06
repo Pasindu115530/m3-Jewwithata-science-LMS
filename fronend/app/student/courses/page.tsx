@@ -7,7 +7,9 @@ import {
   doc, 
   getDoc,
   setDoc,
-  updateDoc
+  updateDoc,
+  query,
+  where
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { db, auth } from "@/lib/firebase";
@@ -103,10 +105,15 @@ export default function StudentCoursesPage() {
           const now = new Date();
           const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
-          const paymentsSnap = await getDocs(collection(db, "payments"));
+          // 2. Check Monthly Payment Status from `payments` collection for this student only
+          const paymentsQuery = query(
+            collection(db, "payments"),
+            where("studentUid", "==", user.uid)
+          );
+          const paymentsSnap = await getDocs(paymentsQuery);
           const studentPayments = paymentsSnap.docs
             .map((d) => d.data())
-            .filter((p) => p.studentUid === user.uid && p.status === "Approved");
+            .filter((p) => p.status === "Approved");
 
           // Valid if any approved payment exists for student
           const paidStatus = studentPayments.length > 0;
