@@ -20,6 +20,8 @@ import { LiquidStatRectCard } from "@/components/liquid-hero-card";
 import { CountUp } from "@/components/lightswind/count-up";
 import { SpotlightCards } from "@/components/spotlight-cards";
 import { FaWhatsapp } from "react-icons/fa";
+import NeuralLinkBackground from "@/components/lightswind/neural-link-background";
+
 export default function HomePage() {
   const schema = {
     "@context": "https://schema.org",
@@ -41,6 +43,19 @@ export default function HomePage() {
         {/* Ambient blobs */}
         <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-lavender-300/25 blur-3xl" />
         <div className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full bg-peach-200/30 blur-3xl" />
+
+        {/* Interactive Neural Link Background */}
+        <NeuralLinkBackground
+          nodeColor="#002583"
+          lineColor="#002853"
+          packetColor="#FFB800"
+          nodeCount={30}
+          maxDistance={125}
+          interactionMode="router"
+          interactive={true}
+          packetFrequency={8000}
+          className="z-0 opacity-40"
+        />
 
         {/* Watermark brand text — endless loop track */}
         <div className="hero-watermark">
