@@ -17,7 +17,9 @@ export const metadata = createMetadata(
 );
 
 import { LiquidStatRectCard } from "@/components/liquid-hero-card";
-
+import { CountUp } from "@/components/lightswind/count-up";
+import { SpotlightCards } from "@/components/spotlight-cards";
+import { FaWhatsapp } from "react-icons/fa";
 export default function HomePage() {
   const schema = {
     "@context": "https://schema.org",
@@ -116,8 +118,32 @@ export default function HomePage() {
               subtitle="Teaching Science"
               variant="gold"
             />
-            <Link href="/contact" className="pill mt-1 w-full max-w-[260px] justify-center text-sm">
-              <MessageCircle size={16} /> WhatsApp Sir
+            <Link
+              href="https://wa.me/94767589005"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative inline-flex h-12 w-full max-w-[260px] items-center justify-center overflow-hidden rounded-xl px-4 transition-all duration-300 mt-1 shadow-[0_4px_20px_rgba(52,211,153,0.35)] hover:shadow-[0_6px_25px_rgba(52,211,153,0.5)] hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {/* Light Green Border */}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-green-300 via-emerald-300 to-teal-300 p-[2px]">
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-400" />
+              </div>
+
+              {/* Light Green Background */}
+              <div className="absolute inset-[2px] rounded-[10px] bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-400" />
+              <div className="absolute inset-[2px] rounded-[10px] bg-gradient-to-b from-white/35 via-transparent to-black/5" />
+
+              {/* Inner Glow */}
+              <div className="absolute inset-[2px] rounded-[10px] shadow-[inset_0_1px_2px_rgba(255,255,255,0.7)]" />
+
+              {/* Content with WhatsApp Logo */}
+              <span className="relative flex items-center gap-2 text-base font-bold text-emerald-950">
+                <FaWhatsapp className="h-5 w-5 text-emerald-950" />
+                WhatsApp Sir
+              </span>
+
+              {/* Hover Sheen */}
+              <div className="absolute inset-[2px] rounded-[10px] bg-gradient-to-r from-white/0 via-white/35 to-white/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </Link>
           </div>
         </div>
@@ -210,27 +236,14 @@ export default function HomePage() {
 
           {/* Col 3 — Hero stat */}
           <div className="flex flex-col items-center gap-1 lg:items-end">
-            <p className="text-6xl font-black text-[#002583]">450+</p>
+            <CountUp to={450} suffix="+" className="text-6xl font-black text-[#002583]" />
             <p className="font-semibold text-ink/55">Active Students</p>
             <TextLink href="/results">VIEW STATS</TextLink>
           </div>
         </div>
 
-        {/* Secondary stats strip */}
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { v: "120+", l: "Free Lessons", e: "▶️" },
-            { v: "8+", l: "Years Teaching", e: "🏆" },
-            { v: "90%", l: "Improved Results", e: "📈" },
-            { v: "14", l: "Weekly Classes", e: "📅" },
-          ].map(({ v, l, e }) => (
-            <Card key={l} className="p-4 text-center">
-              <div className="text-2xl">{e}</div>
-              <p className="mt-2 text-2xl font-black">{v}</p>
-              <p className="text-xs font-bold text-ink/50">{l}</p>
-            </Card>
-          ))}
-        </div>
+        {/* Secondary stats strip — Kokonut UI 3D tilt spotlight cards */}
+        <SpotlightCards className="mt-8" />
       </section>
 
       {/* ══════════════════════════════════════════════════════════════
