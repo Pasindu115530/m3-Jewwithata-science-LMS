@@ -7,6 +7,7 @@ import { LockKeyhole, Mail, Loader2, Phone, KeyRound, ArrowRight, RefreshCw } fr
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Brand } from "@/components/brand";
+import { PublicShell } from "@/components/public-shell";
 import { sendStudentOtpService, verifyStudentOtpService } from "@/lib/services/otp";
 
 export default function StudentLoginPage() {
@@ -102,7 +103,8 @@ export default function StudentLoginPage() {
   };
 
   return (
-    <main className="grid min-h-screen place-items-center p-4">
+    <PublicShell>
+      <div className="grid min-h-[85vh] place-items-center p-4 py-8">
       <div className="soft-panel grid w-full max-w-5xl overflow-hidden lg:grid-cols-2">
         {/* Left Branding Side */}
         <div className="hidden bg-gradient-to-br from-lavender-300 to-lavender-600 p-10 text-white lg:block">
@@ -325,6 +327,7 @@ export default function StudentLoginPage() {
           )}
         </div>
       </div>
-    </main>
+    </div>
+  </PublicShell>
   );
 }

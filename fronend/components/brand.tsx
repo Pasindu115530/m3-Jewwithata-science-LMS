@@ -10,7 +10,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
       </span>
       {!compact && (
         <span>
-          <strong className="block text-base font-black leading-tight text-[#002583]">Pasindu Udana</strong>
+          <strong className="block text-base font-black leading-tight text-[#002583]">Kalhara Nakandala</strong>
           <span className="text-xs font-semibold text-ink/55">Science Academy</span>
         </span>
       )}

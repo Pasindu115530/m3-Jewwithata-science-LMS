@@ -105,14 +105,19 @@ const NeuralLinkBackground: React.FC<NeuralLinkProps> = ({
 
     const resizeCanvas = () => {
       const rect = containerRef.current?.getBoundingClientRect();
-      const width = rect?.width || window.innerWidth;
-      const height = rect?.height || window.innerHeight;
+      let width = rect?.width || window.innerWidth;
+      let height = rect?.height || window.innerHeight;
 
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
+      if (width === 0) width = window.innerWidth;
+      if (height === 0) height = window.innerHeight;
 
-        // Initialize nodes
+      const sizeChanged = canvas.width !== width || canvas.height !== height;
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // Re-initialize nodes if empty or if canvas size changed
+      if (nodes.length === 0 || sizeChanged) {
         nodes = [];
         for (let i = 0; i < nodeCount; i++) {
           nodes.push(createNode(width, height));

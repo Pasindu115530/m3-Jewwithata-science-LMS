@@ -1,9 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
+import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, Atom, Menu, Sparkles } from "lucide-react";
+import { ArrowUpRight, Atom, Menu } from "lucide-react";
+import { motion } from "framer-motion";
 import { Brand } from "@/components/brand";
 import { siteConfig } from "@/lib/site";
 
@@ -16,6 +18,34 @@ const links = [
 
 export function PublicHeader() {
   const pathname = usePathname();
+  const [dimensions, setDimensions] = React.useState({ width: 0, left: 0 });
+
+  const buttonRefs = React.useRef<Map<string, HTMLAnchorElement>>(new Map());
+  const containerRef = React.useRef<HTMLElement>(null);
+
+  React.useLayoutEffect(() => {
+    const updateDimensions = () => {
+      const selectedButton = buttonRefs.current.get(pathname);
+      const container = containerRef.current;
+
+      if (selectedButton && container) {
+        const rect = selectedButton.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+
+        setDimensions({
+          width: rect.width,
+          left: rect.left - containerRect.left,
+        });
+      }
+    };
+
+    requestAnimationFrame(() => {
+      updateDimensions();
+    });
+
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, [pathname]);
 
   return (
     <header className="sticky top-4 z-50 flex w-full justify-center px-4">
@@ -47,27 +77,50 @@ export function PublicHeader() {
           <Atom size={19} className="animate-spin-slow" />
         </Link>
 
-        {/* Center Links (Desktop) */}
-        <nav className="hidden items-center gap-1 text-xs font-bold sm:flex md:text-sm">
+        {/* Center Links (Desktop) with KokonutUI SmoothTab Motion */}
+        <nav
+          ref={containerRef}
+          className="relative hidden items-center gap-1 text-xs font-bold sm:flex md:text-sm"
+        >
+          {/* KokonutUI Sliding Background Indicator */}
+          {dimensions.width > 0 && (
+            <motion.div
+              animate={{
+                width: dimensions.width,
+                x: dimensions.left,
+                opacity: 1,
+              }}
+              className="absolute z-[1] rounded-full bg-[#002583]"
+              initial={false}
+              style={{
+                height: "100%",
+                top: 0,
+                border: "1px solid rgba(255, 184, 0, 0.4)",
+                boxShadow: "0 4px 12px rgba(0, 37, 131, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 400,
+                damping: 30,
+              }}
+            />
+          )}
+
           {links.map(([label, href]) => {
             const isActive = pathname === href;
             return (
               <Link
                 key={href}
                 href={href}
-                className={`rounded-full px-4 py-2 transition-all duration-200 ${
+                ref={(el) => {
+                  if (el) buttonRefs.current.set(href, el);
+                  else buttonRefs.current.delete(href);
+                }}
+                className={`relative z-[2] rounded-full px-4 py-2 transition-colors duration-300 ${
                   isActive
-                    ? "bg-[#002583] text-white shadow-md"
+                    ? "text-white"
                     : "text-ink/75 hover:bg-[#002583]/10 hover:text-[#002583]"
                 }`}
-                style={
-                  isActive
-                    ? {
-                        border: "1px solid rgba(255, 184, 0, 0.4)",
-                        boxShadow: "0 4px 12px rgba(0, 37, 131, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
-                      }
-                    : {}
-                }
               >
                 {label}
               </Link>
@@ -128,7 +181,7 @@ export function PublicFooter() {
       {/* Gold accent bar */}
       <div className="h-1 w-full bg-gradient-to-r from-[#002583] via-[#FFB800] to-[#002583]" />
       <div className="px-5 py-4 text-center text-xs text-ink/45">
-        © 2026 Pasindu Udana Science Academy. UI demonstration only.
+        © 2026 Kalhara Nakandala Science Academy. -M3 Solution
       </div>
     </footer>
   );
