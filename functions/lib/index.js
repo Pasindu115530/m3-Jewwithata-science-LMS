@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyStudentOtp = exports.sendStudentOtp = void 0;
+exports.enrollStudentInCourse = exports.verifyStudentOtp = exports.sendStudentOtp = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const app_1 = require("firebase-admin/app");
 const auth_1 = require("firebase-admin/auth");
@@ -34,7 +34,7 @@ function formatPhoneForTextLk(phone) {
 // Helper: send SMS via text.lk HTTP API
 async function sendSmsTextLk(recipientPhone, message) {
     const token = process.env.TEXTLK_API_TOKEN || "6391|wxBuhnjBsvpT6fBayumubRBxm9andmxWSAYPsL9W503ffb90";
-    const senderId = process.env.TEXTLK_SENDER_ID || "TextLKDemo";
+    const senderId = "TextLKDemo";
     const recipientFormatted = formatPhoneForTextLk(recipientPhone);
     const url = new URL("https://app.text.lk/api/http/sms/send");
     url.searchParams.append("recipient", recipientFormatted);
@@ -127,6 +127,49 @@ exports.verifyStudentOtp = (0, https_1.onCall)(async (request) => {
         if (err instanceof https_1.HttpsError)
             throw err;
         throw new https_1.HttpsError("internal", err.message || "Failed to verify OTP.");
+    }
+});
+// ─── enrollStudentInCourse ───────────────────────────────────────────────────
+exports.enrollStudentInCourse = (0, https_1.onCall)(async (request) => {
+    try {
+        if (!request.auth) {
+            throw new https_1.HttpsError("unauthenticated", "User must be authenticated to enroll.");
+        }
+        const { courseId } = request.data;
+        if (!courseId) {
+            throw new https_1.HttpsError("invalid-argument", "Course ID is required.");
+        }
+        const uid = request.auth.uid;
+        // Payment check removed: Any student can enroll in a course!
+        // Content inside the course remains locked until monthly payment is completed.
+        const userRef = db.collection("users").doc(uid);
+        const userDoc = await userRef.get();
+        const enrolledClasses = userDoc.exists ? userDoc.data()?.enrolledClasses || [] : [];
+        const enrollments = userDoc.exists ? userDoc.data()?.enrollments || {} : {};
+        if (!enrolledClasses.includes(courseId)) {
+            enrolledClasses.push(courseId);
+        }
+        const enrolledAtIso = new Date().toISOString();
+        enrollments[courseId] = {
+            enrolledAt: enrolledAtIso,
+            status: "active",
+        };
+        await userRef.set({
+            enrolledClasses,
+            enrollments,
+            updatedAt: enrolledAtIso,
+        }, { merge: true });
+        return {
+            success: true,
+            message: "Successfully enrolled in course.",
+            enrolledAt: enrolledAtIso,
+        };
+    }
+    catch (err) {
+        console.error("Error in enrollStudentInCourse:", err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        throw new https_1.HttpsError("internal", err.message || "Failed to enroll in course.");
     }
 });
 //# sourceMappingURL=index.js.map

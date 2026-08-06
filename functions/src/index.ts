@@ -147,3 +147,57 @@ export const verifyStudentOtp = onCall(async (request) => {
     throw new HttpsError("internal", err.message || "Failed to verify OTP.");
   }
 });
+
+// ─── enrollStudentInCourse ───────────────────────────────────────────────────
+export const enrollStudentInCourse = onCall(async (request) => {
+  try {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "User must be authenticated to enroll.");
+    }
+
+    const { courseId } = request.data as { courseId: string };
+    if (!courseId) {
+      throw new HttpsError("invalid-argument", "Course ID is required.");
+    }
+
+    const uid = request.auth.uid;
+
+    // Payment check removed: Any student can enroll in a course!
+    // Content inside the course remains locked until monthly payment is completed.
+    const userRef = db.collection("users").doc(uid);
+    const userDoc = await userRef.get();
+
+    const enrolledClasses: string[] = userDoc.exists ? userDoc.data()?.enrolledClasses || [] : [];
+    const enrollments = userDoc.exists ? userDoc.data()?.enrollments || {} : {};
+
+    if (!enrolledClasses.includes(courseId)) {
+      enrolledClasses.push(courseId);
+    }
+
+    const enrolledAtIso = new Date().toISOString();
+    enrollments[courseId] = {
+      enrolledAt: enrolledAtIso,
+      status: "active",
+    };
+
+    await userRef.set(
+      {
+        enrolledClasses,
+        enrollments,
+        updatedAt: enrolledAtIso,
+      },
+      { merge: true }
+    );
+
+    return {
+      success: true,
+      message: "Successfully enrolled in course.",
+      enrolledAt: enrolledAtIso,
+    };
+  } catch (err: any) {
+    console.error("Error in enrollStudentInCourse:", err);
+    if (err instanceof HttpsError) throw err;
+    throw new HttpsError("internal", err.message || "Failed to enroll in course.");
+  }
+});
+

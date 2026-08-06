@@ -33,7 +33,8 @@ service cloud.firestore {
     // Writes to users collection are LOCKED to Cloud Functions only (Admin SDK bypasses rules).
     match /users/{userId} {
       allow read: if isAdmin() || isTeacher() || (isStudent() && request.auth.uid == userId);
-      allow write: if false; // Cloud Functions (Admin SDK) handles all writes
+      allow create, update, write: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if false;
     }
 
     // ─── Classes collection ────────────────────────────────────────────────────
@@ -58,24 +59,12 @@ service cloud.firestore {
       allow create, update, delete: if isAdminOrTeacher();
     }
 
-    // ─── Attendance ────────────────────────────────────────────────────────────
-    match /attendance/{recordId} {
-      allow read: if isAdminOrTeacher() || (isStudent() && resource.data.studentUid == request.auth.uid);
-      allow create, update: if isAdminOrTeacher();
-      allow delete: if isAdmin();
-    }
-
     // ─── Payments ──────────────────────────────────────────────────────────────
     match /payments/{paymentId} {
-      allow read: if isAdminOrTeacher() || (isStudent() && resource.data.studentUid == request.auth.uid);
-      allow create, update: if isAdminOrTeacher();
+      allow read: if isAdminOrTeacher() || (isSignedIn() && resource.data.studentUid == request.auth.uid);
+      allow create: if isSignedIn();
+      allow update: if isAdminOrTeacher() || (isSignedIn() && resource.data.studentUid == request.auth.uid);
       allow delete: if isAdmin();
-    }
-
-    // ─── Assignments ───────────────────────────────────────────────────────────
-    match /assignments/{assignmentId} {
-      allow read: if isSignedIn();
-      allow create, update, delete: if isAdminOrTeacher();
     }
 
     // ─── Notifications ─────────────────────────────────────────────────────────
@@ -83,6 +72,18 @@ service cloud.firestore {
       allow read: if isSignedIn() && (isAdminOrTeacher() || resource.data.targetUid == request.auth.uid);
       allow create: if isAdminOrTeacher();
       allow update, delete: if isAdmin();
+    }
+
+    // ─── Tutes & Study Materials ─────────────────────────────────────────────
+    match /tutes/{tuteId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdminOrTeacher();
+    }
+
+    // ─── Video Recordings ───────────────────────────────────────────────────
+    match /recordings/{recordingId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdminOrTeacher();
     }
 
     // ─── Student ID Counters ────────────────────────────────────────────────────
