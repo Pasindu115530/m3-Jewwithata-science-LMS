@@ -1,15 +1,16 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Bell, BookOpen, CalendarDays, CheckSquare, ClipboardCheck, CreditCard, FileText, LayoutDashboard,
-  Megaphone, Menu, PlayCircle, Search, Settings, UserRound, Users, Video, WalletCards
+  Bell, BookOpen, CalendarDays, CheckSquare, ClipboardCheck, CreditCard, Download, FileText, LayoutDashboard,
+  Maximize, Megaphone, Menu, Minimize, PlayCircle, Search, Settings, UserRound, Users, Video, WalletCards
 } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { studentMenu, teacherMenu } from "@/lib/mock-data";
 import ProfileDropdown from "@/components/ui/profile-dropdown";
+import { StudentWebappPrompt } from "@/components/student-webapp-prompt";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 
@@ -27,6 +28,56 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
   const menu = role === "student" ? studentMenu : teacherMenu;
   const person = role === "student" ? "Mia Perera" : "Kalhara Nakandala";
   const subtitle = role === "student" ? "Grade 10 Student" : "Science Teacher";
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      const elem = document.documentElement as HTMLElement & {
+        requestFullscreen?: () => Promise<void>;
+        webkitRequestFullscreen?: () => Promise<void>;
+        msRequestFullscreen?: () => Promise<void>;
+      };
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch((err) => console.error("Error enabling fullscreen:", err));
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen().catch((err) => console.error("Error enabling fullscreen:", err));
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen().catch((err) => console.error("Error enabling fullscreen:", err));
+      }
+    } else {
+      const doc = document as Document & {
+        exitFullscreen?: () => Promise<void>;
+        webkitExitFullscreen?: () => Promise<void>;
+        msExitFullscreen?: () => Promise<void>;
+      };
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen().catch((err) => console.error("Error exiting fullscreen:", err));
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen().catch((err) => console.error("Error exiting fullscreen:", err));
+      } else if (doc.msExitFullscreen) {
+        doc.msExitFullscreen().catch((err) => console.error("Error exiting fullscreen:", err));
+      }
+    }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -110,16 +161,50 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
             </div>
 
             <div className="ml-auto flex items-center gap-3">
-              <button className="relative grid h-11 w-11 place-items-center rounded-2xl bg-white shadow-card hover:bg-lavender-50 transition">
+              <button
+                className="relative grid h-11 w-11 place-items-center rounded-2xl bg-white shadow-card hover:bg-lavender-50 transition"
+                aria-label="Notifications"
+                title="Notifications"
+              >
                 <Bell size={19} className="text-[#002583]"/>
                 <span className="absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-[#FFB800] text-[9px] font-black text-[#002583]">3</span>
               </button>
+
+              <button
+                onClick={toggleFullscreen}
+                className="relative grid h-11 w-11 place-items-center rounded-2xl bg-white shadow-card hover:bg-lavender-50 transition"
+                aria-label={isFullscreen ? "Exit Full Screen" : "Full Screen"}
+                title={isFullscreen ? "Exit Full Screen" : "Full Screen"}
+              >
+                {isFullscreen ? (
+                  <Minimize size={19} className="text-[#002583]" />
+                ) : (
+                  <Maximize size={19} className="text-[#002583]" />
+                )}
+              </button>
+
+              {role === "student" && (
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("student_webapp_prompt_dismissed");
+                    window.dispatchEvent(new CustomEvent("open-webapp-installer"));
+                  }}
+                  className="hidden sm:flex items-center gap-2 rounded-2xl bg-[#FFB800] px-3.5 py-2.5 text-xs font-black text-[#002583] shadow-button hover:scale-[1.03] transition"
+                  title="Install Student WebApp Shortcut"
+                >
+                  <Download size={16} />
+                  <span>Install App</span>
+                </button>
+              )}
 
               <ProfileDropdown data={profileData} onSignOut={handleSignOut} />
             </div>
           </header>
 
-          <main className="p-4 md:p-7">{children}</main>
+          <main className="p-4 md:p-7">
+            {role === "student" && <StudentWebappPrompt />}
+            {children}
+          </main>
         </div>
       </div>
     </div>
