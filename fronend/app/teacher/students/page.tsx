@@ -174,7 +174,7 @@ export default function StudentsManagementPage() {
             href="/teacher/physical-students"
             className="pill text-[#002583] flex items-center gap-2 font-black border-2 border-[#002583]/20 hover:bg-[#002583]/10"
           >
-            <CreditCard size={18} /> Add Physical Smart Card / Batch CSV
+            <CreditCard size={18} /> Add Physical Smart Card
           </Link>
           <button
             onClick={() => setIsModalOpen(true)}

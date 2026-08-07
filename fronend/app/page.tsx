@@ -12,9 +12,26 @@ import { createMetadata } from "@/lib/metadata";
 import { siteConfig } from "@/lib/site";
 
 export const metadata = createMetadata(
-  "Science Tuition Classes",
-  "Colourful, personal Science tuition classes by Kalhara Nakandala for theory, revision, paper practice and online learning.",
-  "/"
+  "Science Classes Sri Lanka | O/L Science Tuition | Kalhara Nakandala",
+  "Grade 6–11 Science classes in Sri Lanka with Kalhara Nakandala, including O/L Science, theory, paper classes, revision, physical and online classes.",
+  "/",
+  [
+    "Science Classes Sri Lanka",
+    "Science Tuition Sri Lanka",
+    "O/L Science Classes Sri Lanka",
+    "O/L Science Tuition Sri Lanka",
+    "Online Science Classes Sri Lanka",
+    "Grade 6 Science Classes Sri Lanka",
+    "Grade 7 Science Classes Sri Lanka",
+    "Grade 8 Science Classes Sri Lanka",
+    "Grade 9 Science Classes Sri Lanka",
+    "Grade 10 Science Classes Sri Lanka",
+    "Grade 11 Science Classes Sri Lanka",
+    "Science Paper Classes Sri Lanka",
+    "Sinhala Medium Science Classes Sri Lanka",
+    "English Medium Science Classes Sri Lanka",
+    "Kalhara Nakandala Science"
+  ]
 );
 
 import { LiquidStatRectCard } from "@/components/liquid-hero-card";
@@ -26,16 +43,36 @@ import NeuralLinkBackground from "@/components/lightswind/neural-link-background
 export default function HomePage() {
   const schema = {
     "@context": "https://schema.org",
-    "@type": "Person",
-    name: siteConfig.teacher,
-    jobTitle: "Science Tuition Teacher",
-    worksFor: { "@type": "Organization", name: siteConfig.name },
-    url: siteConfig.url,
+    "@graph": [
+      {
+        "@type": "EducationalOrganization",
+        "@id": `${siteConfig.url}/#organization`,
+        name: "Kalhara Nakandala Science Academy",
+        url: siteConfig.url,
+        description: "Grade 6–11 Science tuition classes in Sri Lanka — theory, paper classes, revision, physical and Zoom online learning.",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Colombo",
+          addressCountry: "LK"
+        },
+        telephone: siteConfig.phone,
+        email: siteConfig.email
+      },
+      {
+        "@type": "Person",
+        "@id": `${siteConfig.url}/#person`,
+        name: siteConfig.teacher,
+        jobTitle: "Science Teacher",
+        worksFor: { "@id": `${siteConfig.url}/#organization` },
+        url: siteConfig.url
+      }
+    ]
   };
 
   return (
     <PublicShell>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+
 
       {/* ══════════════════════════════════════════════════════════════
           A. HERO — layered, watermark, floating badges
@@ -82,10 +119,11 @@ export default function HomePage() {
 
           {/* Mobile Right Column: Text & Info with enlarged H1 & H2 */}
           <div className="flex-1 text-left space-y-2.5">
-            <h1 className="font-sinhala text-3xl xs:text-4xl sm:text-5xl font-black leading-tight text-[#002583]">
+            <h1 className="sr-only">Science Classes Sri Lanka | Kalhara Nakandala Science Academy</h1>
+            <p className="font-sinhala text-3xl xs:text-4xl sm:text-5xl font-black leading-tight text-[#002583]" aria-hidden="true">
               <span className="block">Ôú;hg</span>
               <span className="block text-[#002583]">úoHdj</span>
-            </h1>
+            </p>
             <p className="font-malith text-xs sm:text-sm leading-relaxed text-ink/80">
               bf.kSu hkq úNd.hla iu;aùu muKla fkdj" oekqu" úYajdih iy ksjerÈ Ñka;kh f.dvke.Suhs¡
             </p>
@@ -93,9 +131,9 @@ export default function HomePage() {
               l,aydr kdlkao,
             </h2>
             <div className="flex flex-col gap-1.5 text-xs sm:text-sm font-bold text-ink/75 pt-1">
-              <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0" /> Grades 8–11</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0" /> Sinhala &amp; English</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0" /> Physical + Zoom</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0" /> Grades 6–11 Science</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0" /> Sinhala &amp; English Medium</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0" /> Physical Hall + Online Zoom</span>
             </div>
           </div>
         </div>
@@ -173,10 +211,11 @@ export default function HomePage() {
 
           {/* Left content column */}
           <div className="space-y-6 text-center lg:text-left order-1">
-            <h1 className="font-sinhala text-6xl font-normal leading-tight tracking-wide md:text-8xl">
+            <h1 className="sr-only">Science Classes Sri Lanka | Kalhara Nakandala Science Academy</h1>
+            <p className="font-sinhala text-6xl font-normal leading-tight tracking-wide md:text-8xl" aria-hidden="true">
               Ôú;hg{" "}
               <span className="text-[#002583]">úoHdj</span>
-            </h1>
+            </p>
             <p className="font-malith max-w-sm leading-7 text-xl text-ink/60 lg:max-w-xs">
               bf.kSu hkq úNd.hla iu;aùu muKla fkdj" oekqu" úYajdih iy ksjerÈ Ñka;kh f.dvke.Suhs¡ ta .ufka úYajdikSh uÕfmkajkakd ùug wms lemù isáuq¡
             </p>
@@ -185,11 +224,12 @@ export default function HomePage() {
             </h2>
             {/* Trust chips */}
             <div className="flex flex-wrap justify-center gap-3 text-sm font-bold text-ink/55 lg:justify-start">
-              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-emerald-500" /> Grades 8–11</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-emerald-500" /> Sinhala &amp; English</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-emerald-500" /> Physical + Zoom</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-emerald-500" /> Grades 6–11 Science</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-emerald-500" /> Sinhala &amp; English Medium</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-emerald-500" /> Physical Hall + Zoom</span>
             </div>
           </div>
+
 
           {/* Right column — Quick Access Action Buttons */}
           <div className="flex flex-col items-center gap-3.5 lg:items-end order-3 lg:order-3 w-full max-w-sm mx-auto lg:max-w-[280px]">
@@ -394,11 +434,11 @@ export default function HomePage() {
               Why students choose this class
             </p>
             <h2 className="text-4xl font-black leading-tight tracking-tight text-ink md:text-5xl">
-              A complete learning system,{" "}
+              A complete Science learning system,{" "}
               <span className="text-[#002583]">not only a weekly lecture</span>
             </h2>
             <p className="leading-7 text-ink/60">
-              Every class is backed by assignments, recorded lessons, model papers
+              Every Science class is backed by assignments, recorded lessons, model papers
               and WhatsApp support. Parents receive regular progress updates so
               the whole family is aligned on results.
             </p>
@@ -424,13 +464,14 @@ export default function HomePage() {
             <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] shadow-soft">
               <Image
                 src="/images/bg/profileinfo.JPEG"
-                alt="Science learning in action"
+                alt="Kalhara Nakandala Science Tuition Class in session — Colombo, Sri Lanka"
                 width={800}
                 height={700}
                 className="h-auto w-full object-cover"
               />
               <div className="pointer-events-none absolute inset-0 rounded-[2rem] ring-1 ring-[#002583]/10" />
             </div>
+
 
             {/* Floating badge 1 — Assignment submitted */}
             <div className="float-badge" style={{ bottom: "5rem", left: "-1.5rem", animationDelay: "0.5s" }}>
@@ -503,13 +544,14 @@ export default function HomePage() {
       <section className="mx-auto max-w-7xl px-4 pt-16 text-center lg:px-8">
         <p className="text-xs font-extrabold uppercase tracking-[.25em] text-[#FFB800]">Who We Serve</p>
         <h2 className="mt-2 text-3xl font-black tracking-tight text-ink md:text-4xl">
-          Structured learning for every grade
+          Structured Science learning for Grades 6–11
         </h2>
         <p className="mx-auto mt-3 max-w-xl leading-7 text-ink/55">
           Theory, revision, paper practice and hybrid learning options organised
-          by grade level — from Grade 8 through O/L.
+          by grade level — from Grade 6 through O/L Science in Sri Lanka.
         </p>
       </section>
+
 
       {/* ══════════════════════════════════════════════════════════════
           CLASSES GRID

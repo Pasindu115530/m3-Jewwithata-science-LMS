@@ -12,6 +12,8 @@ import { PublicShell } from "@/components/public-shell";
 import { sendStudentOtpService, verifyStudentOtpService } from "@/lib/services/otp";
 
 export default function StudentLoginPage() {
+
+
   const [activeTab, setActiveTab] = useState<"credentials" | "otp">("credentials");
   const router = useRouter();
 

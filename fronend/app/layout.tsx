@@ -12,8 +12,11 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
-  title: { default: siteConfig.name, template: `%s | ${siteConfig.name}` },
-  description: siteConfig.description,
+  title: {
+    default: "Science Classes Sri Lanka | Kalhara Nakandala Science Academy",
+    template: "%s | Kalhara Nakandala Science Academy",
+  },
+  description: "Grade 6–11 Science classes in Sri Lanka with Kalhara Nakandala, including O/L Science, theory, paper classes, revision, physical and online classes.",
   manifest: "/manifest.json",
   icons: {
     icon: "/icon.svg",
@@ -21,10 +24,15 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Science LMS",
+    title: "Kalhara Science",
     statusBarStyle: "black-translucent",
   },
+  other: {
+    "geo.region": "LK",
+    "geo.placename": "Sri Lanka",
+  },
 };
+
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

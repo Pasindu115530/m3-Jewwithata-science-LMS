@@ -51,9 +51,11 @@ export function CountUp({
   const startVal = direction === "down" ? finalTo : (fromProp ?? 0);
   const endVal = direction === "down" ? (fromProp ?? 0) : finalTo;
 
-  const [displayValue, setDisplayValue] = useState<number>(startVal);
+  // SSR-friendly: default to final value so crawlers read real numbers, client animation resets to startVal on mount
+  const [displayValue, setDisplayValue] = useState<number>(endVal);
   const [hasAnimated, setHasAnimated] = useState<boolean>(false);
   const elementRef = useRef<HTMLSpanElement>(null);
+
 
   useEffect(() => {
     if (!startWhen || hasAnimated) return;

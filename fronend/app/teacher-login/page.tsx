@@ -11,6 +11,8 @@ import { Brand } from "@/components/brand";
 import { PublicShell } from "@/components/public-shell";
 
 export default function TeacherLoginPage() {
+
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

@@ -250,7 +250,7 @@ export function PublicFooter() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/student/register"
+                href="/contact"
                 className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#FFB800] to-[#f5a600] px-5 py-3 text-xs font-black text-[#002583] shadow-lg transition hover:scale-105"
               >
                 <Sparkles size={15} /> Register Student
@@ -267,6 +267,7 @@ export function PublicFooter() {
           </div>
         </div>
       </div>
+
 
       {/* Main Footer Grid */}
       <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 grid gap-10 md:grid-cols-2 lg:grid-cols-4 border-b border-blue-900/60">
@@ -399,6 +400,7 @@ export function PublicFooter() {
     </footer>
   );
 }
+
 
 export function PublicShell({ children }: { children: ReactNode }) {
   return <><PublicHeader /><main>{children}</main><PublicFooter /></>;
