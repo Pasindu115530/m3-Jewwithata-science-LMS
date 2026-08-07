@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { 
   Phone, 
   ShieldCheck, 
@@ -10,22 +11,35 @@ import {
   AlertCircle, 
   Loader2, 
   ArrowRight, 
+  ArrowLeft,
   User, 
   Users, 
   GraduationCap, 
   School, 
   MapPin, 
   Lock, 
-  CreditCard, 
   Sparkles, 
   Check, 
-  X,
-  FileText
+  FileText,
+  CreditCard,
+  Building2,
+  Calendar,
+  Eye,
+  EyeOff,
+  Atom,
+  HelpCircle,
+  Clock
 } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 import { PublicShell } from "@/components/public-shell";
 import { sendRegistrationOtpService, verifyRegistrationOtpService } from "@/lib/services/registration-otp";
 import { verifyPhysicalStudentService, verifyActivationCodeService } from "@/lib/services/physical-verification";
 import { registerStudentService, getServiceConfigService } from "@/lib/services/register-student";
+
+const DynamicNeuralLinkBackground = dynamic(
+  () => import("@/components/lightswind/neural-link-background"),
+  { ssr: false }
+);
 
 export default function StudentRegisterPage() {
   const router = useRouter();
@@ -54,12 +68,13 @@ export default function StudentRegisterPage() {
   const [addressLine1, setAddressLine1] = useState("");
   const [addressLine2, setAddressLine2] = useState("");
   const [city, setCity] = useState("");
-  const [district, setDistrict] = useState("Colombo");
+  const [district, setDistrict] = useState("Kalutara");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // STEP 3: Class Type State
-  const [studentType, setStudentType] = useState<"online_only" | "physical_online">("online_only");
+  const [studentType, setStudentType] = useState<"online_only" | "physical_online">("physical_online");
 
   // STEP 4: Physical Verification State (if physical_online)
   const [smartCardLast4, setSmartCardLast4] = useState("");
@@ -106,11 +121,11 @@ export default function StudentRegisterPage() {
     setGlobalError(null);
 
     if (!studentName.trim()) {
-      setGlobalError("Please enter student name / කරුණාකර ශිෂ්‍යයාගේ නම ඇතුළත් කරන්න");
+      setGlobalError("Please enter student full name / කරුණාකර ශිෂ්‍යයාගේ නම ඇතුළත් කරන්න");
       return;
     }
     if (!/^07[0-9]{8}$/.test(mobileNumber)) {
-      setGlobalError("Enter a valid 10-digit Sri Lankan phone number (e.g. 0771234567)");
+      setGlobalError("Enter a valid 10-digit Sri Lankan mobile number (e.g. 0771234567)");
       return;
     }
 
@@ -119,7 +134,7 @@ export default function StudentRegisterPage() {
     setLoading(false);
 
     if (!res.success) {
-      setGlobalError(res.error || "Failed to send OTP.");
+      setGlobalError(res.error || "Failed to send verification SMS. Please verify your number.");
     } else {
       setOtpSent(true);
       setOtpTimer(60);
@@ -142,7 +157,7 @@ export default function StudentRegisterPage() {
     setLoading(false);
 
     if (!res.success) {
-      setGlobalError(res.error || "Invalid OTP code.");
+      setGlobalError(res.error || "Invalid or expired OTP code.");
     } else {
       setOtpVerified(true);
       setGlobalError(null);
@@ -156,7 +171,7 @@ export default function StudentRegisterPage() {
     setGlobalError(null);
 
     if (!parentName.trim() || !birthday || !schoolName.trim() || !addressLine1.trim() || !city.trim()) {
-      setGlobalError("Please fill in all required fields / කරුණාකර සියලුම අනිවාර්ය ක්ෂේත්‍ර පුරවන්න");
+      setGlobalError("Please fill in all required fields / කරුණාකර සියලුම අනිවාර්ය තොරතුරු පුරවන්න");
       return;
     }
 
@@ -166,7 +181,7 @@ export default function StudentRegisterPage() {
     }
 
     if (password !== confirmPassword) {
-      setGlobalError("Passwords do not match / මුරපද ගැලපෙන්නේ නැත");
+      setGlobalError("Passwords do not match / මුරපද දෙක සමාන විය යුතුය");
       return;
     }
 
@@ -188,7 +203,7 @@ export default function StudentRegisterPage() {
     setLoading(false);
 
     if (!res.success) {
-      setGlobalError(res.error || "Smart Card mismatch.");
+      setGlobalError(res.error || "Smart Card records could not be verified with this phone number.");
       setCardVerified(false);
     } else {
       setCardVerified(true);
@@ -255,48 +270,112 @@ export default function StudentRegisterPage() {
     setLoading(false);
 
     if (!res.success) {
-      setGlobalError(res.error || "Registration failed. Please try again.");
+      setGlobalError(res.error || "Registration failed. Please review your details and try again.");
     } else {
       setRegisteredData({
-        studentId: res.studentId || "STU-NEW",
-        email: res.email || "",
+        studentId: res.studentId || "STU-2026-NEW",
+        email: res.email || `${mobileNumber}@scienceacademy.lk`,
       });
       setStep(7); // Registration Complete!
     }
   };
 
+  const stepsList = [
+    { num: 1, title: "Phone & OTP", sinhala: "දුරකථන අංකය" },
+    { num: 2, title: "Student Info", sinhala: "ශිෂ්‍ය තොරතුරු" },
+    { num: 3, title: "Class Mode", sinhala: "පන්ති මාදිලිය" },
+    { num: 4, title: "Smart Card", sinhala: "කාඩ්පත් සත්‍යාපනය" },
+    { num: 5, title: "Paper Class", sinhala: "පේපර් පන්තිය" },
+    { num: 6, title: "Review", sinhala: "සමාලෝචනය" },
+  ];
+
   return (
     <PublicShell>
-      <div className="min-h-screen py-10 px-4 sm:px-6 bg-slate-50">
-        <div className="max-w-3xl mx-auto">
+      <div className="relative min-h-screen overflow-hidden py-10 px-4 sm:px-6 lg:px-8 text-ink">
+        {/* Ambient Blobs matching Home Page */}
+        <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-lavender-300/30 blur-3xl" />
+        <div className="pointer-events-none absolute -right-32 top-20 h-96 w-96 rounded-full bg-peach-200/35 blur-3xl" />
+        <div className="pointer-events-none absolute left-1/3 bottom-10 h-80 w-80 rounded-full bg-[#FFB800]/10 blur-3xl" />
+
+        {/* Interactive Neural Link Background (Desktop only for performance, no running text) */}
+        <div className="hidden lg:block pointer-events-none absolute inset-0 overflow-hidden">
+          <DynamicNeuralLinkBackground
+            nodeColor="#002583"
+            lineColor="#002853"
+            packetColor="#FFB800"
+            nodeCount={30}
+            maxDistance={125}
+            interactionMode="router"
+            interactive={true}
+            packetFrequency={8000}
+            className="z-0 opacity-30"
+          />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-4xl">
           
-          {/* Header Branding */}
+          {/* Top Header & Branding */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
-              Student Registration / ශිෂ්‍ය ලියාපදිංචිය
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#002583]/15 bg-white/85 px-4 py-1.5 text-xs font-black text-[#002583] shadow-sm backdrop-blur-md">
+              <Sparkles size={14} className="text-[#FFB800]" /> NEW STUDENT ADMISSIONS 2026
+            </div>
+            <h1 className="mt-3 font-sinhala text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-[#002583] drop-shadow-sm">
+              Student Registration / <span className="text-[#FFB800]">ශිෂ්‍ය ලියාපදිංචිය</span>
             </h1>
-            <p className="text-slate-600 text-sm">
-              Science LMS — Step-by-Step Account Creation
+            <p className="mt-2 text-sm sm:text-base text-ink/75 max-w-2xl mx-auto font-medium">
+              Grade 6 – 11 Science Theory, Revision &amp; Paper Classes by <strong>Kalhara Nakandala</strong>.
             </p>
+            
+            {/* Quick highlight tags */}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs font-bold">
+              <span className="rounded-full bg-white/85 border border-zinc-200/80 px-3 py-1 text-zinc-700 shadow-sm">
+                📍 Sadarn - Bombuwela &amp; Zoom
+              </span>
+              <span className="rounded-full bg-white/85 border border-zinc-200/80 px-3 py-1 text-zinc-700 shadow-sm">
+                ⚡ Instant LMS Access
+              </span>
+              <span className="rounded-full bg-white/85 border border-zinc-200/80 px-3 py-1 text-zinc-700 shadow-sm">
+                📚 Sinhala &amp; English Medium
+              </span>
+            </div>
           </div>
 
           {/* Stepper Navigation Indicator (Steps 1 to 6) */}
           {step <= 6 && (
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 mb-6">
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-2">
-                <span>Step {step} of 6</span>
-                <span>
-                  {step === 1 && "Mobile Verification / දුරකථන තහවුරු කිරීම"}
-                  {step === 2 && "Personal Details / පෞද්ගලික තොරතුරු"}
-                  {step === 3 && "Class Type / පන්ති වර්ගය"}
-                  {step === 4 && "Physical Verification / භෞතික පන්ති තහවුරු කිරීම"}
-                  {step === 5 && "Online Paper Class / ඔන්ලයින් පේපර් පන්තිය"}
-                  {step === 6 && "Review & Complete / සමාලෝචනය"}
-                </span>
+            <div className="mb-8 rounded-3xl border border-white/80 bg-white/75 p-5 backdrop-blur-xl shadow-card">
+              {/* Stepper Circles */}
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
+                {stepsList.map((s) => {
+                  const isCompleted = step > s.num;
+                  const isCurrent = step === s.num;
+                  return (
+                    <div key={s.num} className="flex flex-col items-center">
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-2xl text-xs font-black transition-all shadow-sm ${
+                          isCurrent
+                            ? "bg-[#FFB800] text-[#002583] ring-4 ring-[#FFB800]/30 scale-105 shadow-md"
+                            : isCompleted
+                            ? "bg-emerald-500 text-white"
+                            : "bg-zinc-100 text-zinc-400 border border-zinc-200/80"
+                        }`}
+                      >
+                        {isCompleted ? <Check size={18} className="stroke-[3]" /> : s.num}
+                      </div>
+                      <span className={`mt-2 text-[11px] font-bold leading-tight ${isCurrent ? "text-[#002583]" : isCompleted ? "text-emerald-700" : "text-zinc-400"}`}>
+                        {s.title}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 hidden sm:block">
+                        {s.sinhala}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+
+              {/* Progress Line */}
+              <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-zinc-100 border border-zinc-200/50">
                 <div 
-                  className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
+                  className="h-full bg-gradient-to-r from-[#002583] via-[#003bb0] to-[#FFB800] transition-all duration-500 rounded-full"
                   style={{ width: `${(step / 6) * 100}%` }}
                 />
               </div>
@@ -305,41 +384,44 @@ export default function StudentRegisterPage() {
 
           {/* Global Error Banner */}
           {globalError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-700 text-sm">
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div className="mb-6 rounded-2xl border border-rose-300 bg-rose-50 p-4 text-sm font-semibold text-rose-800 flex items-start gap-3 shadow-sm backdrop-blur-sm animate-in fade-in duration-200">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
               <div>{globalError}</div>
             </div>
           )}
 
           {/* MAIN CARD CONTAINER */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-100">
+          <div className="rounded-3xl border border-white/90 bg-white/80 p-6 sm:p-10 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,37,131,0.07)] text-ink">
             
             {/* ─── STEP 1: PHONE + OTP ─────────────────────────────────────── */}
             {step === 1 && (
               <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900 mb-1">
-                    Step 1: Mobile Verification / දුරකථන අංකය තහවුරු කිරීම
+                <div className="border-b border-zinc-200/80 pb-4">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#002583]/10 border border-[#002583]/20 px-3 py-1 text-xs font-black text-[#002583]">
+                    STEP 01 OF 06
+                  </span>
+                  <h2 className="mt-2 text-2xl font-black text-[#002583]">
+                    Mobile Number Verification / දුරකථන අංකය තහවුරු කිරීම
                   </h2>
-                  <p className="text-sm text-slate-500">
-                    We will send an SMS verification code to your mobile number.
+                  <p className="mt-1 text-xs sm:text-sm text-ink/70">
+                    Enter the student name and primary mobile number. We will send an SMS OTP verification code.
                   </p>
                 </div>
 
-                <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="space-y-4">
+                <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="space-y-5">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                      Student Full Name / ශිෂ්‍යයාගේ සම්පූර්ණ නම *
+                    <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                      Student Full Name / ශිෂ්‍යයාගේ සම්පූර්ණ නම <span className="text-[#FFB800]">*</span>
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002583]" />
                       <input
                         type="text"
                         disabled={otpSent}
                         value={studentName}
                         onChange={(e) => setStudentName(e.target.value)}
-                        placeholder="e.g. Kasun Perera"
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+                        placeholder="e.g. Kasun Chamara Perera"
+                        className="w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-4 py-3.5 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 disabled:bg-zinc-100 disabled:opacity-70 transition shadow-sm"
                         required
                       />
                     </div>
@@ -347,67 +429,70 @@ export default function StudentRegisterPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                        Mobile Number / දුරකථන අංකය *
+                      <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                        Mobile Number / දුරකථන අංකය <span className="text-[#FFB800]">*</span>
                       </label>
                       <div className="relative">
-                        <Phone className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002583]" />
                         <input
                           type="tel"
                           disabled={otpSent}
                           value={mobileNumber}
-                          onChange={(e) => setMobileNumber(e.target.value)}
+                          onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, ""))}
                           placeholder="0771234567"
                           maxLength={10}
-                          className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+                          className="w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-4 py-3.5 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 disabled:bg-zinc-100 disabled:opacity-70 transition shadow-sm"
                           required
                         />
                       </div>
+                      <p className="mt-1 text-[11px] text-zinc-500 font-medium">10-digit mobile number (07X XXX XXXX)</p>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                        WhatsApp Number / WhatsApp අංකය *
+                      <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                        WhatsApp Number / WhatsApp අංකය <span className="text-[#FFB800]">*</span>
                       </label>
                       <div className="relative">
-                        <Phone className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                        <FaWhatsapp className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-600" />
                         <input
                           type="tel"
                           disabled={sameAsPhone || otpSent}
                           value={whatsappNumber}
-                          onChange={(e) => setWhatsappNumber(e.target.value)}
+                          onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, ""))}
                           placeholder="0771234567"
                           maxLength={10}
-                          className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+                          className="w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-4 py-3.5 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 disabled:bg-zinc-100 disabled:opacity-70 transition shadow-sm"
                         />
                       </div>
-                      <div className="mt-1.5 flex items-center gap-2">
+                      <label className="mt-2 flex items-center gap-2 cursor-pointer select-none">
                         <input
                           type="checkbox"
                           id="sameAsPhone"
                           checked={sameAsPhone}
                           onChange={(e) => setSameAsPhone(e.target.checked)}
                           disabled={otpSent}
-                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                          className="h-4 w-4 rounded border-zinc-300 text-[#002583] focus:ring-[#002583]"
                         />
-                        <label htmlFor="sameAsPhone" className="text-xs text-slate-600">
+                        <span className="text-xs text-zinc-600 font-semibold">
                           Same as Mobile Number / දුරකථන අංකයම වේ
-                        </label>
-                      </div>
+                        </span>
+                      </label>
                     </div>
                   </div>
 
                   {/* OTP INPUT CODE SECTION */}
                   {otpSent && (
-                    <div className="pt-4 border-t border-slate-100 space-y-3">
-                      <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Verification code sent to <strong>{mobileNumber}</strong></span>
+                    <div className="pt-4 border-t border-zinc-200 space-y-4 animate-in fade-in duration-300">
+                      <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-xs font-semibold text-emerald-800 flex items-center gap-3 shadow-sm">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                        <div>
+                          SMS verification code successfully sent to <strong>{mobileNumber}</strong>. Please check your SMS inbox.
+                        </div>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                          Enter 6-Digit OTP Code / OTP කේතය ඇතුළත් කරන්න *
+                        <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                          Enter 6-Digit OTP Code / 6-ඉලක්කම් OTP කේතය ඇතුළත් කරන්න <span className="text-[#FFB800]">*</span>
                         </label>
                         <input
                           type="text"
@@ -415,19 +500,20 @@ export default function StudentRegisterPage() {
                           onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
                           maxLength={6}
                           placeholder="123456"
-                          className="w-full text-center tracking-widest font-mono text-xl py-3 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full text-center tracking-[0.5em] font-mono text-2xl font-black py-4 bg-amber-50/50 border-2 border-[#FFB800] rounded-2xl text-[#002583] placeholder:text-zinc-300 focus:outline-none focus:ring-4 focus:ring-[#FFB800]/25 shadow-inner"
                           required
+                          autoFocus
                         />
                       </div>
 
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center justify-between text-xs font-bold pt-1">
                         <button
                           type="button"
                           disabled={otpTimer > 0 || loading}
                           onClick={handleSendOtp}
-                          className="text-indigo-600 font-semibold hover:underline disabled:opacity-50"
+                          className="text-[#002583] hover:underline disabled:opacity-50 disabled:no-underline transition"
                         >
-                          {otpTimer > 0 ? `Resend Code in ${otpTimer}s` : "Resend OTP Code"}
+                          {otpTimer > 0 ? `Resend OTP in ${otpTimer}s` : "🔄 Resend SMS Code"}
                         </button>
 
                         <button
@@ -436,9 +522,9 @@ export default function StudentRegisterPage() {
                             setOtpSent(false);
                             setOtpCode("");
                           }}
-                          className="text-slate-500 hover:underline"
+                          className="text-zinc-500 hover:text-zinc-800 hover:underline transition"
                         >
-                          Change Number
+                          Change Mobile Number
                         </button>
                       </div>
                     </div>
@@ -447,14 +533,14 @@ export default function StudentRegisterPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 text-sm transition-all"
+                    className="w-full py-4 bg-gradient-to-r from-[#FFB800] via-[#FFA000] to-[#FFB800] text-[#002583] font-black rounded-2xl shadow-[0_8px_20px_rgba(255,184,0,0.35)] hover:shadow-[0_10px_25px_rgba(255,184,0,0.45)] hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 text-sm transition-all disabled:opacity-60"
                   >
                     {loading ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
                     ) : otpSent ? (
-                      <>Verify Code & Continue / තහවුරු කර ඉදිරියට යන්න <ArrowRight className="w-4 h-4" /></>
+                      <>Verify OTP &amp; Continue / තහවුරු කර ඉදිරියට යන්න <ArrowRight className="w-4 h-4" /></>
                     ) : (
-                      <>Get Verification Code / OTP ලබාගන්න <ArrowRight className="w-4 h-4" /></>
+                      <>Get SMS Verification Code / OTP ලබාගන්න <ArrowRight className="w-4 h-4" /></>
                     )}
                   </button>
                 </form>
@@ -464,39 +550,45 @@ export default function StudentRegisterPage() {
             {/* ─── STEP 2: PERSONAL & ACADEMIC DETAILS ───────────────────────── */}
             {step === 2 && (
               <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900 mb-1">
-                    Step 2: Student Details / ශිෂ්‍ය තොරතුරු
+                <div className="border-b border-zinc-200/80 pb-4">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#002583]/10 border border-[#002583]/20 px-3 py-1 text-xs font-black text-[#002583]">
+                    STEP 02 OF 06
+                  </span>
+                  <h2 className="mt-2 text-2xl font-black text-[#002583]">
+                    Student &amp; Academic Details / පෞද්ගලික හා අධ්‍යාපනික තොරතුරු
                   </h2>
-                  <p className="text-sm text-slate-500">
-                    Fill in your personal, guardian, address, and login password details.
+                  <p className="mt-1 text-xs sm:text-sm text-ink/70">
+                    Enter parent guardian details, current grade, school, address, and create your account password.
                   </p>
                 </div>
 
                 <form onSubmit={handleDetailsSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                        Parent / Guardian Name *
+                      <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                        Parent / Guardian Name / මව්පිය/භාරකරුගේ නම <span className="text-[#FFB800]">*</span>
                       </label>
-                      <input
-                        type="text"
-                        value={parentName}
-                        onChange={(e) => setParentName(e.target.value)}
-                        placeholder="e.g. S. Perera"
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        required
-                      />
+                      <div className="relative">
+                        <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002583]" />
+                        <input
+                          type="text"
+                          value={parentName}
+                          onChange={(e) => setParentName(e.target.value)}
+                          placeholder="e.g. Sunil Perera"
+                          className="w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-4 py-3 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 transition shadow-sm"
+                          required
+                        />
+                      </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                        Gender / ස්ත්‍රී-පුරුෂ භාවය *
+                      <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                        Gender / ස්ත්‍රී-පුරුෂ භාවය <span className="text-[#FFB800]">*</span>
                       </label>
                       <select
                         value={gender}
                         onChange={(e) => setGender(e.target.value as any)}
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                        className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 transition shadow-sm"
                       >
                         <option value="Male">Male / පුරුෂ</option>
                         <option value="Female">Female / ස්ත්‍රී</option>
@@ -506,126 +598,160 @@ export default function StudentRegisterPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                        Birthday / උපන් දිනය *
+                      <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                        Birthday / උපන් දිනය <span className="text-[#FFB800]">*</span>
                       </label>
-                      <input
-                        type="date"
-                        value={birthday}
-                        onChange={(e) => setBirthday(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        required
-                      />
+                      <div className="relative">
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002583]" />
+                        <input
+                          type="date"
+                          value={birthday}
+                          onChange={(e) => setBirthday(e.target.value)}
+                          className="w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-4 py-3 text-sm font-semibold text-zinc-900 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 transition shadow-sm"
+                          required
+                        />
+                      </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                        Grade / ශ්‍රේණිය *
+                      <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                        Grade / ශ්‍රේණිය <span className="text-[#FFB800]">*</span>
                       </label>
-                      <select
-                        value={grade}
-                        onChange={(e) => setGrade(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                      >
-                        <option value="Grade 6">Grade 6</option>
-                        <option value="Grade 7">Grade 7</option>
-                        <option value="Grade 8">Grade 8</option>
-                        <option value="Grade 9">Grade 9</option>
-                        <option value="Grade 10">Grade 10</option>
-                        <option value="Grade 11">Grade 11</option>
-                        <option value="A/L Science">A/L Science</option>
-                      </select>
+                      <div className="relative">
+                        <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002583]" />
+                        <select
+                          value={grade}
+                          onChange={(e) => setGrade(e.target.value)}
+                          className="w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-4 py-3 text-sm font-semibold text-zinc-900 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 transition shadow-sm"
+                        >
+                          <option value="Grade 6">Grade 6 Science (6 ශ්‍රේණිය)</option>
+                          <option value="Grade 7">Grade 7 Science (7 ශ්‍රේණිය)</option>
+                          <option value="Grade 8">Grade 8 Science (8 ශ්‍රේණිය)</option>
+                          <option value="Grade 9">Grade 9 Science (9 ශ්‍රේණිය)</option>
+                          <option value="Grade 10">Grade 10 Science (10 ශ්‍රේණිය)</option>
+                          <option value="Grade 11">Grade 11 Science (O/L - 11 ශ්‍රේණිය)</option>
+                          <option value="A/L Science">A/L Science (උසස් පෙළ)</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                      School Name / පාසලේ නම *
+                    <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                      School Name / පාසලේ නම <span className="text-[#FFB800]">*</span>
                     </label>
-                    <input
-                      type="text"
-                      value={schoolName}
-                      onChange={(e) => setSchoolName(e.target.value)}
-                      placeholder="e.g. Royal College Colombo"
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                      required
-                    />
+                    <div className="relative">
+                      <School className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002583]" />
+                      <input
+                        type="text"
+                        value={schoolName}
+                        onChange={(e) => setSchoolName(e.target.value)}
+                        placeholder="e.g. Kalutara Vidyalaya"
+                        className="w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-4 py-3 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 transition shadow-sm"
+                        required
+                      />
+                    </div>
                   </div>
 
                   {/* ADDRESS FIELDS */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                        Address Line 1 / ලිපිනය (පේළිය 1) *
+                      <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                        Address Line 1 / ලිපිනය (පේළිය 1) <span className="text-[#FFB800]">*</span>
                       </label>
-                      <input
-                        type="text"
-                        value={addressLine1}
-                        onChange={(e) => setAddressLine1(e.target.value)}
-                        placeholder="House No., Street"
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        required
-                      />
+                      <div className="relative">
+                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002583]" />
+                        <input
+                          type="text"
+                          value={addressLine1}
+                          onChange={(e) => setAddressLine1(e.target.value)}
+                          placeholder="House No., Street"
+                          className="w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-4 py-3 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 transition shadow-sm"
+                          required
+                        />
+                      </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                        City / නගරය *
+                      <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                        City / නගරය <span className="text-[#FFB800]">*</span>
                       </label>
-                      <input
-                        type="text"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        placeholder="e.g. Nugegoda"
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        required
-                      />
+                      <div className="relative">
+                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002583]" />
+                        <input
+                          type="text"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          placeholder="e.g. Bombuwala / Kalutara"
+                          className="w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-4 py-3 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 transition shadow-sm"
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                      District / දිස්ත්‍රික්කය *
+                    <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                      District / දිස්ත්‍රික්කය <span className="text-[#FFB800]">*</span>
                     </label>
                     <select
                       value={district}
                       onChange={(e) => setDistrict(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 transition shadow-sm"
                     >
-                      {["Colombo", "Gampaha", "Kalutara", "Kandy", "Matale", "Nuwara Eliya", "Galle", "Matara", "Hambantota", "Jaffna", "Kurunegala", "Puttalam", "Anuradhapura", "Polonnaruwa", "Badulla", "Moneragala", "Ratnapura", "Kegalle"].map((d) => (
+                      {[
+                        "Kalutara", "Colombo", "Gampaha", "Galle", "Matara", "Hambantota",
+                        "Kandy", "Matale", "Nuwara Eliya", "Kurunegala", "Puttalam",
+                        "Ratnapura", "Kegalle", "Anuradhapura", "Polonnaruwa", "Badulla",
+                        "Moneragala", "Jaffna", "Kilinochchi", "Mannar", "Vavuniya",
+                        "Mullaitivu", "Batticaloa", "Ampara", "Trincomalee"
+                      ].map((d) => (
                         <option key={d} value={d}>{d}</option>
                       ))}
                     </select>
                   </div>
 
                   {/* PASSWORD CREATION */}
-                  <div className="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="pt-4 border-t border-zinc-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                        Password / මුරපදය *
+                      <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                        Create LMS Password / මුරපදය <span className="text-[#FFB800]">*</span>
                       </label>
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        required
-                      />
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002583]" />
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Min. 6 characters"
+                          className="w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-11 py-3 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 transition shadow-sm"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 transition"
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                        Confirm Password / මුරපදය තහවුරු කරන්න *
+                      <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1.5">
+                        Confirm Password / මුරපදය තහවුරු කරන්න <span className="text-[#FFB800]">*</span>
                       </label>
-                      <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                        required
-                      />
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002583]" />
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Re-enter password"
+                          className="w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-4 py-3 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 transition shadow-sm"
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -633,13 +759,13 @@ export default function StudentRegisterPage() {
                     <button
                       type="button"
                       onClick={() => setStep(1)}
-                      className="w-1/3 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 text-sm"
+                      className="w-1/3 py-3.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold rounded-2xl transition border border-zinc-200 text-xs sm:text-sm flex items-center justify-center gap-1.5"
                     >
-                      Back
+                      <ArrowLeft className="w-4 h-4" /> Back
                     </button>
                     <button
                       type="submit"
-                      className="w-2/3 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 text-sm"
+                      className="w-2/3 py-3.5 bg-gradient-to-r from-[#FFB800] via-[#FFA000] to-[#FFB800] text-[#002583] font-black rounded-2xl shadow-[0_8px_20px_rgba(255,184,0,0.35)] hover:shadow-[0_10px_25px_rgba(255,184,0,0.45)] hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 text-xs sm:text-sm transition-all"
                     >
                       Continue to Class Selection <ArrowRight className="w-4 h-4" />
                     </button>
@@ -651,85 +777,98 @@ export default function StudentRegisterPage() {
             {/* ─── STEP 3: CLASS TYPE SELECTION ─────────────────────────────── */}
             {step === 3 && (
               <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900 mb-1">
-                    Step 3: Choose Class Type / පන්ති මාදිලිය තෝරන්න
+                <div className="border-b border-zinc-200/80 pb-4">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#002583]/10 border border-[#002583]/20 px-3 py-1 text-xs font-black text-[#002583]">
+                    STEP 03 OF 06
+                  </span>
+                  <h2 className="mt-2 text-2xl font-black text-[#002583]">
+                    Choose Class Mode / පන්ති මාදිලිය තෝරන්න
                   </h2>
-                  <p className="text-sm text-slate-500">
-                    Select whether you are attending purely Online or both Physical + Online.
+                  <p className="mt-1 text-xs sm:text-sm text-ink/70">
+                    Select whether you are attending Physical classes at Sadarn Center or purely Online via Zoom.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Online Only Option */}
-                  <div
-                    onClick={() => setStudentType("online_only")}
-                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${
-                      studentType === "online_only"
-                        ? "border-indigo-600 bg-indigo-50/50 shadow-md"
-                        : "border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
-                        <GraduationCap className="w-6 h-6" />
-                      </div>
-                      {studentType === "online_only" && (
-                        <CheckCircle2 className="w-6 h-6 text-indigo-600" />
-                      )}
-                    </div>
-                    <h3 className="font-bold text-slate-900 text-base mb-1">
-                      Online Student Only
-                    </h3>
-                    <p className="text-xs text-slate-600">
-                      ඔන්ලයින් පන්තිය පමණි — Live Zoom classes, recordings, online tutes & quizzes.
-                    </p>
-                  </div>
-
                   {/* Physical + Online Option */}
                   <div
                     onClick={() => setStudentType("physical_online")}
-                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${
+                    className={`relative p-6 rounded-3xl border-2 cursor-pointer transition-all ${
                       studentType === "physical_online"
-                        ? "border-indigo-600 bg-indigo-50/50 shadow-md"
-                        : "border-slate-200 hover:border-slate-300"
+                        ? "border-[#002583] bg-gradient-to-br from-blue-50/90 via-white to-amber-50/50 shadow-xl shadow-[#002583]/10 ring-4 ring-[#002583]/10 scale-[1.02]"
+                        : "border-zinc-200/80 bg-white/70 hover:bg-white hover:border-zinc-300"
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-3 bg-purple-100 text-purple-600 rounded-xl">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 bg-[#002583] text-[#FFB800] rounded-2xl shadow-md font-black">
                         <School className="w-6 h-6" />
                       </div>
                       {studentType === "physical_online" && (
-                        <CheckCircle2 className="w-6 h-6 text-indigo-600" />
+                        <span className="inline-flex items-center gap-1 bg-[#002583] text-white text-[11px] font-black px-3 py-1 rounded-full shadow">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#FFB800]" /> Selected
+                        </span>
                       )}
                     </div>
-                    <h3 className="font-bold text-slate-900 text-base mb-1">
+                    <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-[10px] font-black text-emerald-800 uppercase">
+                      Physical Hall + Online
+                    </span>
+                    <h3 className="font-black text-[#002583] text-lg mt-2 mb-1">
                       Physical + Online Student
                     </h3>
-                    <p className="text-xs text-slate-600">
-                      භෞතික + ඔන්ලයින් — Physical hall student with Smart Card credentials.
+                    <p className="text-xs text-zinc-600 leading-relaxed font-medium">
+                      Attend physical lectures at <strong>Sadarn Education Center (Bombuwela)</strong> with student Smart Card + Full LMS online portal access.
+                    </p>
+                  </div>
+
+                  {/* Online Only Option */}
+                  <div
+                    onClick={() => setStudentType("online_only")}
+                    className={`relative p-6 rounded-3xl border-2 cursor-pointer transition-all ${
+                      studentType === "online_only"
+                        ? "border-[#002583] bg-gradient-to-br from-blue-50/90 via-white to-amber-50/50 shadow-xl shadow-[#002583]/10 ring-4 ring-[#002583]/10 scale-[1.02]"
+                        : "border-zinc-200/80 bg-white/70 hover:bg-white hover:border-zinc-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 bg-blue-100 text-[#002583] border border-blue-200 rounded-2xl shadow-md">
+                        <GraduationCap className="w-6 h-6" />
+                      </div>
+                      {studentType === "online_only" && (
+                        <span className="inline-flex items-center gap-1 bg-[#002583] text-white text-[11px] font-black px-3 py-1 rounded-full shadow">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#FFB800]" /> Selected
+                        </span>
+                      )}
+                    </div>
+                    <span className="rounded-full bg-blue-100 border border-blue-200 px-2.5 py-0.5 text-[10px] font-black text-blue-800 uppercase">
+                      Islandwide Online
+                    </span>
+                    <h3 className="font-black text-[#002583] text-lg mt-2 mb-1">
+                      Online Student Only
+                    </h3>
+                    <p className="text-xs text-zinc-600 leading-relaxed font-medium">
+                      Join from anywhere in Sri Lanka. Live Zoom classes, HD lesson video recordings, downloadable PDF tutes, and online quizzes.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-slate-100">
+                <div className="flex gap-3 pt-4 border-t border-zinc-200">
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="w-1/3 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 text-sm"
+                    className="w-1/3 py-3.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold rounded-2xl transition border border-zinc-200 text-xs sm:text-sm flex items-center justify-center gap-1.5"
                   >
-                    Back
+                    <ArrowLeft className="w-4 h-4" /> Back
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       if (studentType === "physical_online") {
-                        setStep(4); // Go to physical verification
+                        setStep(4); // Physical verification
                       } else {
-                        setStep(5); // Skip physical verification -> go to paper class option
+                        setStep(5); // Paper class option
                       }
                     }}
-                    className="w-2/3 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 text-sm"
+                    className="w-2/3 py-3.5 bg-gradient-to-r from-[#FFB800] via-[#FFA000] to-[#FFB800] text-[#002583] font-black rounded-2xl shadow-[0_8px_20px_rgba(255,184,0,0.35)] hover:shadow-[0_10px_25px_rgba(255,184,0,0.45)] hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 text-xs sm:text-sm transition-all"
                   >
                     Continue <ArrowRight className="w-4 h-4" />
                   </button>
@@ -740,51 +879,58 @@ export default function StudentRegisterPage() {
             {/* ─── STEP 4: PHYSICAL STUDENT VERIFICATION ────────────────────── */}
             {step === 4 && studentType === "physical_online" && (
               <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900 mb-1">
-                    Step 4: Physical Student Verification / භෞතික ශිෂ්‍ය තහවුරු කිරීම
+                <div className="border-b border-zinc-200/80 pb-4">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#002583]/10 border border-[#002583]/20 px-3 py-1 text-xs font-black text-[#002583]">
+                    STEP 04 OF 06
+                  </span>
+                  <h2 className="mt-2 text-2xl font-black text-[#002583]">
+                    Physical Student Verification / භෞතික ශිෂ්‍ය තහවුරු කිරීම
                   </h2>
-                  <p className="text-sm text-slate-500">
-                    Verify your Smart Card and Activation Code issued at physical class hall.
+                  <p className="mt-1 text-xs sm:text-sm text-ink/70">
+                    Verify your Smart Card ID issued at the <strong>Sadarn Center (Bombuwela)</strong>.
                   </p>
                 </div>
 
                 {/* Part A: Smart Card Last 4 Digits */}
-                <form onSubmit={handleVerifySmartCard} className="space-y-3">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase">
-                    Smart Card Last 4 Digits / Smart Card අංකයේ අවසාන ඉලක්කම් 4 *
+                <form onSubmit={handleVerifySmartCard} className="space-y-4">
+                  <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1">
+                    Smart Card Last 4 Digits / Smart Card අංකයේ අවසාන ඉලක්කම් 4 <span className="text-[#FFB800]">*</span>
                   </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      disabled={cardVerified}
-                      value={smartCardLast4}
-                      onChange={(e) => setSmartCardLast4(e.target.value.replace(/\D/g, ""))}
-                      maxLength={4}
-                      placeholder="9876"
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center font-mono text-lg tracking-widest focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:opacity-60"
-                      required
-                    />
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002583]" />
+                      <input
+                        type="text"
+                        disabled={cardVerified}
+                        value={smartCardLast4}
+                        onChange={(e) => setSmartCardLast4(e.target.value.replace(/\D/g, ""))}
+                        maxLength={4}
+                        placeholder="9876"
+                        className="w-full rounded-2xl border border-zinc-200 bg-white pl-11 pr-4 py-3.5 text-center font-mono text-xl font-bold tracking-widest text-zinc-900 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 disabled:bg-zinc-100 disabled:opacity-70 transition shadow-sm"
+                        required
+                      />
+                    </div>
                     <button
                       type="submit"
                       disabled={cardVerified || loading}
-                      className="px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow shrink-0 disabled:bg-emerald-600"
+                      className="px-6 bg-[#FFB800] hover:bg-[#FFA000] text-[#002583] font-black text-xs rounded-2xl shadow-md shrink-0 disabled:bg-emerald-600 disabled:text-white transition"
                     >
                       {cardVerified ? "✓ Card Verified" : "Verify Card"}
                     </button>
                   </div>
                   {cardVerified && (
-                    <div className="text-xs text-emerald-700 font-medium flex items-center gap-1">
-                      <CheckCircle2 className="w-4 h-4" /> Smart Card matched with registered physical student record!
+                    <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-3 text-xs font-bold text-emerald-800 flex items-center gap-2 shadow-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      Smart Card matched with registered student hall records!
                     </div>
                   )}
                 </form>
 
                 {/* Part B: Physical Activation Code (only unlocked after Card Verified) */}
                 {cardVerified && (
-                  <form onSubmit={handleVerifyActivationCode} className="pt-4 border-t border-slate-100 space-y-3">
-                    <label className="block text-xs font-semibold text-slate-700 uppercase">
-                      Physical Activation Code / භෞතික සක්‍රිය කිරීමේ කේතය (6-digits) *
+                  <form onSubmit={handleVerifyActivationCode} className="pt-4 border-t border-zinc-200 space-y-4 animate-in fade-in duration-200">
+                    <label className="block text-xs font-extrabold uppercase tracking-wider text-[#002583] mb-1">
+                      Physical Activation Code / භෞතික සක්‍රිය කිරීමේ කේතය (6-digits) <span className="text-[#FFB800]">*</span>
                     </label>
                     <input
                       type="text"
@@ -793,14 +939,14 @@ export default function StudentRegisterPage() {
                       onChange={(e) => setActivationCode(e.target.value.replace(/\D/g, ""))}
                       maxLength={6}
                       placeholder="654321"
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center font-mono text-xl tracking-widest focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:opacity-60"
+                      className="w-full rounded-2xl border border-zinc-200 bg-white py-3.5 text-center font-mono text-xl font-bold tracking-widest text-zinc-900 focus:border-[#002583] focus:outline-none focus:ring-2 focus:ring-[#002583]/20 disabled:bg-zinc-100 disabled:opacity-70 transition shadow-sm"
                       required
                     />
                     
                     <button
                       type="submit"
                       disabled={activationVerified || loading}
-                      className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow text-xs flex items-center justify-center gap-2 disabled:bg-emerald-600"
+                      className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg text-xs flex items-center justify-center gap-2 disabled:bg-emerald-600 disabled:from-emerald-600 disabled:to-emerald-600 transition"
                     >
                       {loading ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -813,19 +959,19 @@ export default function StudentRegisterPage() {
                   </form>
                 )}
 
-                <div className="flex gap-3 pt-4 border-t border-slate-100">
+                <div className="flex gap-3 pt-4 border-t border-zinc-200">
                   <button
                     type="button"
                     onClick={() => setStep(3)}
-                    className="w-1/3 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 text-sm"
+                    className="w-1/3 py-3.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold rounded-2xl transition border border-zinc-200 text-xs sm:text-sm flex items-center justify-center gap-1.5"
                   >
-                    Back
+                    <ArrowLeft className="w-4 h-4" /> Back
                   </button>
                   <button
                     type="button"
                     disabled={!activationVerified}
                     onClick={() => setStep(5)}
-                    className="w-2/3 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                    className="w-2/3 py-3.5 bg-gradient-to-r from-[#FFB800] via-[#FFA000] to-[#FFB800] text-[#002583] font-black rounded-2xl shadow-[0_8px_20px_rgba(255,184,0,0.35)] hover:shadow-[0_10px_25px_rgba(255,184,0,0.45)] hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 text-xs sm:text-sm transition-all disabled:opacity-50"
                   >
                     Next Step <ArrowRight className="w-4 h-4" />
                   </button>
@@ -836,77 +982,104 @@ export default function StudentRegisterPage() {
             {/* ─── STEP 5: ONLINE PAPER CLASS SUBSCRIPTION ──────────────────── */}
             {step === 5 && (
               <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900 mb-1">
-                    Step 5: Online Paper Class Add-on / ඔන්ලයින් පේපර් පන්තිය
+                <div className="border-b border-zinc-200/80 pb-4">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#002583]/10 border border-[#002583]/20 px-3 py-1 text-xs font-black text-[#002583]">
+                    STEP 05 OF 06
+                  </span>
+                  <h2 className="mt-2 text-2xl font-black text-[#002583]">
+                    Online Paper Class Add-on / ඔන්ලයින් පේපර් පන්තිය
                   </h2>
-                  <p className="text-sm text-slate-500">
-                    Optionally subscribe to the Online Paper Class with weekly model papers and discussions.
+                  <p className="mt-1 text-xs sm:text-sm text-ink/70">
+                    Boost your exam rankings with weekly model papers, mark schemes, and video discussions.
                   </p>
                 </div>
 
-                <div className="p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100 space-y-4">
-                  <div className="flex items-start justify-between">
+                <div className="rounded-3xl border border-[#FFB800]/40 bg-gradient-to-br from-[#002583] via-[#001d6e] to-[#001447] p-6 shadow-xl text-white space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <span className="px-2.5 py-1 bg-indigo-600 text-white font-bold text-[10px] rounded-full uppercase tracking-wider">
-                        Optional Add-on
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#FFB800] px-3 py-0.5 text-[10px] font-black text-[#002583] uppercase tracking-wider">
+                        <Sparkles size={11} /> OPTIONAL ADD-ON
                       </span>
-                      <h3 className="text-lg font-bold text-slate-900 mt-2">
+                      <h3 className="text-xl font-black text-white mt-2">
                         Online Paper Class ({grade})
                       </h3>
-                      <p className="text-xs text-slate-600 mt-1">
-                        Access weekly timed mock exams, answer scheme discussions, and individual performance reports.
+                      <p className="text-xs text-blue-200/80 mt-1 max-w-md font-medium">
+                        Access weekly timed mock exam papers, personalized mark reports, model answers, and step-by-step video discussions.
                       </p>
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-extrabold text-indigo-700">
-                        Rs. {paperClassFee}
+                    <div className="text-left sm:text-right border-t sm:border-t-0 border-white/10 pt-3 sm:pt-0">
+                      <div className="text-2xl sm:text-3xl font-black text-[#FFB800]">
+                        Rs. {paperClassFee.toLocaleString()}
                       </div>
-                      <div className="text-[11px] text-slate-500">per month</div>
+                      <div className="text-xs text-blue-200/70 font-semibold">per month / මාසිකව</div>
                     </div>
                   </div>
 
-                  <div className="space-y-2 pt-2 border-t border-indigo-100">
-                    <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-indigo-200 cursor-pointer hover:border-indigo-400">
+                  <div className="space-y-2.5 pt-3 border-t border-white/10">
+                    <label 
+                      onClick={() => setWantsPaperClass(true)}
+                      className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition ${
+                        wantsPaperClass === true
+                          ? "border-[#FFB800] bg-white/20 shadow-lg"
+                          : "border-white/15 bg-white/5 hover:bg-white/10"
+                      }`}
+                    >
                       <input
                         type="radio"
                         name="wantsPaperClass"
                         checked={wantsPaperClass === true}
                         onChange={() => setWantsPaperClass(true)}
-                        className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                        className="w-4 h-4 text-[#FFB800] focus:ring-[#FFB800]"
                       />
-                      <span className="text-xs font-bold text-slate-900">
-                        Yes, I want to subscribe to Online Paper Class (Rs. {paperClassFee})
-                      </span>
+                      <div>
+                        <span className="text-xs sm:text-sm font-bold text-white block">
+                          Yes, subscribe to Online Paper Class (Rs. {paperClassFee.toLocaleString()}/mo)
+                        </span>
+                        <span className="text-[11px] text-blue-200/75">
+                          Includes weekly model papers &amp; discussion access.
+                        </span>
+                      </div>
                     </label>
 
-                    <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-slate-300">
+                    <label 
+                      onClick={() => setWantsPaperClass(false)}
+                      className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition ${
+                        wantsPaperClass === false
+                          ? "border-[#FFB800] bg-white/20 shadow-lg"
+                          : "border-white/15 bg-white/5 hover:bg-white/10"
+                      }`}
+                    >
                       <input
                         type="radio"
                         name="wantsPaperClass"
                         checked={wantsPaperClass === false}
                         onChange={() => setWantsPaperClass(false)}
-                        className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                        className="w-4 h-4 text-[#FFB800] focus:ring-[#FFB800]"
                       />
-                      <span className="text-xs font-medium text-slate-700">
-                        No, skip Paper Class for now (Theory only)
-                      </span>
+                      <div>
+                        <span className="text-xs sm:text-sm font-bold text-white/90 block">
+                          No, skip Paper Class for now (Theory &amp; Revision only)
+                        </span>
+                        <span className="text-[11px] text-blue-200/75">
+                          You can always add paper class later from your LMS student portal.
+                        </span>
+                      </div>
                     </label>
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-slate-100">
+                <div className="flex gap-3 pt-4 border-t border-zinc-200">
                   <button
                     type="button"
                     onClick={() => setStep(studentType === "physical_online" ? 4 : 3)}
-                    className="w-1/3 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 text-sm"
+                    className="w-1/3 py-3.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold rounded-2xl transition border border-zinc-200 text-xs sm:text-sm flex items-center justify-center gap-1.5"
                   >
-                    Back
+                    <ArrowLeft className="w-4 h-4" /> Back
                   </button>
                   <button
                     type="button"
                     onClick={() => setStep(6)}
-                    className="w-2/3 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 text-sm"
+                    className="w-2/3 py-3.5 bg-gradient-to-r from-[#FFB800] via-[#FFA000] to-[#FFB800] text-[#002583] font-black rounded-2xl shadow-[0_8px_20px_rgba(255,184,0,0.35)] hover:shadow-[0_10px_25px_rgba(255,184,0,0.45)] hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 text-xs sm:text-sm transition-all"
                   >
                     Review Details <ArrowRight className="w-4 h-4" />
                   </button>
@@ -917,46 +1090,77 @@ export default function StudentRegisterPage() {
             {/* ─── STEP 6: REVIEW & COMPLETE ────────────────────────────────── */}
             {step === 6 && (
               <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900 mb-1">
-                    Step 6: Review & Finalize Registration / සමාලෝචනය
+                <div className="border-b border-zinc-200/80 pb-4">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#002583]/10 border border-[#002583]/20 px-3 py-1 text-xs font-black text-[#002583]">
+                    STEP 06 OF 06
+                  </span>
+                  <h2 className="mt-2 text-2xl font-black text-[#002583]">
+                    Review &amp; Finalize Registration / සමාලෝචනය
                   </h2>
-                  <p className="text-sm text-slate-500">
+                  <p className="mt-1 text-xs sm:text-sm text-ink/70">
                     Double-check all entered information before submitting your registration.
                   </p>
                 </div>
 
-                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-3 text-xs text-slate-700">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div><strong className="text-slate-900">Student Name:</strong> {studentName}</div>
-                    <div><strong className="text-slate-900">Mobile:</strong> {mobileNumber}</div>
-                    <div><strong className="text-slate-900">WhatsApp:</strong> {whatsappNumber}</div>
-                    <div><strong className="text-slate-900">Grade:</strong> {grade}</div>
-                    <div><strong className="text-slate-900">School:</strong> {schoolName}</div>
-                    <div><strong className="text-slate-900">District:</strong> {district}</div>
-                    <div><strong className="text-slate-900">Class Mode:</strong> {studentType === "physical_online" ? "Physical + Online" : "Online Only"}</div>
-                    <div><strong className="text-slate-900">Paper Class:</strong> {wantsPaperClass ? `Yes (Rs. ${paperClassFee})` : "No"}</div>
+                <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/80 p-6 space-y-4 text-xs sm:text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="rounded-xl bg-white p-3.5 border border-zinc-200/80 shadow-sm">
+                      <span className="text-zinc-500 block text-[11px] font-bold uppercase">Student Full Name</span>
+                      <strong className="text-zinc-900 text-sm">{studentName}</strong>
+                    </div>
+                    <div className="rounded-xl bg-white p-3.5 border border-zinc-200/80 shadow-sm">
+                      <span className="text-zinc-500 block text-[11px] font-bold uppercase">Mobile / Phone</span>
+                      <strong className="text-zinc-900 text-sm">{mobileNumber}</strong>
+                    </div>
+                    <div className="rounded-xl bg-white p-3.5 border border-zinc-200/80 shadow-sm">
+                      <span className="text-zinc-500 block text-[11px] font-bold uppercase">WhatsApp Number</span>
+                      <strong className="text-zinc-900 text-sm">{whatsappNumber}</strong>
+                    </div>
+                    <div className="rounded-xl bg-white p-3.5 border border-zinc-200/80 shadow-sm">
+                      <span className="text-zinc-500 block text-[11px] font-bold uppercase">Grade</span>
+                      <strong className="text-[#002583] text-sm font-black">{grade}</strong>
+                    </div>
+                    <div className="rounded-xl bg-white p-3.5 border border-zinc-200/80 shadow-sm">
+                      <span className="text-zinc-500 block text-[11px] font-bold uppercase">School</span>
+                      <strong className="text-zinc-900 text-sm">{schoolName}</strong>
+                    </div>
+                    <div className="rounded-xl bg-white p-3.5 border border-zinc-200/80 shadow-sm">
+                      <span className="text-zinc-500 block text-[11px] font-bold uppercase">District / City</span>
+                      <strong className="text-zinc-900 text-sm">{city}, {district}</strong>
+                    </div>
+                    <div className="rounded-xl bg-white p-3.5 border border-zinc-200/80 shadow-sm">
+                      <span className="text-zinc-500 block text-[11px] font-bold uppercase">Class Mode</span>
+                      <strong className="text-zinc-900 text-sm">
+                        {studentType === "physical_online" ? "Physical (Sadarn - Bombuwela) + Online" : "Online Only (Zoom)"}
+                      </strong>
+                    </div>
+                    <div className="rounded-xl bg-white p-3.5 border border-zinc-200/80 shadow-sm">
+                      <span className="text-zinc-500 block text-[11px] font-bold uppercase">Paper Class Add-on</span>
+                      <strong className="text-zinc-900 text-sm">
+                        {wantsPaperClass ? `Subscribed (Rs. ${paperClassFee.toLocaleString()}/mo)` : "Theory Only"}
+                      </strong>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-slate-100">
+                <div className="flex gap-3 pt-4 border-t border-zinc-200">
                   <button
                     type="button"
                     onClick={() => setStep(5)}
-                    className="w-1/3 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 text-sm"
+                    className="w-1/3 py-3.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold rounded-2xl transition border border-zinc-200 text-xs sm:text-sm flex items-center justify-center gap-1.5"
                   >
-                    Back
+                    <ArrowLeft className="w-4 h-4" /> Back
                   </button>
                   <button
-                    type="button"
+                    type="submit"
                     disabled={loading}
                     onClick={handleFinalSubmit}
-                    className="w-2/3 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-200 flex items-center justify-center gap-2 text-sm transition-all"
+                    className="w-2/3 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/20 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 text-xs sm:text-sm transition-all"
                   >
                     {loading ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
-                      <>Register Now / ලියාපදිංචි වන්න <CheckCircle2 className="w-5 h-5" /></>
+                      <>Register Now / ලියාපදිංචි වන්න <CheckCircle2 className="w-4 h-4" /></>
                     )}
                   </button>
                 </div>
@@ -965,46 +1169,81 @@ export default function StudentRegisterPage() {
 
             {/* ─── STEP 7: REGISTRATION COMPLETE SUCCESS SCREEN ─────────────── */}
             {step === 7 && registeredData && (
-              <div className="text-center py-6 space-y-6">
-                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                  <CheckCircle2 className="w-10 h-10" />
+              <div className="text-center py-6 space-y-6 animate-in zoom-in-95 duration-300">
+                <div className="w-20 h-20 bg-emerald-500 text-white rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/40 ring-8 ring-emerald-500/20">
+                  <CheckCircle2 className="w-12 h-12" />
                 </div>
 
                 <div>
-                  <h2 className="text-2xl font-extrabold text-slate-900">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-300 px-3 py-1 text-xs font-black text-emerald-800">
+                    ADMISSION SUCCESSFUL
+                  </span>
+                  <h2 className="mt-2 text-2xl sm:text-3xl font-black text-[#002583]">
                     Registration Complete! / ලියාපදිංචිය සාර්ථකයි!
                   </h2>
-                  <p className="text-sm text-slate-600 mt-1">
-                    Your student account has been generated successfully.
+                  <p className="mt-1 text-xs sm:text-sm text-zinc-600 max-w-md mx-auto font-medium">
+                    Your student account has been created. Use your registered mobile number and password to log in.
                   </p>
                 </div>
 
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 max-w-sm mx-auto text-left space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Student ID:</span>
-                    <strong className="text-indigo-700 font-mono text-sm">{registeredData.studentId}</strong>
+                {/* Digital Student Admission Pass Card */}
+                <div className="mx-auto max-w-md rounded-3xl border border-[#FFB800]/40 bg-gradient-to-br from-[#002583] via-[#001d6e] to-[#001447] p-6 shadow-2xl text-left space-y-3 text-white">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#FFB800] text-[#002583] font-black">
+                        <Atom size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-white leading-none">Science Academy</p>
+                        <p className="text-[10px] font-bold text-[#FFB800]">Kalhara Nakandala</p>
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-[#FFB800] px-2.5 py-0.5 text-[10px] font-black text-[#002583]">
+                      STUDENT PASS
+                    </span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Username/Email:</span>
-                    <strong className="text-slate-800">{registeredData.email}</strong>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Registered Mobile:</span>
-                    <strong className="text-slate-800">{mobileNumber}</strong>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Class Mode:</span>
-                    <strong className="text-slate-800">{studentType === "physical_online" ? "Physical + Online" : "Online Only"}</strong>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-blue-200/70 font-semibold">Student ID:</span>
+                      <strong className="text-[#FFB800] font-mono text-sm font-black">{registeredData.studentId}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-200/70 font-semibold">Student Name:</span>
+                      <strong className="text-white font-bold">{studentName}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-200/70 font-semibold">Enrolled Grade:</span>
+                      <strong className="text-white font-bold">{grade}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-200/70 font-semibold">Login Mobile:</span>
+                      <strong className="text-white font-mono font-bold">{mobileNumber}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-200/70 font-semibold">Class Center:</span>
+                      <strong className="text-white font-bold">
+                        {studentType === "physical_online" ? "Sadarn - Bombuwela & Zoom" : "Zoom Online Only"}
+                      </strong>
+                    </div>
                   </div>
                 </div>
 
-                <div className="pt-4">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                   <Link
                     href="/student-login"
-                    className="inline-flex items-center gap-2 px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 text-sm transition-all"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-[#FFB800] via-[#FFA000] to-[#FFB800] text-[#002583] font-black rounded-2xl shadow-xl hover:scale-105 transition-all text-xs sm:text-sm"
                   >
-                    Go to Student Sign In / ඇතුළු වන්න <ArrowRight className="w-4 h-4" />
+                    Go to Student LMS Login / ඇතුළු වන්න <ArrowRight className="w-4 h-4" />
                   </Link>
+                  <a
+                    href="https://wa.me/94767589005"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg transition-all text-xs sm:text-sm"
+                  >
+                    <FaWhatsapp className="h-4 w-4" /> WhatsApp Support
+                  </a>
                 </div>
               </div>
             )}
@@ -1012,10 +1251,10 @@ export default function StudentRegisterPage() {
           </div>
 
           {/* Bottom link to Login */}
-          <div className="text-center mt-6 text-xs text-slate-500">
-            Already have an account?{" "}
-            <Link href="/student-login" className="text-indigo-600 font-bold hover:underline">
-              Sign In Here
+          <div className="text-center mt-8 text-xs text-zinc-600 font-medium">
+            Already registered as a student?{" "}
+            <Link href="/student-login" className="text-[#002583] font-black hover:underline ml-1">
+              Sign In to LMS Portal
             </Link>
           </div>
 

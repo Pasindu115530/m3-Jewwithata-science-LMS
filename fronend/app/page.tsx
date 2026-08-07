@@ -372,12 +372,11 @@ export default function HomePage() {
           </Link>
 
           <Link
-            href="/free-lessons"
+            href="/student-login"
             className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white/20"
           >
-            <Play size={16} /> Free Lessons
+            <LogIn size={16} /> LMS Login
           </Link>
-
         </div>
 
         {/* Bottom glow edge */}
