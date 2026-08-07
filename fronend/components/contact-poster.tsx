@@ -129,7 +129,7 @@ export function ContactPoster() {
             <MapPin size={24} />
           </div>
           <h3 className="mt-4 text-lg font-black text-[#002583]">Class Locations</h3>
-          <p className="mt-1 text-sm font-extrabold text-[#002583]">Maharagama &amp; Zoom</p>
+          <p className="mt-1 text-sm font-extrabold text-[#002583]">Sadarn - Bombuwela &amp; Zoom</p>
           <p className="mt-2 text-xs font-semibold text-zinc-500">Physical &amp; Online Centers</p>
         </div>
       </div>
@@ -156,8 +156,8 @@ export function ContactPoster() {
                   Tuition Specialist
                 </span>
                 <h2 className="mt-1.5 text-2xl font-black text-[#002583]">Kalhara Nakandala</h2>
-                <p className="text-xs font-bold text-zinc-500">B.Sc. (Hons) • Science Education</p>
-                <p className="mt-1 text-xs font-extrabold text-emerald-600">Grade 8 – 11 Theory &amp; Revision</p>
+                <p className="text-xs font-bold text-zinc-500">B.Sc. (UG) • Science Education</p>
+                <p className="mt-1 text-xs font-extrabold text-emerald-600">Grade 6 – 11 Theory &amp; Paper</p>
               </div>
             </div>
 
@@ -191,19 +191,10 @@ export function ContactPoster() {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-zinc-400">Email Address</p>
-                  <p className="text-sm font-black text-[#002583]">kalhara@scienceacademy.lk</p>
+                  <p className="text-sm font-black text-[#002583]">lms.kalhara@gmail.com</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3.5 rounded-2xl bg-zinc-50 p-3.5 border border-zinc-200/60">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-purple-500/15 text-purple-600">
-                  <Clock size={18} />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-zinc-400">Inquiry Hours</p>
-                  <p className="text-sm font-black text-[#002583]">Daily 8:00 AM – 8:00 PM</p>
-                </div>
-              </div>
             </div>
           </Card>
 
@@ -220,8 +211,8 @@ export function ContactPoster() {
                     <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-black text-white">
                       Physical Hall
                     </span>
-                    <h4 className="mt-1 text-base font-black text-[#002583]">Maharagama Science Center</h4>
-                    <p className="text-xs text-zinc-600 font-medium">Thalawathugoda Road, Maharagama</p>
+                    <h4 className="mt-1 text-base font-black text-[#002583]">Sadarn - Bombuwela Education Center</h4>
+                    <p className="text-xs text-zinc-600 font-medium">Bombuwala, Kalutara South</p>
                   </div>
                   <MapPin size={20} className="text-amber-600" />
                 </div>
@@ -323,6 +314,8 @@ export function ContactPoster() {
                       onChange={handleInputChange}
                       className="w-full rounded-xl border border-zinc-300/80 bg-white px-4 py-3 text-sm font-semibold text-zinc-800 outline-none focus:border-[#002583] focus:ring-2 focus:ring-[#002583]/20"
                     >
+                      <option value="Grade 8">Grade 6 Science</option>
+                      <option value="Grade 8">Grade 7 Science</option>
                       <option value="Grade 8">Grade 8 Science</option>
                       <option value="Grade 9">Grade 9 Science</option>
                       <option value="Grade 10">Grade 10 Science</option>
@@ -339,7 +332,7 @@ export function ContactPoster() {
                     onChange={handleInputChange}
                     className="w-full rounded-xl border border-zinc-300/80 bg-white px-4 py-3 text-sm font-semibold text-zinc-800 outline-none focus:border-[#002583] focus:ring-2 focus:ring-[#002583]/20"
                   >
-                    <option value="Physical Class">Physical Tuition Hall (Maharagama)</option>
+                    <option value="Physical Class">Sadarn Education Center (Bombuwala)</option>
                     <option value="Zoom Online Class">Zoom Online Class (Live Stream)</option>
                     <option value="Both">Both Physical &amp; Online</option>
                   </select>

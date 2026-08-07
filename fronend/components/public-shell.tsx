@@ -231,7 +231,7 @@ export function PublicFooter() {
                 Ôú;hg <span className="text-[#FFB800]">úoHdj</span>
               </h2>
               <p className="mt-1 text-xs sm:text-sm text-blue-200/80 font-medium">
-                Grade 8 – 11 Science Theory, Revision &amp; Paper Classes by Kalhara Nakandala.
+                Grade 6 – 11 Science Theory, Revision &amp; Paper Classes by Kalhara Nakandala.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -247,7 +247,7 @@ export function PublicFooter() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-xs font-black text-white shadow-lg transition hover:scale-105"
               >
-                <FaWhatsapp className="h-4 w-4" /> WhatsApp Chat
+                <FaWhatsapp className="h-4 w-4" /> WhatsApp
               </a>
             </div>
           </div>
@@ -274,7 +274,7 @@ export function PublicFooter() {
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
             <span className="rounded-full bg-blue-900/60 border border-blue-700/50 px-2.5 py-1 text-[11px] font-bold text-amber-200">
-              Grades 8–11
+              Grades 6–11
             </span>
             <span className="rounded-full bg-blue-900/60 border border-blue-700/50 px-2.5 py-1 text-[11px] font-bold text-amber-200">
               Sinhala &amp; English
@@ -339,7 +339,7 @@ export function PublicFooter() {
               <MapPin size={16} className="text-[#FFB800] flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold text-white">Physical Center</p>
-                <p className="text-blue-200/70">Maharagama Science Hall</p>
+                <p className="text-blue-200/70">Sadarn - Bombuwela</p>
               </div>
             </li>
           </ul>
@@ -359,13 +359,7 @@ export function PublicFooter() {
               <span>Student Portal Login</span>
               <ArrowUpRight size={14} className="text-[#FFB800]" />
             </Link>
-            <Link
-              href="/teacher-login"
-              className="inline-flex items-center justify-between rounded-xl bg-blue-950/60 px-4 py-2.5 text-xs font-bold text-blue-200 border border-blue-800/50 hover:bg-blue-900/60 transition"
-            >
-              <span>Teacher Portal</span>
-              <ArrowUpRight size={14} className="text-[#FFB800]" />
-            </Link>
+            
           </div>
         </div>
 
