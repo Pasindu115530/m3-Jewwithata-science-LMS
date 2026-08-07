@@ -123,7 +123,7 @@ export const gradeSchedules: GradeScheduleItem[] = [
     instructor: "With Kalhara Nakandala",
     mode: "Physical",
     location: "Maharagama & Zoom",
-    image: "/images/banners/timetableg6.png",
+    image: "/images/banners/timetableg6.avif",
     theme: "red",
     schedules: [
       {
@@ -149,7 +149,7 @@ export const gradeSchedules: GradeScheduleItem[] = [
     instructor: "With Kalhara Nakandala",
     mode: "Physical",
     location: "Maharagama & Zoom",
-    image: "/images/banners/timetableg7.png",
+    image: "/images/banners/timetableg7.avif",
     theme: "green",
     schedules: [
       {
@@ -174,7 +174,7 @@ export const gradeSchedules: GradeScheduleItem[] = [
     instructor: "With Kalhara Nakandala",
     mode: "Physical",
     location: "Nugegoda & Zoom",
-    image: "/images/banners/timetableg8.png",
+    image: "/images/banners/timetableg8.avif",
     theme: "purple",
     schedules: [
       {
@@ -200,7 +200,7 @@ export const gradeSchedules: GradeScheduleItem[] = [
     instructor: "With Kalhara Nakandala",
     mode: "Online",
     location: "Zoom Online",
-    image: "/images/banners/timetableg9.png",
+    image: "/images/banners/timetableg9.avif",
     theme: "brown",
     schedules: [
       {
@@ -227,7 +227,7 @@ export const gradeSchedules: GradeScheduleItem[] = [
     instructor: "With Kalhara Nakandala",
     mode: "Physical",
     location: "Maharagama Center",
-    image: "/images/banners/timetableg10.png",
+    image: "/images/banners/timetableg10.avif",
     theme: "yellow",
     schedules: [
       {
@@ -252,7 +252,7 @@ export const gradeSchedules: GradeScheduleItem[] = [
     instructor: "With Kalhara Nakandala",
     mode: "Hybrid",
     location: "Maharagama & Zoom",
-    image: "/images/banners/timetableg11.png",
+    image: "/images/banners/timetableg11.avif",
     theme: "blue",
     schedules: [
       {
@@ -292,6 +292,8 @@ function GradeCard({ item }: { item: GradeScheduleItem }) {
             src={item.image}
             alt={item.title}
             fill
+            quality={75}
+            sizes="(max-width: 1024px) 100vw, 384px"
             className="object-cover object-[center_top] scale-115 transition-transform duration-500 group-hover:scale-125"
           />
         </div>

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   ArrowRight, CalendarDays, CheckCircle2, MessageCircle,
   Play, Sparkles, Star, Atom, TrendingUp, QrCode, Heart, ArrowUpRight, Trophy,
@@ -7,7 +8,7 @@ import {
 } from "lucide-react";
 import { PublicShell } from "@/components/public-shell";
 import { Card, Badge, SectionHeading, TextLink } from "@/components/ui";
-import { classes, lessons, announcements, testimonials } from "@/lib/mock-data";
+import { classes, lessons, testimonials } from "@/lib/mock-data";
 import { createMetadata } from "@/lib/metadata";
 import { siteConfig } from "@/lib/site";
 
@@ -34,11 +35,16 @@ export const metadata = createMetadata(
   ]
 );
 
-import { LiquidStatRectCard } from "@/components/liquid-hero-card";
 import { CountUp } from "@/components/lightswind/count-up";
-import { SpotlightCards } from "@/components/spotlight-cards";
 import { FaWhatsapp } from "react-icons/fa";
-import NeuralLinkBackground from "@/components/lightswind/neural-link-background";
+
+const DynamicNeuralLinkBackground = dynamic(
+  () => import("@/components/lightswind/neural-link-background")
+);
+
+const DynamicSpotlightCards = dynamic(
+  () => import("@/components/spotlight-cards").then((mod) => mod.SpotlightCards)
+);
 
 export default function HomePage() {
   const schema = {
@@ -82,18 +88,20 @@ export default function HomePage() {
         <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-lavender-300/25 blur-3xl" />
         <div className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full bg-peach-200/30 blur-3xl" />
 
-        {/* Interactive Neural Link Background */}
-        <NeuralLinkBackground
-          nodeColor="#002583"
-          lineColor="#002853"
-          packetColor="#FFB800"
-          nodeCount={30}
-          maxDistance={125}
-          interactionMode="router"
-          interactive={true}
-          packetFrequency={8000}
-          className="z-0 opacity-40"
-        />
+        {/* Interactive Neural Link Background (Desktop only for performance) */}
+        <div className="hidden lg:block">
+          <DynamicNeuralLinkBackground
+            nodeColor="#002583"
+            lineColor="#002853"
+            packetColor="#FFB800"
+            nodeCount={30}
+            maxDistance={125}
+            interactionMode="router"
+            interactive={true}
+            packetFrequency={8000}
+            className="z-0 opacity-40"
+          />
+        </div>
 
         {/* Watermark brand text — endless loop track */}
         <div className="hero-watermark">
@@ -108,11 +116,13 @@ export default function HomePage() {
           {/* Mobile Left Column: Teacher Image enlarged */}
           <div className="w-[50%] xs:w-[52%] max-w-[220px] sm:max-w-[280px] flex-shrink-0 relative overflow-hidden rounded-2xl h-[350px] sm:h-[440px]">
             <Image
-              src="/images/bg/hero-bg.png"
+              src="/images/bg/hero-bg.webp"
               alt="Kalhara Nakandala Science Academy"
               width={600}
               height={800}
               priority
+              quality={75}
+              sizes="(max-width: 640px) 50vw, 280px"
               className="absolute inset-0 h-full w-full object-cover object-top scale-105 transition-transform duration-500"
             />
           </div>
@@ -304,11 +314,13 @@ export default function HomePage() {
           <div className="relative flex justify-center order-2 lg:order-2 z-10 -mb-16">
             <div className="relative w-[32rem] h-[560px] overflow-hidden rounded-[2.5rem]">
               <Image
-                src="/images/bg/hero-bg.png"
+                src="/images/bg/hero-bg.webp"
                 alt="Kalhara Nakandala Science Academy"
                 width={1000}
                 height={1100}
                 priority
+                quality={75}
+                sizes="(max-width: 1280px) 450px, 512px"
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-700"
                 style={{ objectPosition: "center 50%" }}
               />
@@ -419,7 +431,7 @@ export default function HomePage() {
         </div>
 
         {/* Secondary stats strip — Kokonut UI 3D tilt spotlight cards */}
-        <SpotlightCards className="mt-8" />
+        <DynamicSpotlightCards className="mt-8" />
       </section>
 
       {/* ══════════════════════════════════════════════════════════════
@@ -463,10 +475,13 @@ export default function HomePage() {
             {/* Main image */}
             <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] shadow-soft">
               <Image
-                src="/images/bg/profileinfo.JPEG"
+                src="/images/bg/profileinfo.webp"
                 alt="Kalhara Nakandala Science Tuition Class in session — Colombo, Sri Lanka"
                 width={800}
                 height={700}
+                loading="lazy"
+                quality={75}
+                sizes="(max-width: 768px) 90vw, 450px"
                 className="h-auto w-full object-cover"
               />
               <div className="pointer-events-none absolute inset-0 rounded-[2rem] ring-1 ring-[#002583]/10" />
@@ -566,10 +581,13 @@ export default function HomePage() {
               {c.titleImage && (
                 <div className="relative w-full overflow-hidden">
                   <Image
-                    src={c.titleImage}
+                    src={c.titleImage.replace(/\.png$/, ".webp")}
                     alt={c.fullTitle || c.title}
                     width={600}
                     height={340}
+                    loading="lazy"
+                    quality={75}
+                    sizes="(max-width: 640px) 95vw, (max-width: 1024px) 45vw, 380px"
                     className="h-auto w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                 </div>
@@ -659,41 +677,27 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════
-          ANNOUNCEMENTS + TESTIMONIALS
+          TESTIMONIALS
       ══════════════════════════════════════════════════════════════ */}
-      <section className="mx-auto grid max-w-7xl gap-6 px-4 py-14 lg:grid-cols-2 lg:px-8">
-        <div>
-          <SectionHeading eyebrow="Latest updates" title="Announcements for students and parents" />
-          {announcements.map((a) => (
-            <Card key={a.title} className="mb-4 flex items-center gap-4 p-5">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-peach-100 text-xl">📣</div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap gap-2">
-                  <Badge tone="pink">{a.category}</Badge>
-                  <Badge tone="yellow">{a.priority}</Badge>
-                </div>
-                <h3 className="mt-2 font-black">{a.title}</h3>
-                <p className="text-xs text-ink/45">{a.date}</p>
-              </div>
-            </Card>
-          ))}
-        </div>
-        <div>
-          <SectionHeading eyebrow="Student success" title="What our learners say" />
+      <section className="mx-auto max-w-7xl px-4 py-14 lg:px-8">
+        <SectionHeading eyebrow="Student success" title="What our learners say" />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {testimonials.map((t) => (
-            <Card key={t.name} className="mb-4 p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-black">{t.name}</p>
-                  <p className="text-xs text-ink/45">{t.grade}</p>
-                </div>
-                <div className="flex text-amber-400">
+            <Card key={t.name} className="p-6 flex flex-col justify-between">
+              <div>
+                <div className="flex text-amber-400 mb-3">
                   {Array.from({ length: t.rating }).map((_, i) => (
                     <Star key={i} size={15} fill="currentColor" />
                   ))}
                 </div>
+                <p className="text-sm leading-6 text-ink/65">&ldquo;{t.text}&rdquo;</p>
               </div>
-              <p className="mt-4 text-sm leading-6 text-ink/65">&ldquo;{t.text}&rdquo;</p>
+              <div className="mt-6 pt-4 border-t border-ink/10 flex items-center justify-between">
+                <div>
+                  <p className="font-black text-sm">{t.name}</p>
+                  <p className="text-xs text-ink/45">{t.grade}</p>
+                </div>
+              </div>
             </Card>
           ))}
         </div>

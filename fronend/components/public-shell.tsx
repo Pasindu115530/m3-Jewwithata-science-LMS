@@ -6,7 +6,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowUpRight, Atom, Menu, X, Phone, MapPin, Sparkles, ChevronRight } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
-import { motion } from "framer-motion";
 import { Brand } from "@/components/brand";
 import { siteConfig } from "@/lib/site";
 
@@ -84,31 +83,22 @@ export function PublicHeader() {
           <Atom size={19} className="animate-spin-slow" />
         </Link>
 
-        {/* Center Links (Desktop) with KokonutUI SmoothTab Motion */}
+        {/* Center Links (Desktop) with CSS Smooth Tab Motion */}
         <nav
           ref={containerRef}
           className="relative hidden items-center gap-1 text-xs font-bold sm:flex md:text-sm"
         >
-          {/* KokonutUI Sliding Background Indicator */}
+          {/* Sliding Background Indicator */}
           {dimensions.width > 0 && (
-            <motion.div
-              animate={{
-                width: dimensions.width,
-                x: dimensions.left,
-                opacity: 1,
-              }}
-              className="absolute z-[1] rounded-full bg-[#002583]"
-              initial={false}
+            <div
+              className="absolute z-[1] rounded-full bg-[#002583] transition-all duration-300 ease-out"
               style={{
+                width: dimensions.width,
+                transform: `translateX(${dimensions.left}px)`,
                 height: "100%",
                 top: 0,
                 border: "1px solid rgba(255, 184, 0, 0.4)",
                 boxShadow: "0 4px 12px rgba(0, 37, 131, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
-              }}
-              transition={{
-                type: "spring",
-                stiffness: 400,
-                damping: 30,
               }}
             />
           )}
@@ -175,11 +165,8 @@ export function PublicHeader() {
 
       {/* ── Mobile Dropdown Menu Drawer ── */}
       {mobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -10, scale: 0.95 }}
-          className="mt-3 flex w-full max-w-sm flex-col gap-2 rounded-3xl p-4 sm:hidden z-50"
+        <div
+          className="mt-3 flex w-full max-w-sm flex-col gap-2 rounded-3xl p-4 sm:hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200"
           style={{
             background: "rgba(255, 255, 255, 0.92)",
             backdropFilter: "blur(32px)",
@@ -220,7 +207,7 @@ export function PublicHeader() {
               Student Portal
             </Link>
           </div>
-        </motion.div>
+        </div>
       )}
     </header>
   );
