@@ -12,7 +12,6 @@ import { siteConfig } from "@/lib/site";
 const links = [
   ["Home", "/"],
   ["Time Table", "/timetable"],
-  ["Classes", "/classes"],
   ["Student Login", "/student-login"],
 ] as const;
 

@@ -646,37 +646,6 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════
-          FREE LESSONS
-      ══════════════════════════════════════════════════════════════ */}
-      <section className="mx-auto max-w-7xl px-4 py-14 lg:px-8">
-        <SectionHeading
-          eyebrow="Free lessons"
-          title="Start learning before joining"
-          text="Explore sample video lessons and downloadable notes for different grades."
-        />
-        <div className="grid gap-5 md:grid-cols-3">
-          {lessons.map((l, i) => (
-            <Card key={l.title} className="overflow-hidden">
-              <div className={`grid h-44 place-items-center text-7xl ${["bg-[#002583]/10", "bg-[#FFB800]/20", "bg-butter"][i]}`}>
-                {l.icon}
-              </div>
-              <div className="p-5">
-                <div className="flex gap-2">
-                  <Badge>{l.grade}</Badge>
-                  <Badge tone="blue">{l.duration}</Badge>
-                </div>
-                <h3 className="mt-4 text-xl font-black">{l.title}</h3>
-                <p className="mt-1 text-sm text-ink/50">{l.topic} with Kalhara Nakandala</p>
-                <Link href="/free-lessons" className="gradient-button mt-5 w-full rounded-full">
-                  <Play size={16} /> Watch free
-                </Link>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════════
           TESTIMONIALS
       ══════════════════════════════════════════════════════════════ */}
       <section className="mx-auto max-w-7xl px-4 py-14 lg:px-8">
