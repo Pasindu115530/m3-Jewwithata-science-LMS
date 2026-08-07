@@ -189,7 +189,7 @@ export function ClassesPoster() {
                       </div>
                     )}
                     <div className="mt-auto flex flex-wrap gap-2.5 pt-2">
-                      <Link href="/contact" className="gradient-button flex-1 py-2.5 text-xs">
+                      <Link href="/student/register" className="gradient-button flex-1 py-2.5 text-xs">
                         Enrol now <ChevronRight size={14} className="ml-1 inline" />
                       </Link>
                       <a

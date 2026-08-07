@@ -236,7 +236,7 @@ export function PublicFooter() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/contact"
+                href="/student/register"
                 className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#FFB800] to-[#f5a600] px-5 py-3 text-xs font-black text-[#002583] shadow-lg transition hover:scale-105"
               >
                 <Sparkles size={15} /> Register Student

@@ -152,7 +152,7 @@ export default function HomePage() {
         <div className="lg:hidden relative z-10 mt-5 flex flex-col items-center gap-3.5 w-full max-w-sm mx-auto">
           {/* 1. REGISTER button */}
           <Link
-            href="/contact"
+            href="/student/register"
             className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#FFB800] via-[#f5a600] to-[#d69600] px-6 font-black text-[#002583] shadow-lg border border-amber-300 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
           >
             <UserPlus size={22} className="stroke-[2.5] text-[#002583]" />
@@ -246,7 +246,7 @@ export default function HomePage() {
             
             {/* 1. REGISTER button */}
             <Link
-              href="/contact"
+              href="/student/register"
               className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#FFB800] via-[#f5a600] to-[#d69600] px-6 font-black text-[#002583] shadow-lg border border-amber-300 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
             >
               <UserPlus size={22} className="stroke-[2.5] text-[#002583]" />
