@@ -144,7 +144,7 @@ export function ContactPoster() {
             <div className="flex items-center gap-5">
               <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-[#002583] to-blue-900 shadow-md">
                 <Image
-                  src="/images/bg/hero-bg.png"
+                  src="/images/bg/hero-bg.avif"
                   alt="Kalhara Nakandala"
                   width={200}
                   height={200}

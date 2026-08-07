@@ -77,7 +77,7 @@ export default function TeacherLoginPage() {
           <div className="relative hidden min-h-[500px] flex-col justify-between overflow-hidden bg-[#072b82] p-8 text-white lg:flex">
             {/* Full cover background image fitting the blue square */}
             <Image
-              src="/images/bg/loginbg.avif"
+              src="/images/bg/loginbg.webp"
               alt="Science LMS Teacher Login Background"
               fill
               className="object-cover object-center"

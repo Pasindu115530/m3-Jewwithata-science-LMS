@@ -14,11 +14,11 @@ import { sendStudentOtpService, verifyStudentOtpService } from "@/lib/services/o
 export default function StudentLoginPage() {
 
 
-  const [activeTab, setActiveTab] = useState<"credentials" | "otp">("credentials");
+  const [activeTab, setActiveTab] = useState<"otp" | "credentials">("otp");
   const router = useRouter();
 
-  // Password Login state
-  const [email, setEmail] = useState("");
+  // Password Login state (using Phone Number + Password)
+  const [phoneInput, setPhoneInput] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [credError, setCredError] = useState<string | null>(null);
@@ -44,14 +44,48 @@ export default function StudentLoginPage() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  // Handle Username/Password Login
+  // Handle Phone Number & Password Login
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setCredError(null);
     setCredLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // Normalize entered phone number (e.g. 0771234567 or 94771234567)
+      let cleanedPhone = phoneInput.replace(/\D/g, "");
+      if (cleanedPhone.startsWith("94")) {
+        cleanedPhone = "0" + cleanedPhone.substring(2);
+      }
+      if (!cleanedPhone.startsWith("0")) {
+        cleanedPhone = "0" + cleanedPhone;
+      }
+
+      // Query Firestore users collection by mobileNumber or whatsappNumber
+      const { collection, query, where, getDocs } = await import("firebase/firestore");
+      const { db } = await import("@/lib/firebase");
+      
+      const usersRef = collection(db, "users");
+      let snap = await getDocs(query(usersRef, where("mobileNumber", "==", cleanedPhone)));
+      if (snap.empty) {
+        snap = await getDocs(query(usersRef, where("whatsappNumber", "==", cleanedPhone)));
+      }
+
+      if (snap.empty) {
+        setCredError("No student account found registered with this mobile number.");
+        setCredLoading(false);
+        return;
+      }
+
+      const userData = snap.docs[0].data();
+      const userEmail = userData.email;
+
+      if (!userEmail) {
+        setCredError("Account record missing email key. Please sign in via SMS OTP.");
+        setCredLoading(false);
+        return;
+      }
+
+      await signInWithEmailAndPassword(auth, userEmail, password);
       router.push("/student/dashboard");
     } catch (err: any) {
       console.error("Student login error:", err);
@@ -60,11 +94,11 @@ export default function StudentLoginPage() {
         err.code === "auth/user-not-found" ||
         err.code === "auth/wrong-password"
       ) {
-        setCredError("Invalid email or password.");
+        setCredError("Invalid mobile number or password.");
       } else if (err.code === "auth/too-many-requests") {
         setCredError("Too many failed attempts. Please try again later.");
       } else {
-        setCredError("Failed to sign in. Please check your credentials.");
+        setCredError(err.message || "Failed to sign in. Please check your credentials.");
       }
     } finally {
       setCredLoading(false);
@@ -114,7 +148,7 @@ export default function StudentLoginPage() {
           <div className="relative hidden min-h-[500px] flex-col justify-between overflow-hidden bg-[#072b82] p-8 text-white lg:flex">
             {/* Full cover background image fitting the blue square */}
             <Image
-              src="/images/bg/loginbg.avif"
+              src="/images/bg/loginbg.webp"
               alt="Science LMS Student Login Background"
               fill
               className="object-cover object-center"
@@ -163,7 +197,7 @@ export default function StudentLoginPage() {
                   : "text-ink/60 hover:text-ink"
               }`}
             >
-              Email & Password
+              Phone & Password
             </button>
             <button
               type="button"
@@ -181,7 +215,7 @@ export default function StudentLoginPage() {
             </button>
           </div>
 
-          {/* TAB 1: EMAIL & PASSWORD LOGIN */}
+          {/* TAB 1: PHONE NUMBER & PASSWORD LOGIN */}
           {activeTab === "credentials" && (
             <form onSubmit={handlePasswordLogin} className="mt-6 space-y-4">
               {credError && (
@@ -190,16 +224,16 @@ export default function StudentLoginPage() {
                 </div>
               )}
               <label className="block text-sm font-bold">
-                Student Email
+                Mobile Number
                 <div className="relative mt-2">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" size={18} />
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" size={18} />
                   <input
-                    type="email"
+                    type="tel"
                     required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={phoneInput}
+                    onChange={(e) => setPhoneInput(e.target.value)}
                     className="pastel-input pl-11"
-                    placeholder="stu0001@student.kalaharascience.lk"
+                    placeholder="0771234567"
                   />
                 </div>
               </label>

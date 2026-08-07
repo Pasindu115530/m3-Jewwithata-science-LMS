@@ -297,6 +297,11 @@ exports.registerStudent = (0, https_1.onCall)(async (request) => {
             throw new https_1.HttpsError("invalid-argument", "Missing required registration fields.");
         }
         const normalizedPhone = normalizePhoneLocal(data.mobileNumber);
+        // Ensure phone number is not used by any existing student account
+        const existingPhoneSnap = await db.collection("users").where("mobileNumber", "==", normalizedPhone).get();
+        if (!existingPhoneSnap.empty) {
+            throw new https_1.HttpsError("already-exists", "This mobile number is already registered to an existing student account. One mobile number cannot be used twice.");
+        }
         const sessionRef = db.collection("registrationSessions").doc(normalizedPhone);
         const sessionDoc = await sessionRef.get();
         if (!sessionDoc.exists || !sessionDoc.data()?.verified) {
@@ -320,18 +325,22 @@ exports.registerStudent = (0, https_1.onCall)(async (request) => {
                 throw new https_1.HttpsError("invalid-argument", "Activation code mismatch.");
             }
         }
-        const counterRef = db.collection("counters").doc("studentId");
+        // Extract 2-digit grade code (e.g. Grade 9 -> "09", Grade 11 -> "11", A/L -> "AL")
+        const gradeDigits = data.grade.replace(/\D/g, "");
+        const gradeCode = gradeDigits ? gradeDigits.padStart(2, "0") : (data.grade.toLowerCase().includes("a/l") ? "AL" : "00");
+        const counterRef = db.collection("counters").doc(`studentId_${gradeCode}`);
         const nextSeq = await db.runTransaction(async (transaction) => {
             const counterDoc = await transaction.get(counterRef);
-            let seq = 1001;
+            let seq = 1;
             if (counterDoc.exists) {
-                seq = (counterDoc.data()?.lastNumber || 1000) + 1;
+                seq = (counterDoc.data()?.lastNumber || 0) + 1;
             }
             transaction.set(counterRef, { lastNumber: seq }, { merge: true });
             return seq;
         });
-        const studentId = `STU${nextSeq}`;
-        const generatedEmail = `${studentId.toLowerCase()}@student.kalaharascience.lk`;
+        const paddedNumber = String(nextSeq).padStart(4, "0");
+        const studentId = `KL-${gradeCode}-${paddedNumber}`;
+        const generatedEmail = `${studentId.toLowerCase().replace(/-/g, "")}@student.kalaharascience.lk`;
         const userRecord = await auth.createUser({
             email: generatedEmail,
             password: data.password,
