@@ -379,7 +379,7 @@ function GradeCard({ item }: { item: GradeScheduleItem }) {
           {/* Enrol & Action Buttons */}
           <div className="pt-1 flex flex-wrap items-center gap-2.5">
             <Link
-              href="/contact"
+              href="/student/register"
               className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-black transition-all hover:scale-105 ${isLight
                   ? "bg-[#002583] text-white shadow-md hover:bg-navy-900"
                   : "bg-white text-slate-950 shadow-md hover:bg-slate-100"
