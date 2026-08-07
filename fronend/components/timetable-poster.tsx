@@ -278,7 +278,7 @@ export const gradeSchedules: GradeScheduleItem[] = [
 // ── SUB-COMPONENT: GRADE CARD ────────────────────────────────────────────────
 
 function GradeCard({ item }: { item: GradeScheduleItem }) {
-  const styles = THEME_STYLES[item.theme] || THEME_STYLES.cyan;
+  const styles = THEME_STYLES[item.theme] || THEME_STYLES.blue;
   const isLight = styles.isLight;
 
   return (

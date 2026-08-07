@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.scheduledAttendanceProcessor = exports.processAttendance = exports.deleteZoomMeeting = exports.createZoomMeeting = exports.enrollStudentInCourse = exports.verifyStudentOtp = exports.sendStudentOtp = void 0;
+exports.scheduledAttendanceProcessor = exports.processAttendance = exports.deleteZoomMeeting = exports.createZoomMeeting = exports.enrollStudentInCourse = exports.batchCreatePhysicalStudents = exports.createPhysicalStudent = exports.getServiceConfig = exports.registerStudent = exports.verifyActivationCode = exports.verifyPhysicalStudent = exports.verifyRegistrationOtp = exports.sendRegistrationOtp = exports.verifyStudentOtp = exports.sendStudentOtp = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const app_1 = require("firebase-admin/app");
 const auth_1 = require("firebase-admin/auth");
@@ -129,6 +129,445 @@ exports.verifyStudentOtp = (0, https_1.onCall)(async (request) => {
         throw new https_1.HttpsError("internal", err.message || "Failed to verify OTP.");
     }
 });
+// ─── sendRegistrationOtp ──────────────────────────────────────────────────────
+exports.sendRegistrationOtp = (0, https_1.onCall)(async (request) => {
+    try {
+        const { phone } = request.data;
+        if (!phone) {
+            throw new https_1.HttpsError("invalid-argument", "Phone number is required.");
+        }
+        const normalizedPhone = normalizePhoneLocal(phone);
+        const usersRef = db.collection("users");
+        let snap = await usersRef.where("mobileNumber", "==", normalizedPhone).get();
+        if (snap.empty) {
+            snap = await usersRef.where("whatsappNumber", "==", normalizedPhone).get();
+        }
+        if (!snap.empty) {
+            throw new https_1.HttpsError("already-exists", "This mobile number is already registered. Please sign in instead.");
+        }
+        const sessionRef = db.collection("registrationSessions").doc(normalizedPhone);
+        const sessionDoc = await sessionRef.get();
+        if (sessionDoc.exists) {
+            const data = sessionDoc.data();
+            if (data.sentCount && data.sentCount >= 5 && Date.now() - (data.lastSentAt || 0) < 60 * 60 * 1000) {
+                throw new https_1.HttpsError("resource-exhausted", "Too many OTP requests for this phone number. Please wait 1 hour.");
+            }
+        }
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = Date.now() + 5 * 60 * 1000;
+        const existingSentCount = sessionDoc.exists ? (sessionDoc.data()?.sentCount || 0) : 0;
+        await sessionRef.set({
+            otp,
+            phone: normalizedPhone,
+            expiresAt,
+            verified: false,
+            sentCount: existingSentCount + 1,
+            lastSentAt: Date.now(),
+            createdAt: firestore_1.FieldValue.serverTimestamp(),
+        });
+        const message = `Your Science LMS Registration OTP is: ${otp}. Valid for 5 minutes.`;
+        await sendSmsTextLk(normalizedPhone, message);
+        return { success: true, message: "OTP sent to " + normalizedPhone };
+    }
+    catch (err) {
+        console.error("Error in sendRegistrationOtp:", err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        throw new https_1.HttpsError("internal", err.message || "Failed to send registration OTP.");
+    }
+});
+// ─── verifyRegistrationOtp ────────────────────────────────────────────────────
+exports.verifyRegistrationOtp = (0, https_1.onCall)(async (request) => {
+    try {
+        const { phone, otp } = request.data;
+        if (!phone || !otp) {
+            throw new https_1.HttpsError("invalid-argument", "Phone number and OTP code are required.");
+        }
+        const normalizedPhone = normalizePhoneLocal(phone);
+        const sessionRef = db.collection("registrationSessions").doc(normalizedPhone);
+        const sessionDoc = await sessionRef.get();
+        if (!sessionDoc.exists) {
+            throw new https_1.HttpsError("not-found", "No OTP request found for this phone number. Please request a code.");
+        }
+        const sessionData = sessionDoc.data();
+        if (Date.now() > sessionData.expiresAt) {
+            throw new https_1.HttpsError("deadline-exceeded", "The OTP code has expired. Please request a new one.");
+        }
+        if (sessionData.otp !== otp.trim()) {
+            throw new https_1.HttpsError("invalid-argument", "Invalid OTP code. Please check and try again.");
+        }
+        await sessionRef.update({
+            verified: true,
+            verifiedAt: new Date().toISOString(),
+        });
+        return { success: true, sessionPhone: normalizedPhone, message: "Phone number verified successfully!" };
+    }
+    catch (err) {
+        console.error("Error in verifyRegistrationOtp:", err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        throw new https_1.HttpsError("internal", err.message || "Failed to verify registration OTP.");
+    }
+});
+// ─── verifyPhysicalStudent ────────────────────────────────────────────────────
+exports.verifyPhysicalStudent = (0, https_1.onCall)(async (request) => {
+    try {
+        const { phone, smartCardLast4 } = request.data;
+        if (!phone || !smartCardLast4) {
+            throw new https_1.HttpsError("invalid-argument", "Phone number and smart card last 4 digits are required.");
+        }
+        const normalizedPhone = normalizePhoneLocal(phone);
+        const cleanLast4 = smartCardLast4.trim();
+        const physRef = db.collection("physicalStudents");
+        const snap = await physRef
+            .where("mobileNumber", "==", normalizedPhone)
+            .where("smartCardLast4", "==", cleanLast4)
+            .get();
+        if (snap.empty) {
+            throw new https_1.HttpsError("not-found", "No physical student record matches this phone number and Smart Card last 4 digits.");
+        }
+        const physDoc = snap.docs[0];
+        const physData = physDoc.data();
+        if (physData.physicalAccountLinked) {
+            throw new https_1.HttpsError("already-exists", "This physical student Smart Card is already linked to a registered account.");
+        }
+        return {
+            success: true,
+            physicalStudentId: physDoc.id,
+            studentName: physData.studentName,
+            grade: physData.grade,
+            batch: physData.batch || "",
+            message: "Smart Card verified! Please enter your Activation Code.",
+        };
+    }
+    catch (err) {
+        console.error("Error in verifyPhysicalStudent:", err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        throw new https_1.HttpsError("internal", err.message || "Failed to verify physical student record.");
+    }
+});
+// ─── verifyActivationCode ─────────────────────────────────────────────────────
+exports.verifyActivationCode = (0, https_1.onCall)(async (request) => {
+    try {
+        const { physicalStudentId, activationCode } = request.data;
+        if (!physicalStudentId || !activationCode) {
+            throw new https_1.HttpsError("invalid-argument", "Physical Student ID and Activation Code are required.");
+        }
+        const physRef = db.collection("physicalStudents").doc(physicalStudentId);
+        const physDoc = await physRef.get();
+        if (!physDoc.exists) {
+            throw new https_1.HttpsError("not-found", "Physical student record not found.");
+        }
+        const physData = physDoc.data();
+        if (physData.physicalAccountLinked) {
+            throw new https_1.HttpsError("already-exists", "This physical student card has already been activated.");
+        }
+        if (physData.activationCode.trim() !== activationCode.trim()) {
+            throw new https_1.HttpsError("invalid-argument", "Invalid Activation Code. Please check your physical card sleeve.");
+        }
+        return { success: true, message: "Physical Student Verification Complete! ✓" };
+    }
+    catch (err) {
+        console.error("Error in verifyActivationCode:", err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        throw new https_1.HttpsError("internal", err.message || "Failed to verify activation code.");
+    }
+});
+// ─── registerStudent ──────────────────────────────────────────────────────────
+exports.registerStudent = (0, https_1.onCall)(async (request) => {
+    try {
+        const data = request.data;
+        if (!data.studentName || !data.mobileNumber || !data.password || !data.grade) {
+            throw new https_1.HttpsError("invalid-argument", "Missing required registration fields.");
+        }
+        const normalizedPhone = normalizePhoneLocal(data.mobileNumber);
+        const sessionRef = db.collection("registrationSessions").doc(normalizedPhone);
+        const sessionDoc = await sessionRef.get();
+        if (!sessionDoc.exists || !sessionDoc.data()?.verified) {
+            throw new https_1.HttpsError("failed-precondition", "Mobile number has not been OTP verified. Please verify phone number first.");
+        }
+        let physicalStudentData = null;
+        if (data.studentType === "physical_online") {
+            if (!data.physicalStudentId || !data.activationCode) {
+                throw new https_1.HttpsError("invalid-argument", "Physical student verification parameters missing.");
+            }
+            const physRef = db.collection("physicalStudents").doc(data.physicalStudentId);
+            const physDoc = await physRef.get();
+            if (!physDoc.exists) {
+                throw new https_1.HttpsError("not-found", "Physical student record not found.");
+            }
+            physicalStudentData = physDoc.data();
+            if (physicalStudentData.physicalAccountLinked) {
+                throw new https_1.HttpsError("already-exists", "This physical student card is already linked to another account.");
+            }
+            if (physicalStudentData.activationCode.trim() !== data.activationCode.trim()) {
+                throw new https_1.HttpsError("invalid-argument", "Activation code mismatch.");
+            }
+        }
+        const counterRef = db.collection("counters").doc("studentId");
+        const nextSeq = await db.runTransaction(async (transaction) => {
+            const counterDoc = await transaction.get(counterRef);
+            let seq = 1001;
+            if (counterDoc.exists) {
+                seq = (counterDoc.data()?.lastNumber || 1000) + 1;
+            }
+            transaction.set(counterRef, { lastNumber: seq }, { merge: true });
+            return seq;
+        });
+        const studentId = `STU${nextSeq}`;
+        const generatedEmail = `${studentId.toLowerCase()}@student.kalaharascience.lk`;
+        const userRecord = await auth.createUser({
+            email: generatedEmail,
+            password: data.password,
+            displayName: data.studentName,
+        });
+        await auth.setCustomUserClaims(userRecord.uid, { role: "student" });
+        const nowIso = new Date().toISOString();
+        const userDocData = {
+            role: "student",
+            studentId,
+            studentName: data.studentName,
+            fullName: data.studentName,
+            parentName: data.parentName || "",
+            mobileNumber: normalizedPhone,
+            whatsappNumber: normalizePhoneLocal(data.whatsappNumber || data.mobileNumber),
+            gender: data.gender || "Male",
+            birthday: data.birthday || "",
+            grade: data.grade,
+            schoolName: data.schoolName || "",
+            classType: data.studentType === "physical_online" ? "Physical + Online" : "Online",
+            studentType: data.studentType,
+            isPhysicalStudent: data.studentType === "physical_online",
+            physicalStudentId: data.physicalStudentId || null,
+            hasOnlinePaperClassAccess: false,
+            addressLine1: data.addressLine1 || "",
+            addressLine2: data.addressLine2 || "",
+            city: data.city || "",
+            district: data.district || "",
+            email: generatedEmail,
+            status: "Active",
+            admissionDate: nowIso.split("T")[0],
+            selfRegistered: true,
+            enrolledClasses: [],
+            enrollments: {},
+            createdAt: firestore_1.FieldValue.serverTimestamp(),
+            updatedAt: firestore_1.FieldValue.serverTimestamp(),
+        };
+        await db.collection("users").doc(userRecord.uid).set(userDocData);
+        if (data.studentType === "physical_online" && data.physicalStudentId) {
+            await db.collection("physicalStudents").doc(data.physicalStudentId).update({
+                physicalAccountLinked: true,
+                linkedUserId: userRecord.uid,
+                linkedAt: nowIso,
+                activationStatus: "used",
+                updatedAt: firestore_1.FieldValue.serverTimestamp(),
+            });
+        }
+        await db.collection("studentServices").add({
+            studentId: userRecord.uid,
+            serviceType: data.studentType === "physical_online" ? "PHYSICAL_CLASS" : "ONLINE_CLASS",
+            grade: data.grade,
+            status: "active",
+            fee: 0,
+            paymentStatus: "paid",
+            createdAt: firestore_1.FieldValue.serverTimestamp(),
+        });
+        if (data.wantsPaperClass) {
+            const serviceCfgSnap = await db.collection("serviceConfig").doc(data.grade).get();
+            const paperFee = serviceCfgSnap.exists ? (serviceCfgSnap.data()?.paperClassFee || 2500) : 2500;
+            await db.collection("studentServices").add({
+                studentId: userRecord.uid,
+                serviceType: "ONLINE_PAPER_CLASS",
+                grade: data.grade,
+                status: "pending",
+                fee: paperFee,
+                paymentStatus: "pending",
+                createdAt: firestore_1.FieldValue.serverTimestamp(),
+            });
+        }
+        await db.collection("auditLog").add({
+            action: "STUDENT_SELF_REGISTERED",
+            uid: userRecord.uid,
+            studentId,
+            studentType: data.studentType,
+            phone: normalizedPhone,
+            timestamp: firestore_1.FieldValue.serverTimestamp(),
+        });
+        await sessionRef.delete();
+        return {
+            success: true,
+            studentId,
+            email: generatedEmail,
+            uid: userRecord.uid,
+            message: "Registration successful! You can now log in.",
+        };
+    }
+    catch (err) {
+        console.error("Error in registerStudent:", err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        throw new https_1.HttpsError("internal", err.message || "Registration failed.");
+    }
+});
+// ─── getServiceConfig ─────────────────────────────────────────────────────────
+exports.getServiceConfig = (0, https_1.onCall)(async (request) => {
+    try {
+        const { grade } = request.data;
+        const defaultFees = {
+            "Grade 6": 1500,
+            "Grade 7": 1500,
+            "Grade 8": 1800,
+            "Grade 9": 2000,
+            "Grade 10": 2200,
+            "Grade 11": 2500,
+            "A/L Science": 3000,
+        };
+        let fee = 2500;
+        if (grade && defaultFees[grade]) {
+            fee = defaultFees[grade];
+        }
+        if (grade) {
+            const cfgDoc = await db.collection("serviceConfig").doc(grade).get();
+            if (cfgDoc.exists && cfgDoc.data()?.paperClassFee) {
+                fee = cfgDoc.data().paperClassFee;
+            }
+        }
+        return {
+            success: true,
+            serviceName: "Online Paper Class Subscription",
+            grade: grade || "all",
+            fee,
+            currency: "LKR",
+        };
+    }
+    catch (err) {
+        console.error("Error in getServiceConfig:", err);
+        throw new https_1.HttpsError("internal", "Failed to retrieve service configuration.");
+    }
+});
+// ─── createPhysicalStudent (Admin) ───────────────────────────────────────────
+exports.createPhysicalStudent = (0, https_1.onCall)(async (request) => {
+    try {
+        if (!request.auth)
+            throw new https_1.HttpsError("unauthenticated", "Authentication required.");
+        const role = request.auth.token.role;
+        if (role !== "teacher" && role !== "admin") {
+            throw new https_1.HttpsError("permission-denied", "Admin or teacher permission required.");
+        }
+        const { studentName, mobileNumber, smartCardNumber, grade, batch } = request.data;
+        if (!studentName || !mobileNumber || !smartCardNumber || !grade) {
+            throw new https_1.HttpsError("invalid-argument", "Missing required physical student fields.");
+        }
+        const normalizedPhone = normalizePhoneLocal(mobileNumber);
+        const cleanCard = smartCardNumber.trim();
+        const last4 = cleanCard.slice(-4);
+        const activationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const existingSnap = await db.collection("physicalStudents")
+            .where("mobileNumber", "==", normalizedPhone)
+            .where("smartCardLast4", "==", last4)
+            .get();
+        if (!existingSnap.empty) {
+            throw new https_1.HttpsError("already-exists", "A physical student record with this phone number and card ending already exists.");
+        }
+        const ref = await db.collection("physicalStudents").add({
+            studentName,
+            mobileNumber: normalizedPhone,
+            smartCardNumber: cleanCard,
+            smartCardLast4: last4,
+            activationCode,
+            grade,
+            batch: batch || "",
+            status: "active",
+            activationStatus: "unused",
+            physicalAccountLinked: false,
+            linkedUserId: null,
+            linkedAt: null,
+            createdBy: request.auth.uid,
+            createdAt: firestore_1.FieldValue.serverTimestamp(),
+            updatedAt: firestore_1.FieldValue.serverTimestamp(),
+        });
+        return {
+            success: true,
+            id: ref.id,
+            smartCardLast4: last4,
+            activationCode,
+            message: "Physical student created successfully!",
+        };
+    }
+    catch (err) {
+        console.error("Error in createPhysicalStudent:", err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        throw new https_1.HttpsError("internal", err.message || "Failed to create physical student.");
+    }
+});
+// ─── batchCreatePhysicalStudents (Admin CSV Import) ─────────────────────────
+exports.batchCreatePhysicalStudents = (0, https_1.onCall)(async (request) => {
+    try {
+        if (!request.auth)
+            throw new https_1.HttpsError("unauthenticated", "Authentication required.");
+        const role = request.auth.token.role;
+        if (role !== "teacher" && role !== "admin") {
+            throw new https_1.HttpsError("permission-denied", "Admin or teacher permission required.");
+        }
+        const { records } = request.data;
+        if (!records || !Array.isArray(records) || records.length === 0) {
+            throw new https_1.HttpsError("invalid-argument", "Records array is required.");
+        }
+        let createdCount = 0;
+        let skippedCount = 0;
+        for (const rec of records) {
+            if (!rec.studentName || !rec.mobileNumber || !rec.smartCardNumber || !rec.grade) {
+                skippedCount++;
+                continue;
+            }
+            const normalizedPhone = normalizePhoneLocal(rec.mobileNumber);
+            const cleanCard = rec.smartCardNumber.trim();
+            const last4 = cleanCard.slice(-4);
+            const code = rec.activationCode?.trim() || Math.floor(100000 + Math.random() * 900000).toString();
+            const existingSnap = await db.collection("physicalStudents")
+                .where("mobileNumber", "==", normalizedPhone)
+                .where("smartCardLast4", "==", last4)
+                .get();
+            if (!existingSnap.empty) {
+                skippedCount++;
+                continue;
+            }
+            await db.collection("physicalStudents").add({
+                studentName: rec.studentName,
+                mobileNumber: normalizedPhone,
+                smartCardNumber: cleanCard,
+                smartCardLast4: last4,
+                activationCode: code,
+                grade: rec.grade,
+                batch: rec.batch || "",
+                status: "active",
+                activationStatus: "unused",
+                physicalAccountLinked: false,
+                linkedUserId: null,
+                linkedAt: null,
+                createdBy: request.auth.uid,
+                createdAt: firestore_1.FieldValue.serverTimestamp(),
+                updatedAt: firestore_1.FieldValue.serverTimestamp(),
+            });
+            createdCount++;
+        }
+        return {
+            success: true,
+            createdCount,
+            skippedCount,
+            message: `Batch import complete. Created ${createdCount} physical records. (${skippedCount} skipped/duplicates)`,
+        };
+    }
+    catch (err) {
+        console.error("Error in batchCreatePhysicalStudents:", err);
+        if (err instanceof https_1.HttpsError)
+            throw err;
+        throw new https_1.HttpsError("internal", err.message || "Failed to process batch physical import.");
+    }
+});
 // ─── enrollStudentInCourse ───────────────────────────────────────────────────
 exports.enrollStudentInCourse = (0, https_1.onCall)(async (request) => {
     try {
@@ -140,8 +579,6 @@ exports.enrollStudentInCourse = (0, https_1.onCall)(async (request) => {
             throw new https_1.HttpsError("invalid-argument", "Course ID is required.");
         }
         const uid = request.auth.uid;
-        // Payment check removed: Any student can enroll in a course!
-        // Content inside the course remains locked until monthly payment is completed.
         const userRef = db.collection("users").doc(uid);
         const userDoc = await userRef.get();
         const enrolledClasses = userDoc.exists ? userDoc.data()?.enrolledClasses || [] : [];
@@ -184,45 +621,24 @@ exports.createZoomMeeting = (0, https_1.onCall)(async (request) => {
         if (role !== "teacher" && role !== "admin") {
             throw new https_1.HttpsError("permission-denied", "Only teachers or admins can create Zoom meetings.");
         }
-        const { topic, courseId, courseTitle, grade, startTime, // ISO string
-        durationMinutes, description } = request.data;
+        const { topic, courseId, courseTitle, grade, startTime, durationMinutes, description } = request.data;
         if (!topic || !courseId || !startTime || !durationMinutes) {
-            throw new https_1.HttpsError("invalid-argument", "Missing required fields (topic, courseId, startTime, durationMinutes).");
+            throw new https_1.HttpsError("invalid-argument", "Missing required fields.");
         }
-        // 1. Create meeting in Zoom API
         let zoomRes = null;
         try {
             zoomRes = await (0, zoomService_1.createZoomMeeting)({
                 topic: `${grade} - ${topic}`,
                 startTime,
-                durationMinutes: Number(durationMinutes),
-                agenda: description || `${courseTitle} Live Class`,
+                durationMinutes,
+                agenda: description || `Science Class - ${courseTitle}`,
             });
         }
-        catch (zoomErr) {
-            console.warn("Zoom API creation fallback (mocking if Zoom API credentials not configured):", zoomErr.message);
-            // Fallback for demo/dev if credentials not filled yet
-            const mockId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-            zoomRes = {
-                meetingId: mockId,
-                meetingUUID: `mock_uuid_${mockId}`,
-                joinUrl: `https://zoom.us/j/${mockId}?pwd=mockpasscode`,
-                startUrl: `https://zoom.us/s/${mockId}`,
-                passcode: "Science2026",
-                topic: `${grade} - ${topic}`,
-                startTime,
-                duration: Number(durationMinutes),
-            };
+        catch (zErr) {
+            console.error("Zoom API error:", zErr);
+            throw new https_1.HttpsError("internal", "Zoom API Error: " + (zErr.message || "Failed to create Zoom meeting."));
         }
-        // 2. Save meeting document in Firestore `liveClasses` collection
-        const docRef = db.collection("liveClasses").doc();
-        const liveClassData = {
-            classId: docRef.id,
-            zoomMeetingId: zoomRes.meetingId,
-            meetingUUID: zoomRes.meetingUUID,
-            joinUrl: zoomRes.joinUrl,
-            startUrl: zoomRes.startUrl,
-            passcode: zoomRes.passcode,
+        const classRef = await db.collection("liveClasses").add({
             topic,
             courseId,
             courseTitle,
@@ -230,20 +646,24 @@ exports.createZoomMeeting = (0, https_1.onCall)(async (request) => {
             startTime,
             durationMinutes: Number(durationMinutes),
             description: description || "",
-            status: "scheduled", // scheduled | active | completed
-            teacherId: request.auth.uid,
+            zoomMeetingId: String(zoomRes.id),
+            joinUrl: zoomRes.join_url,
+            startUrl: zoomRes.start_url || "",
+            password: zoomRes.password || "",
             attendanceProcessed: false,
             createdAt: firestore_1.FieldValue.serverTimestamp(),
-        };
-        await docRef.set(liveClassData);
+            updatedAt: firestore_1.FieldValue.serverTimestamp(),
+        });
         return {
             success: true,
-            classId: docRef.id,
-            meeting: liveClassData,
+            classId: classRef.id,
+            zoomMeetingId: String(zoomRes.id),
+            joinUrl: zoomRes.join_url,
+            password: zoomRes.password,
         };
     }
     catch (err) {
-        console.error("Error in createZoomMeeting:", err);
+        console.error("Error in createZoomMeeting callable:", err);
         if (err instanceof https_1.HttpsError)
             throw err;
         throw new https_1.HttpsError("internal", err.message || "Failed to create Zoom meeting.");
@@ -257,151 +677,128 @@ exports.deleteZoomMeeting = (0, https_1.onCall)(async (request) => {
         }
         const role = request.auth.token.role;
         if (role !== "teacher" && role !== "admin") {
-            throw new https_1.HttpsError("permission-denied", "Only teachers or admins can delete meetings.");
+            throw new https_1.HttpsError("permission-denied", "Only teachers or admins can delete Zoom meetings.");
         }
-        const { classId, zoomMeetingId } = request.data;
+        const { classId } = request.data;
         if (!classId) {
             throw new https_1.HttpsError("invalid-argument", "classId is required.");
         }
-        // Delete from Zoom API if meeting ID present
-        if (zoomMeetingId) {
+        const docRef = db.collection("liveClasses").doc(classId);
+        const docSnap = await docRef.get();
+        if (!docSnap.exists) {
+            throw new https_1.HttpsError("not-found", "Live class doc not found.");
+        }
+        const data = docSnap.data();
+        if (data.zoomMeetingId) {
             try {
-                await (0, zoomService_1.deleteZoomMeeting)(zoomMeetingId);
+                await (0, zoomService_1.deleteZoomMeeting)(data.zoomMeetingId);
             }
-            catch (e) {
-                console.warn("Could not delete from Zoom API:", e);
+            catch (zErr) {
+                console.warn("Zoom meeting delete failed or meeting already deleted:", zErr);
             }
         }
-        // Delete from Firestore
-        await db.collection("liveClasses").doc(classId).delete();
-        return { success: true, message: "Meeting deleted successfully." };
+        await docRef.delete();
+        return { success: true, message: "Class deleted successfully." };
     }
     catch (err) {
-        console.error("Error in deleteZoomMeeting:", err);
+        console.error("Error in deleteZoomMeeting callable:", err);
         if (err instanceof https_1.HttpsError)
             throw err;
-        throw new https_1.HttpsError("internal", err.message || "Failed to delete meeting.");
+        throw new https_1.HttpsError("internal", err.message || "Failed to delete Zoom meeting.");
     }
 });
-// ─── processAttendance Function Logic ─────────────────────────────────────────
-async function runAttendanceProcessingForClass(classDoc) {
-    const data = classDoc.data();
-    const classId = classDoc.id;
-    const courseId = data.courseId;
-    const meetingUUID = data.meetingUUID;
-    const scheduledStart = new Date(data.startTime).getTime();
-    const durationSec = (data.durationMinutes || 60) * 60;
-    console.log(`Processing attendance for class ${classId} (${data.topic})...`);
-    // 1. Fetch enrolled students for this course from Firestore `users`
-    const enrolledSnap = await db.collection("users")
-        .where("role", "==", "student")
-        .where("enrolledClasses", "array-contains", courseId)
-        .get();
-    const enrolledStudents = enrolledSnap.docs.map((d) => ({
-        id: d.id,
-        studentId: d.data().studentId || "",
-        fullName: d.data().fullName || "",
-        email: d.data().email || "",
-    }));
-    // 2. Fetch past meeting participants from Zoom API
-    let zoomParticipants = [];
+// Helper function to process attendance for a class
+async function runAttendanceProcessingForClass(classDocSnap) {
+    const classId = classDocSnap.id;
+    const data = classDocSnap.data();
+    const zoomMeetingId = data.zoomMeetingId;
+    const grade = data.grade;
+    if (!zoomMeetingId) {
+        console.log(`Class ${classId} has no zoomMeetingId, marking processed.`);
+        await classDocSnap.ref.update({ attendanceProcessed: true, attendanceProcessedAt: firestore_1.FieldValue.serverTimestamp() });
+        return;
+    }
+    let participants = [];
     try {
-        if (meetingUUID && !meetingUUID.startsWith("mock_")) {
-            zoomParticipants = await (0, zoomService_1.getPastMeetingParticipants)(meetingUUID);
-        }
+        participants = await (0, zoomService_1.getPastMeetingParticipants)(zoomMeetingId);
     }
     catch (err) {
-        console.error(`Failed to fetch participants for meeting ${meetingUUID}:`, err);
+        console.error(`Failed to fetch participants for Zoom meeting ${zoomMeetingId}:`, err);
     }
-    const attendanceBatch = db.batch();
-    const attendanceCollKey = `${courseId}_${classId}`;
-    let presentCount = 0;
-    let lateCount = 0;
-    let absentCount = 0;
-    // 3. Match participants & calculate attendance for each enrolled student
-    for (const student of enrolledStudents) {
-        // Find matching participant entries by studentId, fullName, or email
-        const studentMatches = zoomParticipants.filter((p) => {
-            const nameUpper = (p.name || "").toUpperCase();
-            const emailUpper = (p.user_email || "").toUpperCase();
-            const idMatch = student.studentId && nameUpper.includes(student.studentId.toUpperCase());
-            const nameMatch = student.fullName && nameUpper.includes(student.fullName.toUpperCase());
-            const emailMatch = student.email && emailUpper === student.email.toUpperCase();
-            return idMatch || nameMatch || emailMatch;
-        });
-        let totalDurationSeconds = 0;
-        let earliestJoinTime = "";
-        let latestLeaveTime = "";
-        for (const match of studentMatches) {
-            totalDurationSeconds += match.duration || 0;
-            if (!earliestJoinTime || (match.join_time && match.join_time < earliestJoinTime)) {
-                earliestJoinTime = match.join_time;
-            }
-            if (!latestLeaveTime || (match.leave_time && match.leave_time > latestLeaveTime)) {
-                latestLeaveTime = match.leave_time;
+    const durationMap = new Map();
+    const joinTimeMap = new Map();
+    const leaveTimeMap = new Map();
+    for (const p of participants) {
+        const rawName = p.name || p.user_name || "";
+        const dur = p.duration || 0;
+        const key = rawName.trim().toLowerCase();
+        if (!key)
+            continue;
+        durationMap.set(key, (durationMap.get(key) || 0) + dur);
+        if (!joinTimeMap.has(key) && p.join_time)
+            joinTimeMap.set(key, p.join_time);
+        leaveTimeMap.set(key, p.leave_time || new Date().toISOString());
+    }
+    let studentsQuery = db.collection("users").where("role", "==", "student");
+    if (grade) {
+        studentsQuery = studentsQuery.where("grade", "==", grade);
+    }
+    const studentsSnap = await studentsQuery.get();
+    const totalMeetingDuration = data.durationMinutes || 60;
+    const nowIso = new Date().toISOString();
+    const batch = db.batch();
+    for (const studentDoc of studentsSnap.docs) {
+        const sData = studentDoc.data();
+        const sId = sData.studentId || "";
+        const sName = (sData.studentName || sData.fullName || "").trim().toLowerCase();
+        let matchedDuration = 0;
+        let joinedAt = "";
+        let leftAt = "";
+        for (const [key, dur] of durationMap.entries()) {
+            if ((sId && key.includes(sId.toLowerCase())) ||
+                (sName && key.includes(sName))) {
+                matchedDuration += dur;
+                if (!joinedAt)
+                    joinedAt = joinTimeMap.get(key) || "";
+                leftAt = leaveTimeMap.get(key) || "";
             }
         }
-        const attendancePct = Math.min(100, Math.round((totalDurationSeconds / durationSec) * 100));
-        // Determine status:
-        // Present: Attended at least 80% duration
-        // Late: Joined more than 10 mins after scheduled start time (and attended at least 40%)
-        // Absent: Less than minimum duration or never joined
+        const durationMinutes = Math.round(matchedDuration / 60);
         let status = "absent";
-        if (studentMatches.length > 0) {
-            const joinTimestamp = earliestJoinTime ? new Date(earliestJoinTime).getTime() : scheduledStart;
-            const isLate = joinTimestamp - scheduledStart > 10 * 60 * 1000;
-            if (attendancePct >= 80 && !isLate) {
-                status = "present";
-                presentCount++;
-            }
-            else if (attendancePct >= 40 || isLate) {
-                status = "late";
-                lateCount++;
-            }
-            else {
-                status = "absent";
-                absentCount++;
-            }
+        if (durationMinutes >= Math.round(totalMeetingDuration * 0.5)) {
+            status = "present";
         }
-        else {
-            status = "absent";
-            absentCount++;
+        else if (durationMinutes > 0) {
+            status = "late";
         }
-        const attRef = db.collection("attendance").doc(attendanceCollKey).collection("students").doc(student.id);
-        attendanceBatch.set(attRef, {
-            studentId: student.id,
-            customStudentId: student.studentId,
-            studentName: student.fullName,
-            email: student.email,
+        const attRef = db.collection("attendance").doc(classId).collection("students").doc(studentDoc.id);
+        batch.set(attRef, {
+            studentUid: studentDoc.id,
+            studentId: sData.studentId || "",
+            studentName: sData.studentName || sData.fullName || "Unknown",
             status,
-            joinTime: earliestJoinTime || null,
-            leaveTime: latestLeaveTime || null,
-            durationSeconds: totalDurationSeconds,
-            attendancePercentage: attendancePct,
-            updatedAt: firestore_1.FieldValue.serverTimestamp(),
-        });
+            durationMinutes,
+            joinedAt: joinedAt || null,
+            leftAt: leftAt || null,
+            processedAt: nowIso,
+        }, { merge: true });
     }
-    // Commit attendance records
-    await attendanceBatch.commit();
-    // Mark liveClass doc completed
-    await db.collection("liveClasses").doc(classId).update({
-        status: "completed",
+    await batch.commit();
+    await classDocSnap.ref.update({
         attendanceProcessed: true,
-        stats: {
-            totalEnrolled: enrolledStudents.length,
-            present: presentCount,
-            late: lateCount,
-            absent: absentCount,
-        },
-        updatedAt: firestore_1.FieldValue.serverTimestamp(),
+        attendanceProcessedAt: firestore_1.FieldValue.serverTimestamp(),
     });
-    console.log(`Attendance processing finished for ${classId}: ${presentCount} Present, ${lateCount} Late, ${absentCount} Absent.`);
+    console.log(`Processed attendance for class ${classId}: ${studentsSnap.docs.length} students records written.`);
 }
-// ─── Manual processAttendance Callable Function ──────────────────────────────
+// ─── Manual Attendance Processing Callable Cloud Function ────────────────────
 exports.processAttendance = (0, https_1.onCall)(async (request) => {
     try {
         if (!request.auth) {
             throw new https_1.HttpsError("unauthenticated", "Authentication required.");
+        }
+        const role = request.auth.token.role;
+        if (role !== "teacher" && role !== "admin") {
+            throw new https_1.HttpsError("permission-denied", "Only teachers or admins can trigger attendance processing.");
         }
         const { classId } = request.data;
         if (!classId) {
@@ -422,10 +819,8 @@ exports.processAttendance = (0, https_1.onCall)(async (request) => {
     }
 });
 // ─── Scheduled Attendance Automation Cloud Function ──────────────────────────
-// Runs every 5 minutes automatically
 exports.scheduledAttendanceProcessor = (0, scheduler_1.onSchedule)("every 5 minutes", async () => {
     console.log("Running scheduled attendance processor...");
-    // Find classes where meeting ended and attendance has not been processed
     const snap = await db.collection("liveClasses")
         .where("attendanceProcessed", "==", false)
         .get();
@@ -434,7 +829,6 @@ exports.scheduledAttendanceProcessor = (0, scheduler_1.onSchedule)("every 5 minu
         const startTimeMs = new Date(data.startTime).getTime();
         const durationMs = (data.durationMinutes || 60) * 60 * 1000;
         const endTimeMs = startTimeMs + durationMs;
-        // Process if meeting has ended
         if (Date.now() > endTimeMs) {
             try {
                 await runAttendanceProcessingForClass(docSnap);
