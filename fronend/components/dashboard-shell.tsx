@@ -20,7 +20,7 @@ const iconMap: Record<string, ReactNode> = {
   "Live Classes": <Video size={19}/>, "Zoom Links": <Video size={19}/>, Assignments: <CheckSquare size={19}/>, Payments: <CreditCard size={19}/>,
   "Payment History": <WalletCards size={19}/>, Attendance: <ClipboardCheck size={19}/>, Notifications: <Bell size={19}/>,
   Profile: <UserRound size={19}/>, Settings: <Settings size={19}/>, "Today’s Classes": <CalendarDays size={19}/>,
-  Students: <Users size={19}/>, "Payment Approvals": <WalletCards size={19}/>, Announcements: <Megaphone size={19}/>
+  Students: <Users size={19}/>, "Physical Cards": <CreditCard size={19}/>, "Payment Approvals": <WalletCards size={19}/>, Announcements: <Megaphone size={19}/>
 };
 
 export function DashboardShell({ role, active, children }: { role: "student" | "teacher"; active: string; children: ReactNode }) {

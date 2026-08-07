@@ -134,6 +134,20 @@ export function PublicHeader() {
           })}
         </nav>
 
+        {/* Register Student Capsule Button */}
+        <Link
+          href="/student/register"
+          className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-extrabold text-[#002583] transition duration-200 hover:-translate-y-0.5 hover:brightness-105 sm:px-5 sm:text-sm"
+          style={{
+            background: "linear-gradient(135deg, #FFB800 0%, #FFA000 100%)",
+            border: "1px solid rgba(255, 255, 255, 0.8)",
+            boxShadow: "0 4px 14px rgba(255, 184, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.6)",
+          }}
+        >
+          <span>Register Student</span>
+          <ArrowUpRight size={16} className="text-[#002583]" />
+        </Link>
+
         {/* Far Right: "Join Class ↗" Capsule Button */}
         <Link
           href="/classes"

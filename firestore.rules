@@ -104,5 +104,33 @@ service cloud.firestore {
       allow read: if isAdminOrTeacher();
       allow write: if false; // Cloud Functions only
     }
+
+    // ─── Physical Students ───────────────────────────────────────────────────
+    match /physicalStudents/{docId} {
+      allow read, write: if isAdminOrTeacher();
+    }
+
+    // ─── Registration Sessions ────────────────────────────────────────────────
+    match /registrationSessions/{phone} {
+      allow read, write: if false; // Cloud Functions only (Admin SDK)
+    }
+
+    // ─── Student Services ─────────────────────────────────────────────────────
+    match /studentServices/{docId} {
+      allow read: if isAdminOrTeacher() || (isStudent() && resource.data.studentId == request.auth.uid);
+      allow write: if false; // Cloud Functions only
+    }
+
+    // ─── Service Config (Grade-specific fees) ─────────────────────────────────
+    match /serviceConfig/{docId} {
+      allow read: if true; // Public read for fee display
+      allow write: if isAdminOrTeacher();
+    }
+
+    // ─── Audit Log ────────────────────────────────────────────────────────────
+    match /auditLog/{docId} {
+      allow read: if isAdminOrTeacher();
+      allow write: if false; // Cloud Functions only
+    }
   }
 }
