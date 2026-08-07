@@ -50,7 +50,7 @@ export const studentMenu = [
 ] as const;
 
 export const teacherMenu = [
-  ["Dashboard", "/teacher/dashboard"], ["Today’s Classes", "/teacher/classes"], ["Live Classes", "/teacher/zoom-links"], ["Tutes", "/teacher/tutes"], ["Recordings", "/teacher/recordings"], ["Students", "/teacher/students"],
+  ["Dashboard", "/teacher/dashboard"], ["Today’s Classes", "/teacher/classes"], ["Live Classes", "/teacher/zoom-links"], ["Tutes", "/teacher/tutes"], ["Recordings", "/teacher/recordings"], ["Students", "/teacher/students"], ["Physical Cards", "/teacher/physical-students"],
   ["Attendance", "/teacher/attendance"],
   ["Payment Approvals", "/teacher/payments"], ["Announcements", "/teacher/announcements"], ["Profile", "/teacher/profile"],
   ["Settings", "/teacher/settings"]

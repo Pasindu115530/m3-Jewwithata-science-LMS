@@ -186,13 +186,20 @@ export default function HomePage() {
 
           {/* Buttons */}
           <Link
-            href="/timetable"
-            className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:brightness-110"
+            href="/student/register"
+            className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:brightness-110 shadow-lg"
             style={{
               background: "linear-gradient(135deg, #FFB800 0%, #d69600 100%)",
               color: "#002583",
-              boxShadow: "0 4px 16px rgba(255,184,0,0.35)",
+              boxShadow: "0 4px 16px rgba(255,184,0,0.45)",
             }}
+          >
+            <Sparkles size={16} /> Register Student / ශිෂ්‍ය ලියාපදිංචිය
+          </Link>
+
+          <Link
+            href="/timetable"
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white/20"
           >
             <CalendarDays size={16} /> View Schedule
           </Link>

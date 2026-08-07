@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DashboardShell } from "@/components/dashboard-shell";
 import { 
   Users, 
   FileSpreadsheet, 
@@ -128,7 +129,8 @@ export default function PhysicalStudentsAdminPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+    <DashboardShell role="teacher" active="Physical Cards">
+    <div className="space-y-6 max-w-5xl mx-auto">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -337,5 +339,6 @@ Nimal Siri, 0719876543, SC-1002, Grade 11, Maharagama`}
       )}
 
     </div>
+    </DashboardShell>
   );
 }

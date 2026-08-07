@@ -351,7 +351,17 @@ export default function StudentLoginPage() {
                 </form>
               )}
 
-              <Link href="/" className="block text-center text-sm font-bold text-lavender-700 pt-2">
+              <div className="pt-4 border-t border-slate-200/60 text-center">
+                <p className="text-xs font-semibold text-slate-500 mb-2">New student? / නව ශිෂ්‍යයෙක්ද?</p>
+                <Link
+                  href="/student/register"
+                  className="inline-flex items-center justify-center gap-2 w-full py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-all"
+                >
+                  Register New Account / ලියාපදිංචි වන්න <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              <Link href="/" className="block text-center text-xs font-bold text-lavender-700 pt-3">
                 Return to public website
               </Link>
             </div>

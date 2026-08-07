@@ -254,10 +254,25 @@ export const verifyPhysicalStudent = onCall(async (request) => {
     const cleanLast4 = smartCardLast4.trim();
 
     const physRef = db.collection("physicalStudents");
-    const snap = await physRef
+    let snap = await physRef
       .where("mobileNumber", "==", normalizedPhone)
       .where("smartCardLast4", "==", cleanLast4)
       .get();
+
+    // Fallback check by phone number to support flexible card formats or legacy records
+    if (snap.empty) {
+      const phoneSnap = await physRef.where("mobileNumber", "==", normalizedPhone).get();
+      if (!phoneSnap.empty) {
+        const match = phoneSnap.docs.find((d) => {
+          const cardNum = String(d.data().smartCardNumber || "").trim();
+          const cardLast4 = String(d.data().smartCardLast4 || "").trim();
+          return cardLast4 === cleanLast4 || cardNum.endsWith(cleanLast4);
+        });
+        if (match) {
+          snap = { empty: false, docs: [match] } as any;
+        }
+      }
+    }
 
     if (snap.empty) {
       throw new HttpsError("not-found", "No physical student record matches this phone number and Smart Card last 4 digits.");
@@ -1007,5 +1022,115 @@ export const scheduledAttendanceProcessor = onSchedule("every 5 minutes", async 
         console.error(`Failed scheduled attendance processing for ${docSnap.id}:`, err);
       }
     }
+  }
+});
+
+// ─── assignFreePhysicalCard ──────────────────────────────────────────────────
+export const assignFreePhysicalCard = onCall(async (request) => {
+  try {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Authentication required.");
+    const role = request.auth.token.role;
+    if (role !== "teacher" && role !== "admin") {
+      throw new HttpsError("permission-denied", "Teacher or admin access required.");
+    }
+
+    const { studentUid, smartCardNumber } = request.data as { studentUid: string; smartCardNumber: string };
+    if (!studentUid || !smartCardNumber) {
+      throw new HttpsError("invalid-argument", "Student ID and Smart Card Number are required.");
+    }
+
+    const userRef = db.collection("users").doc(studentUid);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) throw new HttpsError("not-found", "Student profile not found.");
+
+    const cleanCard = smartCardNumber.trim();
+    const last4 = cleanCard.slice(-4);
+    const studentData = userDoc.data()!;
+
+    // Create or update physical record
+    const physSnap = await db.collection("physicalStudents")
+      .where("mobileNumber", "==", studentData.mobileNumber || "")
+      .get();
+
+    let physId = "";
+    if (!physSnap.empty) {
+      physId = physSnap.docs[0].id;
+      await db.collection("physicalStudents").doc(physId).update({
+        smartCardNumber: cleanCard,
+        smartCardLast4: last4,
+        isFreeAssigned: true,
+        physicalAccountLinked: true,
+        linkedUserId: studentUid,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    } else {
+      const activationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const newPhys = await db.collection("physicalStudents").add({
+        studentName: studentData.studentName || studentData.fullName || "Student",
+        mobileNumber: studentData.mobileNumber || "",
+        smartCardNumber: cleanCard,
+        smartCardLast4: last4,
+        activationCode,
+        grade: studentData.grade || "",
+        isFreeAssigned: true,
+        physicalAccountLinked: true,
+        linkedUserId: studentUid,
+        createdBy: request.auth.uid,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      physId = newPhys.id;
+    }
+
+    await userRef.update({
+      smartCardNumber: cleanCard,
+      smartCardLast4: last4,
+      isPhysicalStudent: true,
+      physicalStudentId: physId,
+      freeCardAssigned: true,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    return { success: true, message: "Free physical card assigned successfully!" };
+  } catch (err: any) {
+    console.error("Error in assignFreePhysicalCard:", err);
+    if (err instanceof HttpsError) throw err;
+    throw new HttpsError("internal", err.message || "Failed to assign free physical card.");
+  }
+});
+
+// ─── toggleTemporaryCourseAccess ─────────────────────────────────────────────
+export const toggleTemporaryCourseAccess = onCall(async (request) => {
+  try {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Authentication required.");
+    const role = request.auth.token.role;
+    if (role !== "teacher" && role !== "admin") {
+      throw new HttpsError("permission-denied", "Teacher or admin access required.");
+    }
+
+    const { studentUid, grant, notes } = request.data as { studentUid: string; grant: boolean; notes?: string };
+    if (!studentUid || typeof grant !== "boolean") {
+      throw new HttpsError("invalid-argument", "studentUid and grant flag are required.");
+    }
+
+    const userRef = db.collection("users").doc(studentUid);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) throw new HttpsError("not-found", "Student not found.");
+
+    await userRef.update({
+      temporaryAccessGranted: grant,
+      temporaryAccessNotes: notes || (grant ? "Granted by teacher" : "Revoked by teacher"),
+      temporaryAccessUpdatedAt: FieldValue.serverTimestamp(),
+    });
+
+    return {
+      success: true,
+      grant,
+      message: grant ? "Temporary course/recording/notes access GRANTED." : "Temporary access REVOKED.",
+    };
+  } catch (err: any) {
+    console.error("Error in toggleTemporaryCourseAccess:", err);
+    if (err instanceof HttpsError) throw err;
+    throw new HttpsError("internal", err.message || "Failed to update temporary access.");
   }
 });
