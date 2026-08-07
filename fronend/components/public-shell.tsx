@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, Atom, Menu } from "lucide-react";
+import { ArrowUpRight, Atom, Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { Brand } from "@/components/brand";
 import { siteConfig } from "@/lib/site";
@@ -19,9 +19,15 @@ const links = [
 export function PublicHeader() {
   const pathname = usePathname();
   const [dimensions, setDimensions] = React.useState({ width: 0, left: 0 });
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   const buttonRefs = React.useRef<Map<string, HTMLAnchorElement>>(new Map());
   const containerRef = React.useRef<HTMLElement>(null);
+
+  // Close mobile menu when route changes
+  React.useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   React.useLayoutEffect(() => {
     const updateDimensions = () => {
@@ -48,12 +54,12 @@ export function PublicHeader() {
   }, [pathname]);
 
   return (
-    <header className="sticky top-4 z-50 flex w-full justify-center px-4">
+    <header className="sticky top-4 z-50 flex w-full flex-col items-center px-4">
       {/* ── Floating Capsule Ultra-Glass Navbar ── */}
       <div
         className="flex items-center gap-1 rounded-full p-1.5 transition-all duration-300 sm:gap-2"
         style={{
-          background: "rgba(255, 255, 255, 0.65)",
+          background: "rgba(255, 255, 255, 0.75)",
           backdropFilter: "blur(28px)",
           WebkitBackdropFilter: "blur(28px)",
           border: "1px solid rgba(255, 255, 255, 0.85)",
@@ -144,12 +150,63 @@ export function PublicHeader() {
 
         {/* Mobile Toggle Button */}
         <button
-          aria-label="Open menu"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle navigation menu"
           className="grid h-9 w-9 place-items-center rounded-full bg-[#002583]/10 text-[#002583] transition hover:bg-[#002583]/20 sm:hidden"
         >
-          <Menu size={18} />
+          {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
       </div>
+
+      {/* ── Mobile Dropdown Menu Drawer ── */}
+      {mobileMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+          className="mt-3 flex w-full max-w-sm flex-col gap-2 rounded-3xl p-4 sm:hidden z-50"
+          style={{
+            background: "rgba(255, 255, 255, 0.92)",
+            backdropFilter: "blur(32px)",
+            WebkitBackdropFilter: "blur(32px)",
+            border: "1px solid rgba(255, 255, 255, 0.9)",
+            boxShadow: "0 20px 50px rgba(0, 37, 131, 0.2), 0 0 0 1px rgba(0, 37, 131, 0.08)",
+          }}
+        >
+          <div className="flex flex-col gap-1">
+            {links.map(([label, href]) => {
+              const isActive = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-black transition-all ${
+                    isActive
+                      ? "bg-[#002583] text-white shadow-md"
+                      : "text-zinc-800 hover:bg-[#002583]/10 hover:text-[#002583]"
+                  }`}
+                >
+                  <span>{label}</span>
+                  {isActive && (
+                    <span className="h-2 w-2 rounded-full bg-[#FFB800]" />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="mt-2 pt-2 border-t border-zinc-200/80 flex items-center">
+            <Link
+              href="/student-login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full rounded-xl bg-zinc-100 px-3 py-2.5 text-center text-xs font-bold text-zinc-700 hover:bg-zinc-200 transition"
+            >
+              Student Portal
+            </Link>
+          </div>
+        </motion.div>
+      )}
     </header>
   );
 }

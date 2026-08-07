@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight, CalendarDays, CheckCircle2, MessageCircle,
-  Play, Sparkles, Star, Atom, TrendingUp,
+  Play, Sparkles, Star, Atom, TrendingUp, QrCode, Heart, ArrowUpRight, Trophy,
+  UserPlus, LogIn, PhoneCall
 } from "lucide-react";
 import { PublicShell } from "@/components/public-shell";
 import { Card, Badge, SectionHeading, TextLink } from "@/components/ui";
@@ -65,11 +66,113 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* ── Main 3-column hero grid ── */}
-        <div className="relative z-10 mt-8 grid items-center gap-6 lg:grid-cols-[1fr_auto_1fr]">
+        {/* ── MOBILE PREVIEW HERO UPPER SECTION (hidden on lg:) ── */}
+        <div className="lg:hidden relative z-10 mt-4 flex flex-row items-center gap-3 sm:gap-5 bg-white/40 backdrop-blur-md rounded-3xl p-3.5 sm:p-5 border border-white/60 shadow-lg">
+          {/* Mobile Left Column: Teacher Image enlarged */}
+          <div className="w-[50%] xs:w-[52%] max-w-[220px] sm:max-w-[280px] flex-shrink-0 relative overflow-hidden rounded-2xl h-[350px] sm:h-[440px]">
+            <Image
+              src="/images/bg/hero-bg.png"
+              alt="Kalhara Nakandala Science Academy"
+              width={600}
+              height={800}
+              priority
+              className="absolute inset-0 h-full w-full object-cover object-top scale-105 transition-transform duration-500"
+            />
+          </div>
+
+          {/* Mobile Right Column: Text & Info with enlarged H1 & H2 */}
+          <div className="flex-1 text-left space-y-2.5">
+            <h1 className="font-sinhala text-3xl xs:text-4xl sm:text-5xl font-black leading-tight text-[#002583]">
+              <span className="block">Ôú;hg</span>
+              <span className="block text-[#002583]">úoHdj</span>
+            </h1>
+            <p className="font-malith text-xs sm:text-sm leading-relaxed text-ink/80">
+              bf.kSu hkq úNd.hla iu;aùu muKla fkdj" oekqu" úYajdih iy ksjerÈ Ñka;kh f.dvke.Suhs¡
+            </p>
+            <h2 className="font-nimsara text-2xl xs:text-3xl sm:text-4xl font-semibold text-[#FFB800]">
+              l,aydr kdlkao,
+            </h2>
+            <div className="flex flex-col gap-1.5 text-xs sm:text-sm font-bold text-ink/75 pt-1">
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0" /> Grades 8–11</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0" /> Sinhala &amp; English</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0" /> Physical + Zoom</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── MOBILE PREVIEW ACTION BUTTONS (hidden on lg:) ── */}
+        <div className="lg:hidden relative z-10 mt-5 flex flex-col items-center gap-3.5 w-full max-w-sm mx-auto">
+          {/* 1. REGISTER button */}
+          <Link
+            href="/contact"
+            className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#FFB800] via-[#f5a600] to-[#d69600] px-6 font-black text-[#002583] shadow-lg border border-amber-300 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <UserPlus size={22} className="stroke-[2.5] text-[#002583]" />
+            <span className="text-base tracking-wider uppercase font-extrabold text-[#002583]">REGISTER</span>
+          </Link>
+
+          {/* 2. LOGIN button */}
+          <Link
+            href="/student-login"
+            className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#002583] via-[#003199] to-[#00195e] px-6 font-black text-white shadow-lg border border-[#FFB800]/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <LogIn size={22} className="stroke-[2.5] text-[#FFB800]" />
+            <span className="text-base tracking-wider uppercase font-extrabold text-white">LOGIN</span>
+          </Link>
+
+          {/* 3. TIME TABLE button */}
+          <Link
+            href="/timetable"
+            className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#003199] via-[#002583] to-[#00195e] px-6 font-black text-white shadow-lg border border-blue-400/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <CalendarDays size={22} className="stroke-[2.5] text-[#FFB800]" />
+            <span className="text-base tracking-wider uppercase font-extrabold text-white">TIME TABLE</span>
+          </Link>
+
+          {/* 4. CALL US button */}
+          <a
+            href={`tel:${siteConfig.phone.replace(/[^0-9+]/g, "")}`}
+            className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-[#FFB800] bg-gradient-to-r from-[#FFF8E6] to-[#FEF3D6] px-6 font-black text-[#002583] shadow-md transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <PhoneCall size={22} className="stroke-[2.5] text-[#002583]" />
+            <span className="text-base tracking-wider uppercase font-extrabold text-[#002583]">CALL US</span>
+          </a>
+
+          {/* WhatsApp Link Button */}
+          <Link
+            href="https://wa.me/94767589005"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative inline-flex h-12 w-full max-w-[280px] items-center justify-center overflow-hidden rounded-xl px-4 transition-all duration-300 mt-1 shadow-[0_4px_20px_rgba(52,211,153,0.35)] hover:shadow-[0_6px_25px_rgba(52,211,153,0.5)] hover:scale-[1.02] active:scale-[0.98]"
+          >
+            {/* Light Green Border */}
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-green-300 via-emerald-300 to-teal-300 p-[2px]">
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-400" />
+            </div>
+
+            {/* Light Green Background */}
+            <div className="absolute inset-[2px] rounded-[10px] bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-400" />
+            <div className="absolute inset-[2px] rounded-[10px] bg-gradient-to-b from-white/35 via-transparent to-black/5" />
+
+            {/* Inner Glow */}
+            <div className="absolute inset-[2px] rounded-[10px] shadow-[inset_0_1px_2px_rgba(255,255,255,0.7)]" />
+
+            {/* Content with WhatsApp Logo */}
+            <span className="relative flex items-center gap-2 text-base font-bold text-emerald-950">
+              <FaWhatsapp className="h-5 w-5 text-emerald-950" />
+              WhatsApp
+            </span>
+
+            {/* Hover Sheen */}
+            <div className="absolute inset-[2px] rounded-[10px] bg-gradient-to-r from-white/0 via-white/35 to-white/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          </Link>
+        </div>
+
+        {/* ── DESKTOP PREVIEW HERO GRID (hidden on mobile < lg) ── */}
+        <div className="hidden lg:grid relative z-10 mt-8 items-center gap-6 lg:grid-cols-[1fr_auto_1fr]">
 
           {/* Left content column */}
-          <div className="space-y-6 text-center lg:text-left">
+          <div className="space-y-6 text-center lg:text-left order-1">
             <h1 className="font-sinhala text-6xl font-normal leading-tight tracking-wide md:text-8xl">
               Ôú;hg{" "}
               <span className="text-[#002583]">úoHdj</span>
@@ -88,55 +191,51 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Centre image — Previous View restored */}
-          <div className="relative flex justify-center">
-            {/* Hero image — bottom-anchored view */}
-            <div className="relative w-80 overflow-hidden rounded-[2.5rem] md:w-[28rem] lg:w-[32rem]" style={{ height: "560px" }}>
-              <Image
-                src="/images/bg/hero-bg.png"
-                alt="Kalhara Nakandala Science Academy"
-                width={1000}
-                height={1100}
-                priority
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700"
-                style={{ objectPosition: "center 50%" }}
-              />
-              {/* Inner glow overlay */}
-              <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] ring-1 ring-lavender-400/20" />
-            </div>
-          </div>
+          {/* Right column — Quick Access Action Buttons */}
+          <div className="flex flex-col items-center gap-3.5 lg:items-end order-3 lg:order-3 w-full max-w-sm mx-auto lg:max-w-[280px]">
+            
+            {/* 1. REGISTER button */}
+            <Link
+              href="/contact"
+              className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#FFB800] via-[#f5a600] to-[#d69600] px-6 font-black text-[#002583] shadow-lg border border-amber-300 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
+            >
+              <UserPlus size={22} className="stroke-[2.5] text-[#002583]" />
+              <span className="text-base tracking-wider uppercase font-extrabold text-[#002583]">REGISTER</span>
+            </Link>
 
-          {/* Right column — Liquid Glass Stat Rectangular Cards stacked one down one */}
-          <div className="flex flex-col items-center gap-3.5 lg:items-end">
-            <LiquidStatRectCard
-              icon="🎓"
-              title="450+"
-              subtitle="Active Students"
-              variant="gold"
-            />
-            <LiquidStatRectCard
-              icon="📅"
-              title="Next Class"
-              subtitle="Grade 11 · Sunday"
-              variant="navy"
-            />
-            <LiquidStatRectCard
-              icon="📈"
-              title="90%"
-              subtitle="Improved Results"
-              variant="white"
-            />
-            <LiquidStatRectCard
-              icon="🏆"
-              title="8+ Years"
-              subtitle="Teaching Science"
-              variant="gold"
-            />
+            {/* 2. LOGIN button */}
+            <Link
+              href="/student-login"
+              className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#002583] via-[#003199] to-[#00195e] px-6 font-black text-white shadow-lg border border-[#FFB800]/50 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
+            >
+              <LogIn size={22} className="stroke-[2.5] text-[#FFB800]" />
+              <span className="text-base tracking-wider uppercase font-extrabold text-white">LOGIN</span>
+            </Link>
+
+            {/* 3. TIME TABLE button */}
+            <Link
+              href="/timetable"
+              className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#003199] via-[#002583] to-[#00195e] px-6 font-black text-white shadow-lg border border-blue-400/30 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
+            >
+              <CalendarDays size={22} className="stroke-[2.5] text-[#FFB800]" />
+              <span className="text-base tracking-wider uppercase font-extrabold text-white">TIME TABLE</span>
+            </Link>
+
+            {/* 4. CALL US button */}
+            <a
+              href={`tel:${siteConfig.phone.replace(/[^0-9+]/g, "")}`}
+              className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-[#FFB800] bg-gradient-to-r from-[#FFF8E6] to-[#FEF3D6] px-6 font-black text-[#002583] shadow-md transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
+            >
+              <PhoneCall size={22} className="stroke-[2.5] text-[#002583]" />
+              <span className="text-base tracking-wider uppercase font-extrabold text-[#002583]">CALL US</span>
+            </a>
+
+            {/* WhatsApp Link Button */}
             <Link
               href="https://wa.me/94767589005"
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative inline-flex h-12 w-full max-w-[260px] items-center justify-center overflow-hidden rounded-xl px-4 transition-all duration-300 mt-1 shadow-[0_4px_20px_rgba(52,211,153,0.35)] hover:shadow-[0_6px_25px_rgba(52,211,153,0.5)] hover:scale-[1.02] active:scale-[0.98]"
+              className="group relative inline-flex h-12 w-full max-w-[280px] items-center justify-center overflow-hidden rounded-xl px-4 transition-all duration-300 mt-1 shadow-[0_4px_20px_rgba(52,211,153,0.35)] hover:shadow-[0_6px_25px_rgba(52,211,153,0.5)] hover:scale-[1.02] active:scale-[0.98]"
             >
               {/* Light Green Border */}
               <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-green-300 via-emerald-300 to-teal-300 p-[2px]">
@@ -160,11 +259,27 @@ export default function HomePage() {
               <div className="absolute inset-[2px] rounded-[10px] bg-gradient-to-r from-white/0 via-white/35 to-white/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </Link>
           </div>
+
+          {/* Centre image — Hero image */}
+          <div className="relative flex justify-center order-2 lg:order-2 z-10 -mb-16">
+            <div className="relative w-[32rem] h-[560px] overflow-hidden rounded-[2.5rem]">
+              <Image
+                src="/images/bg/hero-bg.png"
+                alt="Kalhara Nakandala Science Academy"
+                width={1000}
+                height={1100}
+                priority
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700"
+                style={{ objectPosition: "center 50%" }}
+              />
+              <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] ring-1 ring-lavender-400/20" />
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ── Hero horizon CTA bar ── */}
-      <div className="relative w-full overflow-hidden" aria-label="Quick actions">
+      <div className="hidden lg:block relative z-20 w-full overflow-hidden" aria-label="Quick actions">
         {/* Top glow edge */}
         <div
           className="absolute inset-x-0 top-0 h-[2px]"

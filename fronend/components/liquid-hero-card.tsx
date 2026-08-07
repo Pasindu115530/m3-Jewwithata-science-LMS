@@ -46,16 +46,18 @@ export function LiquidStatRectCard({
   title,
   subtitle,
   variant = "navy",
+  mobileVariant,
 }: {
   icon: React.ReactNode | string;
   title: string;
   subtitle: string;
   variant?: "gold" | "navy" | "white";
+  mobileVariant?: "gold" | "navy" | "white" | "goldSolid" | "whiteSolid" | "emeraldSolid";
 }) {
   const filterId = useId();
 
-  const getVariantStyles = () => {
-    if (variant === "gold") {
+  const getStyles = (vName: string) => {
+    if (vName === "gold") {
       return {
         bg: "linear-gradient(135deg, rgba(255, 184, 0, 0.35) 0%, rgba(214, 150, 0, 0.22) 100%)",
         border: "1px solid rgba(255, 184, 0, 0.65)",
@@ -65,7 +67,37 @@ export function LiquidStatRectCard({
         subColor: "text-[#002583]/90",
       };
     }
-    if (variant === "navy") {
+    if (vName === "goldSolid") {
+      return {
+        bg: "linear-gradient(135deg, rgba(255, 184, 0, 0.95) 0%, rgba(245, 170, 0, 0.9) 100%)",
+        border: "1px solid rgba(255, 220, 100, 0.9)",
+        boxShadow: "0 6px 20px rgba(255, 184, 0, 0.35)",
+        iconBg: "bg-[#002583] text-[#FFB800]",
+        titleColor: "text-[#002583]",
+        subColor: "text-[#002583]/90",
+      };
+    }
+    if (vName === "whiteSolid") {
+      return {
+        bg: "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(245, 248, 255, 0.95) 100%)",
+        border: "1px solid rgba(255, 255, 255, 0.95)",
+        boxShadow: "0 6px 20px rgba(0, 37, 131, 0.15)",
+        iconBg: "bg-[#002583] text-[#FFB800]",
+        titleColor: "text-[#002583]",
+        subColor: "text-zinc-600",
+      };
+    }
+    if (vName === "emeraldSolid") {
+      return {
+        bg: "linear-gradient(135deg, rgba(209, 250, 229, 0.95) 0%, rgba(167, 243, 208, 0.9) 100%)",
+        border: "1px solid rgba(110, 231, 183, 0.9)",
+        boxShadow: "0 6px 20px rgba(16, 185, 129, 0.25)",
+        iconBg: "bg-emerald-700 text-white",
+        titleColor: "text-emerald-950",
+        subColor: "text-emerald-800",
+      };
+    }
+    if (vName === "navy") {
       return {
         bg: "linear-gradient(135deg, rgba(0, 37, 131, 0.45) 0%, rgba(0, 20, 71, 0.35) 100%)",
         border: "1px solid rgba(255, 184, 0, 0.55)",
@@ -85,19 +117,40 @@ export function LiquidStatRectCard({
     };
   };
 
-  const v = getVariantStyles();
+  const vDesk = getStyles(variant);
+  const vMob = mobileVariant ? getStyles(mobileVariant) : vDesk;
 
   return (
     <div
       className="group relative flex w-full max-w-[260px] overflow-hidden items-center gap-3.5 rounded-2xl p-3.5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl"
       style={{
-        background: v.bg,
-        border: v.border,
-        boxShadow: v.boxShadow,
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        background: mobileVariant ? undefined : vDesk.bg,
+        border: mobileVariant ? undefined : vDesk.border,
+        boxShadow: mobileVariant ? undefined : vDesk.boxShadow,
       }}
     >
+      {/* Dynamic responsive background layer when mobileVariant is specified */}
+      {mobileVariant && (
+        <>
+          <div
+            className="absolute inset-0 block lg:hidden rounded-[inherit]"
+            style={{
+              background: vMob.bg,
+              border: vMob.border,
+              boxShadow: vMob.boxShadow,
+            }}
+          />
+          <div
+            className="absolute inset-0 hidden lg:block rounded-[inherit]"
+            style={{
+              background: vDesk.bg,
+              border: vDesk.border,
+              boxShadow: vDesk.boxShadow,
+            }}
+          />
+        </>
+      )}
+
       {/* Liquid Glass Shadow inset overlay */}
       <div className={`pointer-events-none absolute inset-0 rounded-[inherit] ${GLASS_SHADOW}`} />
 
@@ -106,12 +159,28 @@ export function LiquidStatRectCard({
 
       {/* Content */}
       <div className="relative z-10 flex items-center gap-3.5 w-full">
-        <div className={`grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl text-xl shadow-md ${v.iconBg}`}>
+        <div
+          className={`grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl text-xl shadow-md ${
+            mobileVariant ? `max-lg:${vMob.iconBg} lg:${vDesk.iconBg}` : vDesk.iconBg
+          }`}
+        >
           {icon}
         </div>
         <div>
-          <p className={`text-base font-black leading-tight ${v.titleColor}`}>{title}</p>
-          <p className={`text-xs font-extrabold ${v.subColor}`}>{subtitle}</p>
+          <p
+            className={`text-base font-black leading-tight ${
+              mobileVariant ? `max-lg:${vMob.titleColor} lg:${vDesk.titleColor}` : vDesk.titleColor
+            }`}
+          >
+            {title}
+          </p>
+          <p
+            className={`text-xs font-extrabold ${
+              mobileVariant ? `max-lg:${vMob.subColor} lg:${vDesk.subColor}` : vDesk.subColor
+            }`}
+          >
+            {subtitle}
+          </p>
         </div>
       </div>
 
