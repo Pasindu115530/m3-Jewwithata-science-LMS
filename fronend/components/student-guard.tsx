@@ -2,15 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { auth } from "@/lib/firebase";
 
 export function StudentGuard({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
+    // Exclude public registration route from Auth guard check
+    if (pathname === "/student/register") {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
         router.replace("/student-login");
@@ -21,7 +28,11 @@ export function StudentGuard({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, [router, pathname]);
+
+  if (pathname === "/student/register") {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (
