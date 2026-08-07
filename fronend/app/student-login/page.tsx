@@ -114,7 +114,7 @@ export default function StudentLoginPage() {
           <div className="relative hidden min-h-[500px] flex-col justify-between overflow-hidden bg-[#072b82] p-8 text-white lg:flex">
             {/* Full cover background image fitting the blue square */}
             <Image
-              src="/images/bg/loginbg.png"
+              src="/images/bg/loginbg.avif"
               alt="Science LMS Student Login Background"
               fill
               className="object-cover object-center"

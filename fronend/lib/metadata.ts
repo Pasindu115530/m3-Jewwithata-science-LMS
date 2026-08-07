@@ -47,13 +47,13 @@ export function createMetadata(
       siteName: `${siteConfig.name} Science Academy`,
       type: "website",
       locale: "en_LK",
-      images: [{ url: "/images/bg/hero-bg.png", width: 1200, height: 630, alt: `${siteConfig.name} Science Academy Sri Lanka` }],
+      images: [{ url: "/images/bg/hero-bg.avif", width: 1200, height: 630, alt: `${siteConfig.name} Science Academy Sri Lanka` }],
     },
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
       description,
-      images: ["/images/bg/hero-bg.png"],
+      images: ["/images/bg/hero-bg.avif"],
     },
   };
 }
