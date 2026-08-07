@@ -4,7 +4,8 @@ import type { ReactNode } from "react";
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, Atom, Menu, X } from "lucide-react";
+import { ArrowUpRight, Atom, Menu, X, Phone, MapPin, Sparkles, ChevronRight } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { Brand } from "@/components/brand";
 import { siteConfig } from "@/lib/site";
@@ -227,32 +228,173 @@ export function PublicHeader() {
 
 export function PublicFooter() {
   return (
-    <footer className="mt-20 border-t border-[#002583]/10 bg-white/50">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 md:grid-cols-3 lg:px-8">
-        <div>
-          <Brand />
-          <p className="mt-4 max-w-sm text-sm leading-6 text-ink/60">
-            {siteConfig.tagline} Personal Science tuition with a student-friendly learning system.
-          </p>
-        </div>
-        <div>
-          <h3 className="font-black text-[#002583]">Contact</h3>
-          <p className="mt-3 text-sm text-ink/60">
-            {siteConfig.phone}<br />{siteConfig.email}<br />{siteConfig.location}
-          </p>
-        </div>
-        <div>
-          <h3 className="font-black text-[#002583]">Portal Access</h3>
-          <div className="mt-3 flex flex-col gap-2 text-sm font-bold text-[#002583]">
-            <Link href="/student-login" className="hover:text-[#FFB800] transition-colors">Student Login</Link>
-            <Link href="/teacher-login" className="hover:text-[#FFB800] transition-colors">Teacher Login</Link>
+    <footer className="mt-20 relative overflow-hidden bg-gradient-to-b from-[#001442] via-[#00195e] to-[#001035] text-white">
+      {/* Background Glow Blobs */}
+      <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-[#002583]/40 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-[#FFB800]/15 blur-3xl" />
+
+      {/* Top Pre-Footer Banner */}
+      <div className="mx-auto max-w-7xl px-4 pt-10 lg:px-8">
+        <div className="relative overflow-hidden rounded-3xl border border-[#FFB800]/30 bg-gradient-to-r from-[#002583] via-[#001d6e] to-[#001447] p-6 sm:p-8 shadow-2xl">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FFB800]/40 bg-[#FFB800]/10 px-3 py-1 text-xs font-black text-[#FFB800]">
+                <Sparkles size={13} /> SCIENCE TUITION ACADEMY
+              </span>
+              <h2 className="mt-2 font-sinhala text-2xl sm:text-3xl font-normal text-white">
+                Ôú;hg <span className="text-[#FFB800]">úoHdj</span>
+              </h2>
+              <p className="mt-1 text-xs sm:text-sm text-blue-200/80 font-medium">
+                Grade 8 – 11 Science Theory, Revision &amp; Paper Classes by Kalhara Nakandala.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/student/register"
+                className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#FFB800] to-[#f5a600] px-5 py-3 text-xs font-black text-[#002583] shadow-lg transition hover:scale-105"
+              >
+                <Sparkles size={15} /> Register Student
+              </Link>
+              <a
+                href="https://wa.me/94767589005"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-xs font-black text-white shadow-lg transition hover:scale-105"
+              >
+                <FaWhatsapp className="h-4 w-4" /> WhatsApp Chat
+              </a>
+            </div>
           </div>
         </div>
       </div>
-      {/* Gold accent bar */}
-      <div className="h-1 w-full bg-gradient-to-r from-[#002583] via-[#FFB800] to-[#002583]" />
-      <div className="px-5 py-4 text-center text-xs text-ink/45">
-        © 2026 Kalhara Nakandala Science Academy. -M3 Solution
+
+      {/* Main Footer Grid */}
+      <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 grid gap-10 md:grid-cols-2 lg:grid-cols-4 border-b border-blue-900/60">
+        
+        {/* Col 1: Brand & Teacher Profile */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2.5">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#FFB800] text-[#002583] shadow-md">
+              <Atom size={22} className="animate-spin-slow" />
+            </div>
+            <div>
+              <p className="text-base font-black leading-none text-white">Kalhara Nakandala</p>
+              <p className="text-xs font-bold text-[#FFB800]">Science Academy</p>
+            </div>
+          </div>
+          <p className="text-xs leading-relaxed text-blue-100/70">
+            Personal Science tuition program dedicated to building conceptual understanding, exam success, and scientific confidence for Grades 8 through 11.
+          </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <span className="rounded-full bg-blue-900/60 border border-blue-700/50 px-2.5 py-1 text-[11px] font-bold text-amber-200">
+              Grades 8–11
+            </span>
+            <span className="rounded-full bg-blue-900/60 border border-blue-700/50 px-2.5 py-1 text-[11px] font-bold text-amber-200">
+              Sinhala &amp; English
+            </span>
+            <span className="rounded-full bg-blue-900/60 border border-blue-700/50 px-2.5 py-1 text-[11px] font-bold text-amber-200">
+              Physical + Zoom
+            </span>
+          </div>
+        </div>
+
+        {/* Col 2: Quick Links */}
+        <div>
+          <h3 className="text-sm font-black uppercase tracking-wider text-[#FFB800]">Quick Navigation</h3>
+          <ul className="mt-4 space-y-2.5 text-xs font-bold text-blue-100/80">
+            <li>
+              <Link href="/" className="hover:text-[#FFB800] transition flex items-center gap-1.5">
+                <ChevronRight size={13} className="text-[#FFB800]" /> Home Page
+              </Link>
+            </li>
+            <li>
+              <Link href="/classes" className="hover:text-[#FFB800] transition flex items-center gap-1.5">
+                <ChevronRight size={13} className="text-[#FFB800]" /> Classes &amp; Courses
+              </Link>
+            </li>
+            <li>
+              <Link href="/timetable" className="hover:text-[#FFB800] transition flex items-center gap-1.5">
+                <ChevronRight size={13} className="text-[#FFB800]" /> Time Table Schedule
+              </Link>
+            </li>
+            <li>
+              <Link href="/contact" className="hover:text-[#FFB800] transition flex items-center gap-1.5">
+                <ChevronRight size={13} className="text-[#FFB800]" /> Contact &amp; Inquiry
+              </Link>
+            </li>
+            <li>
+              <Link href="/student/register" className="hover:text-[#FFB800] transition flex items-center gap-1.5">
+                <ChevronRight size={13} className="text-[#FFB800]" /> Student Registration
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Col 3: Contact & Locations */}
+        <div>
+          <h3 className="text-sm font-black uppercase tracking-wider text-[#FFB800]">Contact &amp; Centers</h3>
+          <ul className="mt-4 space-y-3 text-xs font-semibold text-blue-100/80">
+            <li className="flex items-start gap-2.5">
+              <Phone size={16} className="text-[#FFB800] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-white">Hotline / Call</p>
+                <a href="tel:0767589005" className="hover:text-[#FFB800] transition">076 758 9005</a>
+              </div>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <FaWhatsapp className="text-emerald-400 text-base flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-white">WhatsApp Support</p>
+                <a href="https://wa.me/94767589005" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFB800] transition">+94 76 758 9005</a>
+              </div>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <MapPin size={16} className="text-[#FFB800] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-white">Physical Center</p>
+                <p className="text-blue-200/70">Maharagama Science Hall</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        {/* Col 4: LMS Portal Links */}
+        <div>
+          <h3 className="text-sm font-black uppercase tracking-wider text-[#FFB800]">LMS Portal Access</h3>
+          <p className="mt-3 text-xs text-blue-200/70 leading-relaxed">
+            Access class recordings, downloadable tute PDFs, assignment submissions, and exam paper results.
+          </p>
+          <div className="mt-4 flex flex-col gap-2">
+            <Link
+              href="/student-login"
+              className="inline-flex items-center justify-between rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold text-white border border-white/15 hover:bg-white/20 transition"
+            >
+              <span>Student Portal Login</span>
+              <ArrowUpRight size={14} className="text-[#FFB800]" />
+            </Link>
+            <Link
+              href="/teacher-login"
+              className="inline-flex items-center justify-between rounded-xl bg-blue-950/60 px-4 py-2.5 text-xs font-bold text-blue-200 border border-blue-800/50 hover:bg-blue-900/60 transition"
+            >
+              <span>Teacher Portal</span>
+              <ArrowUpRight size={14} className="text-[#FFB800]" />
+            </Link>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Gold Divider Line */}
+      <div className="h-1 w-full bg-gradient-to-r from-[#00195e] via-[#FFB800] to-[#00195e]" />
+
+      {/* Bottom Sub-Footer Bar */}
+      <div className="mx-auto max-w-7xl px-5 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-blue-200/60">
+        <p className="text-center sm:text-left">
+          © 2026 <strong className="text-white font-bold">Kalhara Nakandala Science Academy</strong>. All Rights Reserved.
+        </p>
+        <p className="text-center sm:text-right font-extrabold text-[#FFB800]/90">
+          Designed &amp; Developed by -M3 Solution
+        </p>
       </div>
     </footer>
   );

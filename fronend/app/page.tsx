@@ -309,7 +309,7 @@ export default function HomePage() {
               boxShadow: "0 4px 16px rgba(255,184,0,0.45)",
             }}
           >
-            <Sparkles size={16} /> Register Student / ශිෂ්‍ය ලියාපදිංචිය
+            <Sparkles size={16} /> Register Student
           </Link>
 
           <Link
