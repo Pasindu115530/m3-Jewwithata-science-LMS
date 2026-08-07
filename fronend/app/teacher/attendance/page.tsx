@@ -350,7 +350,7 @@ export default function TeacherAttendancePage() {
                             <td className="py-3.5 pr-2">
                               {r.status === "present" && <Badge tone="green">Present</Badge>}
                               {r.status === "late" && <Badge tone="lavender">Late</Badge>}
-                              {r.status === "absent" && <Badge tone="rose">Absent</Badge>}
+                              {r.status === "absent" && <Badge tone="pink">Absent</Badge>}
                             </td>
                           </tr>
                         );

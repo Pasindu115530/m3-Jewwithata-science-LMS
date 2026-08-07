@@ -8,6 +8,7 @@ interface EmptyStateProps {
   actionLabel?: string;
   actionHref?: string;
   onAction?: () => void;
+  actionOnClick?: () => void;
 }
 
 export function EmptyState({
@@ -17,7 +18,9 @@ export function EmptyState({
   actionLabel,
   actionHref,
   onAction,
+  actionOnClick,
 }: EmptyStateProps) {
+  const handleClick = onAction || actionOnClick;
   return (
     <Card className="p-8 text-center md:p-12">
       <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-lavender-100 text-3xl shadow-sm">
@@ -39,7 +42,7 @@ export function EmptyState({
             </Link>
           ) : (
             <button
-              onClick={onAction}
+              onClick={handleClick}
               className="gradient-button px-6 py-2.5 text-xs shadow-md"
             >
               {actionLabel}

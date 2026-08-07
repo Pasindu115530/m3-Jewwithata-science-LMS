@@ -24,17 +24,19 @@ import {
   Lock, 
   CheckCircle2, 
   CreditCard,
-  ExternalLink
+  ExternalLink,
+  ShieldCheck,
+  X
 } from "lucide-react";
 import Link from "next/link";
 
 interface LiveClassItem {
   id: string;
-  classId: string;
-  zoomMeetingId: string;
-  meetingUUID: string;
+  classId?: string;
+  zoomMeetingId?: string;
+  meetingUUID?: string;
   joinUrl: string;
-  passcode: string;
+  passcode?: string;
   topic: string;
   courseId: string;
   courseTitle: string;
@@ -58,6 +60,7 @@ export default function StudentLiveClassesPage() {
   const [isPaid, setIsPaid] = useState<boolean>(false);
   const [liveClasses, setLiveClasses] = useState<LiveClassItem[]>([]);
   const [studentFormattedName, setStudentFormattedName] = useState<string>("");
+  const [activeZoomModal, setActiveZoomModal] = useState<LiveClassItem | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -120,22 +123,39 @@ export default function StudentLiveClassesPage() {
     return () => unsubscribe();
   }, []);
 
-  // Helper to build Zoom URL with auto-formatted student name (uname)
-  const getStudentZoomJoinUrl = (item: LiveClassItem) => {
-    let url = item.joinUrl;
-    if (!url) return "#";
+  // Construct embedded Zoom Web Client URL
+  const getEmbedZoomUrl = (item: LiveClassItem) => {
+    let meetingId = item.zoomMeetingId || "";
+    let passcode = item.passcode || "";
+    let rawUrl = item.joinUrl || "";
+
+    if (!meetingId && rawUrl) {
+      const match = rawUrl.match(/\/(?:j|wc\/join)\/(\d{9,13})/i);
+      if (match) meetingId = match[1];
+    }
+
+    if (!passcode && rawUrl) {
+      try {
+        const u = new URL(rawUrl);
+        passcode = u.searchParams.get("pwd") || "";
+      } catch (e) {}
+    }
+
+    const name = encodeURIComponent(studentFormattedName || "Student");
+
+    if (meetingId) {
+      return `https://zoom.us/wc/join/${meetingId}?pwd=${encodeURIComponent(passcode)}&un=${name}&dn=${name}&uname=${name}&name=${name}&prefer=1`;
+    }
 
     try {
-      const urlObj = new URL(url);
-      if (studentFormattedName) {
-        urlObj.searchParams.set("uname", studentFormattedName);
-      }
-      if (item.passcode && !urlObj.searchParams.has("pwd")) {
-        urlObj.searchParams.set("pwd", item.passcode);
-      }
-      return urlObj.toString();
+      const u = new URL(rawUrl);
+      u.searchParams.set("un", studentFormattedName || "Student");
+      u.searchParams.set("dn", studentFormattedName || "Student");
+      u.searchParams.set("uname", studentFormattedName || "Student");
+      u.searchParams.set("name", studentFormattedName || "Student");
+      return u.toString();
     } catch (e) {
-      return url;
+      return rawUrl;
     }
   };
 
@@ -149,7 +169,7 @@ export default function StudentLiveClassesPage() {
           </p>
           <h1 className="mt-2 text-3xl font-black md:text-4xl">Live Zoom Classes</h1>
           <p className="mt-2 text-ink/55">
-            Join your scheduled live Zoom sessions and theory classes. Attendance is recorded automatically.
+            Join your scheduled live Zoom sessions securely. Credentials and attendance are processed automatically inside the LMS.
           </p>
         </div>
 
@@ -207,10 +227,9 @@ export default function StudentLiveClassesPage() {
               });
 
               const isCompleted = c.status === "completed";
-              const joinUrl = getStudentZoomJoinUrl(c);
 
               return (
-                <Card key={c.id} className="flex flex-col justify-between p-6 bg-white/90">
+                <Card key={c.id} className="flex flex-col justify-between p-6 bg-white/90 select-none">
                   <div>
                     <div className="flex items-center justify-between">
                       <Badge tone="purple">{c.grade}</Badge>
@@ -232,28 +251,27 @@ export default function StudentLiveClassesPage() {
                         <span>{formattedTime} ({c.durationMinutes} mins)</span>
                       </div>
 
-                      {c.passcode && (
-                        <div className="flex items-center gap-2 bg-amber-50 p-2.5 rounded-xl border border-amber-100 text-amber-900">
-                          <span>🔑 Passcode: <span className="font-mono text-sm">{c.passcode}</span></span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2 bg-emerald-50 p-2.5 rounded-xl border border-emerald-100 text-emerald-900">
+                        <ShieldCheck size={15} className="text-emerald-600 shrink-0" />
+                        <span>🔒 Secured Access • In-App Player</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-ink/5">
+                  <div className="mt-6 pt-4 border-t border-ink/5" onContextMenu={(e) => e.preventDefault()}>
                     {isCompleted ? (
                       <div className="flex items-center justify-center gap-2 w-full rounded-2xl bg-emerald-50 p-3 text-xs font-black text-emerald-700 border border-emerald-100">
                         <CheckCircle2 size={16} /> Class Completed
                       </div>
                     ) : (
-                      <a
-                        href={joinUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-center gap-2 w-full rounded-2xl bg-lavender-600 px-4 py-3 text-xs font-black text-white hover:bg-lavender-700 transition shadow-md"
+                      <button
+                        type="button"
+                        onClick={() => setActiveZoomModal(c)}
+                        onContextMenu={(e) => e.preventDefault()}
+                        className="flex items-center justify-center gap-2 w-full rounded-2xl bg-lavender-600 px-4 py-3 text-xs font-black text-white hover:bg-lavender-700 transition shadow-md cursor-pointer select-none"
                       >
-                        <Play size={15} /> Join Live Zoom Class <ExternalLink size={14} />
-                      </a>
+                        <Play size={15} /> Launch In-App Class Session <ShieldCheck size={14} />
+                      </button>
                     )}
                   </div>
                 </Card>
@@ -261,7 +279,52 @@ export default function StudentLiveClassesPage() {
             })}
           </div>
         )}
+
+        {/* Fullscreen In-App Embedded Zoom Player Modal */}
+        {activeZoomModal && (
+          <div className="fixed inset-0 z-[100] flex flex-col bg-slate-950 text-white animate-in fade-in duration-200">
+            {/* Player Bar Header */}
+            <div className="flex items-center justify-between border-b border-white/10 px-6 py-3 bg-slate-900/90 backdrop-blur-md shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-lavender-600 text-white font-bold text-base shadow-md">
+                  📹
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white leading-tight">{activeZoomModal.topic}</h3>
+                  <p className="text-xs text-lavender-300 font-medium">
+                    {activeZoomModal.courseTitle} • <span className="text-emerald-400 font-semibold">{activeZoomModal.grade}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-emerald-300 bg-emerald-950/80 px-3.5 py-1.5 rounded-xl border border-emerald-700/50">
+                  <ShieldCheck size={14} className="text-emerald-400" /> Protected In-App Player
+                </span>
+                <button
+                  onClick={() => setActiveZoomModal(null)}
+                  className="flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-black text-white hover:bg-rose-700 transition shadow-md cursor-pointer"
+                >
+                  <X size={16} /> Exit Live Class
+                </button>
+              </div>
+            </div>
+
+            {/* Embedded Zoom Iframe Container */}
+            <div className="flex-1 w-full bg-black relative overflow-hidden">
+              <iframe
+                src={getEmbedZoomUrl(activeZoomModal)}
+                title={activeZoomModal.topic}
+                className="w-full h-full border-0"
+                allow="camera *; microphone *; display-capture *; autoplay *; clipboard-write *; fullscreen *"
+                sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-modals"
+              />
+            </div>
+          </div>
+        )}
       </DashboardShell>
     </StudentGuard>
   );
 }
+
+

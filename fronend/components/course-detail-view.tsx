@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { collection, getDocs, doc, getDoc, query, where } from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
 import { Card, Badge } from "@/components/ui";
 import { EmptyState } from "@/components/empty-state";
 import {
   FileText, PlayCircle, Video, Lock, Calendar, Clock, Download, ExternalLink,
-  Loader2, AlertCircle, ArrowLeft, CheckCircle2, Play
+  Loader2, AlertCircle, ArrowLeft, CheckCircle2, Play, ShieldCheck, X
 } from "lucide-react";
 
 interface CourseItem {
@@ -122,9 +122,63 @@ export function CourseDetailView({
     loadCourseContent();
   }, [course, enrollmentInfo, studentGrade]);
 
+  const [studentFormattedName, setStudentFormattedName] = useState<string>("");
+  const [activeZoomModal, setActiveZoomModal] = useState<boolean>(false);
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      getDoc(doc(db, "users", user.uid)).then((studentDoc) => {
+        if (studentDoc.exists()) {
+          const data = studentDoc.data();
+          const customId = data.studentId || "";
+          const name = data.fullName || user.displayName || "Student";
+          setStudentFormattedName(customId ? `${customId} - ${name}` : name);
+        } else {
+          setStudentFormattedName(user.displayName || user.email?.split("@")[0] || "Student");
+        }
+      }).catch((err) => {
+        console.error("Error fetching student profile for Zoom name:", err);
+      });
+    }
+  }, []);
+
   const isLiveActive = course.zoomUrl && (
     !course.zoomUrlExpiry || new Date().getTime() < new Date(course.zoomUrlExpiry).getTime()
   );
+
+  const getEmbedZoomUrl = () => {
+    if (!course.zoomUrl) return "";
+    let meetingId = "";
+    let passcode = course.zoomPasscode || "";
+
+    const match = course.zoomUrl.match(/\/(?:j|wc\/join)\/(\d{9,13})/i);
+    if (match) meetingId = match[1];
+
+    if (!passcode) {
+      try {
+        const u = new URL(course.zoomUrl);
+        passcode = u.searchParams.get("pwd") || "";
+      } catch (e) {}
+    }
+
+    const name = encodeURIComponent(studentFormattedName || "Student");
+
+    if (meetingId) {
+      return `https://zoom.us/wc/join/${meetingId}?pwd=${encodeURIComponent(passcode)}&un=${name}&dn=${name}&uname=${name}&name=${name}&prefer=1`;
+    }
+
+    try {
+      const u = new URL(course.zoomUrl);
+      u.searchParams.set("un", studentFormattedName || "Student");
+      u.searchParams.set("dn", studentFormattedName || "Student");
+      u.searchParams.set("uname", studentFormattedName || "Student");
+      u.searchParams.set("name", studentFormattedName || "Student");
+      return u.toString();
+    } catch (e) {
+      return course.zoomUrl;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -160,21 +214,64 @@ export function CourseDetailView({
 
         {/* Live Zoom Option if active */}
         {isLiveActive && (
-          <div className="mt-6 inline-flex items-center gap-3 rounded-2xl bg-emerald-500/20 px-5 py-3 backdrop-blur-md border border-emerald-400/40">
+          <div className="mt-6 inline-flex items-center gap-3 rounded-2xl bg-emerald-500/20 px-5 py-3 backdrop-blur-md border border-emerald-400/40 select-none">
             <span className="flex items-center gap-2 text-xs font-black text-emerald-200">
               <CheckCircle2 size={16} className="text-emerald-400" /> LIVE ZOOM CLASS IS READY
             </span>
-            <a
-              href={course.zoomUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-xl bg-white px-4 py-2 text-xs font-black text-emerald-900 shadow hover:bg-emerald-50"
+            <button
+              type="button"
+              onClick={() => setActiveZoomModal(true)}
+              onContextMenu={(e) => e.preventDefault()}
+              className="rounded-xl bg-white px-4 py-2 text-xs font-black text-emerald-900 shadow hover:bg-emerald-50 cursor-pointer select-none"
             >
-              Join Zoom Now
-            </a>
+              Launch In-App Session
+            </button>
           </div>
         )}
       </div>
+
+      {/* Fullscreen In-App Embedded Zoom Player Modal */}
+      {activeZoomModal && (
+        <div className="fixed inset-0 z-[100] flex flex-col bg-slate-950 text-white animate-in fade-in duration-200">
+          {/* Player Bar Header */}
+          <div className="flex items-center justify-between border-b border-white/10 px-6 py-3 bg-slate-900/90 backdrop-blur-md shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="grid h-9 w-9 place-items-center rounded-xl bg-lavender-600 text-white font-bold text-base shadow-md">
+                📹
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white leading-tight">{course.title}</h3>
+                <p className="text-xs text-lavender-300 font-medium">
+                  Live Class • <span className="text-emerald-400 font-semibold">{course.grade}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-emerald-300 bg-emerald-950/80 px-3.5 py-1.5 rounded-xl border border-emerald-700/50">
+                <ShieldCheck size={14} className="text-emerald-400" /> Protected In-App Player
+              </span>
+              <button
+                onClick={() => setActiveZoomModal(false)}
+                className="flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-black text-white hover:bg-rose-700 transition shadow-md cursor-pointer"
+              >
+                <X size={16} /> Exit Live Class
+              </button>
+            </div>
+          </div>
+
+          {/* Embedded Zoom Iframe Container */}
+          <div className="flex-1 w-full bg-black relative overflow-hidden">
+            <iframe
+              src={getEmbedZoomUrl()}
+              title={course.title}
+              className="w-full h-full border-0"
+              allow="camera *; microphone *; display-capture *; autoplay *; clipboard-write *; fullscreen *"
+              sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-modals"
+            />
+          </div>
+        </div>
+      )}
 
       {/* COURSE LOCKED BANNER (if monthly payment not completed) */}
       {!isPaid && (

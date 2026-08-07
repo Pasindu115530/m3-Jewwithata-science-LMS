@@ -5,6 +5,8 @@ import {
   collection, 
   getDocs, 
   deleteDoc,
+  addDoc,
+  updateDoc,
   doc
 } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
@@ -20,13 +22,16 @@ import {
   Clock,
   ExternalLink,
   Plus,
+  Pencil,
   X,
   Play,
   CheckCircle2,
   Trash2,
   Users,
   Copy,
-  Check
+  Check,
+  Wand2,
+  Link as LinkIcon
 } from "lucide-react";
 
 export interface ClassItem {
@@ -39,11 +44,11 @@ export interface ClassItem {
 
 export interface LiveClassItem {
   id: string;
-  classId: string;
+  classId?: string;
   zoomMeetingId: string;
-  meetingUUID: string;
+  meetingUUID?: string;
   joinUrl: string;
-  startUrl: string;
+  startUrl?: string;
   passcode: string;
   topic: string;
   courseId: string;
@@ -53,7 +58,7 @@ export interface LiveClassItem {
   durationMinutes: number;
   description?: string;
   status: "scheduled" | "active" | "completed";
-  attendanceProcessed: boolean;
+  attendanceProcessed?: boolean;
   createdAt?: any;
 }
 
@@ -62,15 +67,20 @@ export default function ZoomLinksPage() {
   const [liveClasses, setLiveClasses] = useState<LiveClassItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Create Meeting Modal State
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<LiveClassItem | null>(null);
+  const [creationMode, setCreationMode] = useState<"manual" | "auto">("manual");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Form Fields
-  const [topic, setTopic] = useState("");
   const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [topic, setTopic] = useState("");
+  const [joinUrl, setJoinUrl] = useState("");
+  const [zoomMeetingId, setZoomMeetingId] = useState("");
+  const [passcode, setPasscode] = useState("");
   const [meetingDate, setMeetingDate] = useState("");
   const [meetingTime, setMeetingTime] = useState("08:30");
   const [durationMinutes, setDurationMinutes] = useState(60);
@@ -115,17 +125,53 @@ export default function ZoomLinksPage() {
   }, []);
 
   const openCreateModal = () => {
+    setEditingItem(null);
+    setCreationMode("manual");
     setTopic("");
+    setJoinUrl("");
+    setZoomMeetingId("");
+    setPasscode("");
     setError(null);
     const today = new Date().toISOString().split("T")[0];
     setMeetingDate(today);
     setMeetingTime("08:30");
     setDurationMinutes(60);
     setDescription("");
+    if (courses.length > 0) {
+      setSelectedCourseId(courses[0].id);
+    }
     setIsModalOpen(true);
   };
 
-  const handleCreateMeeting = async (e: React.FormEvent) => {
+  const openEditModal = (item: LiveClassItem) => {
+    setEditingItem(item);
+    setCreationMode("manual");
+    setSelectedCourseId(item.courseId || (courses.length > 0 ? courses[0].id : ""));
+    setTopic(item.topic || "");
+    setJoinUrl(item.joinUrl || "");
+    setZoomMeetingId(item.zoomMeetingId || "");
+    setPasscode(item.passcode || "");
+    setDescription(item.description || "");
+    setDurationMinutes(item.durationMinutes || 60);
+    setError(null);
+
+    if (item.startTime) {
+      try {
+        const d = new Date(item.startTime);
+        const dateStr = d.toISOString().split("T")[0];
+        const hours = String(d.getHours()).padStart(2, "0");
+        const mins = String(d.getMinutes()).padStart(2, "0");
+        setMeetingDate(dateStr);
+        setMeetingTime(`${hours}:${mins}`);
+      } catch (e) {
+        setMeetingDate(new Date().toISOString().split("T")[0]);
+        setMeetingTime("08:30");
+      }
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSaveMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCourseId) {
       setError("Please select a course for this meeting.");
@@ -142,23 +188,82 @@ export default function ZoomLinksPage() {
       // Build ISO Start Time string
       const startTimeIso = new Date(`${meetingDate}T${meetingTime}:00`).toISOString();
 
-      // Call Cloud Function to create Zoom Meeting via Server-to-Server OAuth
-      const createZoomFn = httpsCallable(functions, "createZoomMeeting");
-      await createZoomFn({
-        topic,
+      if (creationMode === "auto" && !editingItem) {
+        // Attempt automatic Zoom API creation via Cloud Function
+        try {
+          const createZoomFn = httpsCallable(functions, "createZoomMeeting");
+          await createZoomFn({
+            topic,
+            courseId: selectedCourse.id,
+            courseTitle: selectedCourse.title,
+            grade: selectedCourse.grade,
+            startTime: startTimeIso,
+            durationMinutes: Number(durationMinutes),
+            description,
+          });
+          setIsModalOpen(false);
+          await fetchData();
+          return;
+        } catch (apiErr: any) {
+          console.warn("Zoom API auto-creation failed, falling back to manual add prompt:", apiErr);
+          setError(
+            `Zoom API Error: ${apiErr.message || "Failed to call Zoom API"}. Switching to Manual Link entry. Please paste your Zoom URL below.`
+          );
+          setCreationMode("manual");
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      // Manual Creation or Editing existing item directly in Firestore
+      if (!joinUrl.trim()) {
+        setError("Please enter a valid Zoom Join Link.");
+        setSubmitting(false);
+        return;
+      }
+
+      // Extract Meeting ID from URL if empty
+      let extractedId = zoomMeetingId.trim();
+      if (!extractedId && joinUrl) {
+        const match = joinUrl.match(/\/j\/(\d+)/);
+        if (match) {
+          extractedId = match[1];
+        }
+      }
+
+      const meetingData = {
+        classId: selectedCourse.id,
         courseId: selectedCourse.id,
         courseTitle: selectedCourse.title,
         grade: selectedCourse.grade,
+        topic: topic.trim(),
+        joinUrl: joinUrl.trim(),
+        startUrl: joinUrl.trim(),
+        zoomMeetingId: extractedId || "Manual-" + Date.now(),
+        meetingUUID: extractedId || "UUID-" + Date.now(),
+        passcode: passcode.trim(),
         startTime: startTimeIso,
         durationMinutes: Number(durationMinutes),
-        description,
-      });
+        description: description.trim(),
+        status: editingItem ? editingItem.status : "scheduled",
+        attendanceProcessed: editingItem ? (editingItem.attendanceProcessed ?? false) : false,
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (editingItem) {
+        await updateDoc(doc(db, "liveClasses", editingItem.id), meetingData);
+      } else {
+        await addDoc(collection(db, "liveClasses"), {
+          ...meetingData,
+          createdAt: new Date().toISOString(),
+        });
+      }
 
       setIsModalOpen(false);
       await fetchData();
     } catch (err: any) {
-      console.error("Error creating Zoom meeting:", err);
-      setError(err.message || "Failed to create Zoom meeting via Zoom API.");
+      console.error("Error saving Zoom meeting:", err);
+      setError(err.message || "Failed to save Zoom meeting.");
     } finally {
       setSubmitting(false);
     }
@@ -168,21 +273,24 @@ export default function ZoomLinksPage() {
     if (!confirm(`Are you sure you want to delete the meeting "${item.topic}"?`)) return;
 
     try {
-      const deleteZoomFn = httpsCallable(functions, "deleteZoomMeeting");
-      await deleteZoomFn({
-        classId: item.id,
-        zoomMeetingId: item.zoomMeetingId,
-      });
+      // Try Cloud Function delete if API meeting
+      if (item.zoomMeetingId && !item.zoomMeetingId.startsWith("Manual-")) {
+        try {
+          const deleteZoomFn = httpsCallable(functions, "deleteZoomMeeting");
+          await deleteZoomFn({
+            classId: item.id,
+            zoomMeetingId: item.zoomMeetingId,
+          });
+        } catch (cfErr) {
+          console.warn("Cloud function delete warning (proceeding with Firestore delete):", cfErr);
+        }
+      }
+      // Delete document directly from Firestore
+      await deleteDoc(doc(db, "liveClasses", item.id));
       fetchData();
     } catch (err) {
       console.error("Error deleting meeting:", err);
-      // Fallback local Firestore delete if CF fails
-      try {
-        await deleteDoc(doc(db, "liveClasses", item.id));
-        fetchData();
-      } catch (inner) {
-        console.error("Fallback delete error:", inner);
-      }
+      alert("Failed to delete meeting.");
     }
   };
 
@@ -215,7 +323,7 @@ export default function ZoomLinksPage() {
             </p>
             <h1 className="mt-2 text-3xl font-black md:text-4xl">Zoom Meetings & Live Classes</h1>
             <p className="mt-2 text-ink/55">
-              Automatically create Zoom meetings and manage live class schedules for students.
+              Schedule live classes and manage Zoom links manually or automatically for enrolled students.
             </p>
           </div>
 
@@ -223,7 +331,7 @@ export default function ZoomLinksPage() {
             onClick={openCreateModal}
             className="gradient-button px-6 py-3 text-xs shadow-md shrink-0 cursor-pointer flex items-center gap-2"
           >
-            <Plus size={16} /> Create Zoom Meeting
+            <Plus size={16} /> Add / Schedule Zoom Link
           </button>
         </div>
 
@@ -238,8 +346,8 @@ export default function ZoomLinksPage() {
             <EmptyState
               emoji="📹"
               title="No Zoom Meetings Created"
-              description="Create your first automated Zoom meeting for an upcoming theory or paper class."
-              actionLabel="Create Zoom Meeting"
+              description="Add your Zoom meeting link manually or create a meeting for an upcoming theory or paper class."
+              actionLabel="Add Zoom Link"
               actionOnClick={openCreateModal}
             />
           </div>
@@ -265,9 +373,18 @@ export default function ZoomLinksPage() {
                   <div>
                     <div className="flex items-center justify-between">
                       <Badge tone="purple">{item.grade}</Badge>
-                      <Badge tone={isCompleted ? "green" : "lavender"}>
-                        {isCompleted ? "Completed" : "Scheduled"}
-                      </Badge>
+                      <div className="flex items-center gap-1.5">
+                        <Badge tone={isCompleted ? "green" : "lavender"}>
+                          {isCompleted ? "Completed" : "Scheduled"}
+                        </Badge>
+                        <button
+                          onClick={() => openEditModal(item)}
+                          className="rounded-lg p-1 text-ink/40 hover:bg-lavender-100 hover:text-lavender-700 transition"
+                          title="Edit Meeting Link"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                      </div>
                     </div>
 
                     <h3 className="mt-4 text-xl font-black text-ink leading-snug">{item.topic}</h3>
@@ -282,21 +399,23 @@ export default function ZoomLinksPage() {
                         <Clock size={14} className="text-lavender-600 shrink-0" />
                         <span>{formattedTime} ({item.durationMinutes} mins)</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-amber-50 p-2.5 rounded-xl border border-amber-100 text-amber-900">
-                        <span>🔑 Passcode: <span className="font-mono text-sm">{item.passcode}</span></span>
-                      </div>
+                      {item.passcode && (
+                        <div className="flex items-center gap-2 bg-amber-50 p-2.5 rounded-xl border border-amber-100 text-amber-900">
+                          <span>🔑 Passcode: <span className="font-mono text-sm">{item.passcode}</span></span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <div className="mt-6 space-y-2 pt-4 border-t border-ink/5">
-                    {/* Host Start Button */}
+                    {/* Host Start / Join Button */}
                     <a
                       href={item.startUrl || item.joinUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="flex items-center justify-center gap-2 w-full rounded-2xl bg-lavender-600 px-4 py-2.5 text-xs font-black text-white hover:bg-lavender-700 transition shadow-sm"
                     >
-                      <Play size={14} /> Start Meeting as Host
+                      <Play size={14} /> Start / Join Meeting
                     </a>
 
                     <div className="flex items-center gap-2">
@@ -306,7 +425,7 @@ export default function ZoomLinksPage() {
                       >
                         {copiedId === item.id ? (
                           <>
-                            <Check size={13} /> Copied Student Link
+                            <Check size={13} /> Copied Link
                           </>
                         ) : (
                           <>
@@ -319,7 +438,7 @@ export default function ZoomLinksPage() {
                         <button
                           onClick={() => handleProcessAttendance(item)}
                           className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition"
-                          title="Process / Recalculate Attendance"
+                          title="Process Attendance"
                         >
                           <Users size={15} />
                         </button>
@@ -340,30 +459,61 @@ export default function ZoomLinksPage() {
           </div>
         )}
 
-        {/* CREATE MEETING MODAL */}
+        {/* CREATE / EDIT MEETING MODAL */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
             <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl md:p-8 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b border-ink/10 pb-4">
                 <div>
-                  <p className="text-xs font-extrabold uppercase text-lavender-600">Zoom API Integration</p>
-                  <h3 className="mt-0.5 text-xl font-black text-ink">Create Zoom Meeting</h3>
+                  <p className="text-xs font-extrabold uppercase text-lavender-600">
+                    {editingItem ? "Update Zoom Link" : "Zoom Class Scheduling"}
+                  </p>
+                  <h3 className="mt-0.5 text-xl font-black text-ink">
+                    {editingItem ? "Edit Zoom Meeting" : "Add Zoom Meeting"}
+                  </h3>
                 </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="grid h-9 w-9 place-items-center rounded-2xl bg-ink/5 text-ink/60 hover:bg-ink/10"
+                  className="grid h-9 w-9 place-items-center rounded-2xl bg-ink/5 text-ink/60 hover:bg-ink/10 cursor-pointer"
                 >
                   <X size={18} />
                 </button>
               </div>
 
+              {!editingItem && (
+                <div className="mt-4 flex rounded-2xl bg-lavender-50 p-1.5 border border-lavender-200">
+                  <button
+                    type="button"
+                    onClick={() => { setCreationMode("manual"); setError(null); }}
+                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-black transition cursor-pointer ${
+                      creationMode === "manual"
+                        ? "bg-white text-lavender-700 shadow-sm"
+                        : "text-ink/60 hover:text-ink"
+                    }`}
+                  >
+                    <LinkIcon size={14} /> Manually Enter Zoom Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setCreationMode("auto"); setError(null); }}
+                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-black transition cursor-pointer ${
+                      creationMode === "auto"
+                        ? "bg-white text-lavender-700 shadow-sm"
+                        : "text-ink/60 hover:text-ink"
+                    }`}
+                  >
+                    <Wand2 size={14} /> Auto API Creation
+                  </button>
+                </div>
+              )}
+
               {error && (
-                <div className="mt-4 rounded-2xl bg-rose-50 p-4 text-xs font-bold text-rose-700 border border-rose-200">
+                <div className="mt-4 rounded-2xl bg-amber-50 p-4 text-xs font-bold text-amber-900 border border-amber-200">
                   {error}
                 </div>
               )}
 
-              <form onSubmit={handleCreateMeeting} className="mt-6 space-y-4">
+              <form onSubmit={handleSaveMeeting} className="mt-6 space-y-4">
                 <div>
                   <label className="block text-xs font-black uppercase tracking-wider text-ink/60">
                     Target Course *
@@ -395,6 +545,52 @@ export default function ZoomLinksPage() {
                     className="pastel-input mt-1.5 w-full"
                   />
                 </div>
+
+                {creationMode === "manual" && (
+                  <>
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-wider text-ink/60">
+                        Zoom Join URL / Meeting Link *
+                      </label>
+                      <input
+                        type="url"
+                        required
+                        placeholder="https://us02web.zoom.us/j/123456789..."
+                        value={joinUrl}
+                        onChange={(e) => setJoinUrl(e.target.value)}
+                        className="pastel-input mt-1.5 w-full font-mono text-xs"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-black uppercase tracking-wider text-ink/60">
+                          Meeting Passcode (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 123456"
+                          value={passcode}
+                          onChange={(e) => setPasscode(e.target.value)}
+                          className="pastel-input mt-1.5 w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-black uppercase tracking-wider text-ink/60">
+                          Meeting ID (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 987 654 3210"
+                          value={zoomMeetingId}
+                          onChange={(e) => setZoomMeetingId(e.target.value)}
+                          className="pastel-input mt-1.5 w-full"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -459,7 +655,7 @@ export default function ZoomLinksPage() {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="rounded-2xl border border-ink/10 px-5 py-2.5 text-xs font-bold text-ink/70 hover:bg-ink/5"
+                    className="rounded-2xl border border-ink/10 px-5 py-2.5 text-xs font-bold text-ink/70 hover:bg-ink/5 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -470,10 +666,10 @@ export default function ZoomLinksPage() {
                   >
                     {submitting ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin" /> Creating Zoom Meeting...
+                        <Loader2 className="h-4 w-4 animate-spin" /> Saving Meeting...
                       </>
                     ) : (
-                      <>Create Meeting</>
+                      <>{editingItem ? "Update Zoom Link" : "Save Zoom Link"}</>
                     )}
                   </button>
                 </div>
@@ -485,3 +681,4 @@ export default function ZoomLinksPage() {
     </TeacherGuard>
   );
 }
+
