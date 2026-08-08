@@ -1,28 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
+import { getAdminDb } from "@/lib/firebase-admin";
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { phone } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { phone } = body;
 
-    if (!phone) {
+    if (!phone || typeof phone !== "string") {
       return NextResponse.json({ error: "Phone number is required" }, { status: 400 });
     }
 
-    // Normalize phone number
+    // Normalize Sri Lankan mobile numbers (0771234567, +94771234567, 94771234567, 771234567 -> 0771234567)
     let cleanedPhone = phone.replace(/\D/g, "");
     if (cleanedPhone.startsWith("94")) {
       cleanedPhone = "0" + cleanedPhone.substring(2);
@@ -31,30 +21,43 @@ export async function POST(req: NextRequest) {
       cleanedPhone = "0" + cleanedPhone;
     }
 
-    const usersRef = collection(db, "users");
+    // Sri Lankan mobile number validation (must be 10 digits starting with 07)
+    if (!/^07\d{8}$/.test(cleanedPhone)) {
+      return NextResponse.json({ error: "Invalid mobile number or password." }, { status: 400 });
+    }
 
-    let q = query(usersRef, where("mobileNumber", "==", cleanedPhone));
-    let snap = await getDocs(q);
+    const adminDb = getAdminDb();
+    const usersRef = adminDb.collection("users");
 
+    let snap = await usersRef.where("mobileNumber", "==", cleanedPhone).limit(1).get();
     if (snap.empty) {
-      q = query(usersRef, where("whatsappNumber", "==", cleanedPhone));
-      snap = await getDocs(q);
+      snap = await usersRef.where("whatsappNumber", "==", cleanedPhone).limit(1).get();
     }
 
     if (snap.empty) {
-      return NextResponse.json({ error: "No student account found registered with this mobile number." }, { status: 404 });
+      // Generic error response to prevent user account enumeration
+      return NextResponse.json({ error: "Invalid mobile number or password." }, { status: 404 });
     }
 
     const userData = snap.docs[0].data();
     const email = userData.email;
 
     if (!email) {
-      return NextResponse.json({ error: "Account record missing email key. Please sign in via SMS OTP." }, { status: 400 });
+      return NextResponse.json({ error: "Invalid mobile number or password." }, { status: 400 });
     }
 
     return NextResponse.json({ email });
   } catch (error: any) {
-    console.error("API get-email-by-phone error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("=== FULL SERVER API ERROR ===");
+    console.error("Message:", error?.message);
+    console.error("Code:", error?.code);
+    console.error("Stack:", error?.stack);
+    return NextResponse.json(
+      {
+        error: error?.message || "Internal Server Error",
+        code: error?.code || null,
+      },
+      { status: 500 }
+    );
   }
 }

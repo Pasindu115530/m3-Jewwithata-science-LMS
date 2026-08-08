@@ -51,7 +51,7 @@ export default function StudentLoginPage() {
     setCredLoading(true);
 
     try {
-      // 1. Fetch user's registered email via secure server API endpoint
+      // 1. Fetch user's registered internal email via secure server API endpoint
       const res = await fetch("/api/auth/get-email-by-phone", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,27 +60,21 @@ export default function StudentLoginPage() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setCredError(data.error || "No student account found registered with this mobile number.");
+      if (!res.ok || !data.email) {
+        setCredError("Invalid mobile number or password.");
         setCredLoading(false);
         return;
       }
 
-      // 2. Sign in with Email and Password via Firebase Auth client SDK
+      // 2. Authenticate using Firebase Auth client SDK with internal email & password
       await signInWithEmailAndPassword(auth, data.email, password);
       router.push("/student/dashboard");
     } catch (err: any) {
       console.error("Student login error:", err);
-      if (
-        err.code === "auth/invalid-credential" ||
-        err.code === "auth/user-not-found" ||
-        err.code === "auth/wrong-password"
-      ) {
-        setCredError("Invalid mobile number or password.");
-      } else if (err.code === "auth/too-many-requests") {
+      if (err.code === "auth/too-many-requests") {
         setCredError("Too many failed attempts. Please try again later.");
       } else {
-        setCredError(err.message || "Failed to sign in. Please check your credentials.");
+        setCredError("Invalid mobile number or password.");
       }
     } finally {
       setCredLoading(false);
