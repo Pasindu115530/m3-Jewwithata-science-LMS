@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Bell, BookOpen, CalendarDays, CheckSquare, ClipboardCheck, CreditCard, Download, FileText, LayoutDashboard,
-  Maximize, Megaphone, Menu, Minimize, PlayCircle, Search, Settings, UserRound, Users, Video, WalletCards
+  LogOut, Maximize, Megaphone, Menu, Minimize, PlayCircle, Search, Settings, UserRound, Users, Video, WalletCards, X
 } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { studentMenu, teacherMenu } from "@/lib/mock-data";
@@ -31,6 +31,37 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
   const [userGrade, setUserGrade] = useState<string>(role === "student" ? "Grade 10 Student" : "Science Teacher");
   const subtitle = userGrade;
 
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Close mobile drawer when active route changes
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [active]);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (mobileSidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileSidebarOpen]);
+
+  // Handle escape key to close drawer
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMobileSidebarOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -52,8 +83,6 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
   }, [role]);
 
   const person = userName;
-
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -122,6 +151,91 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
 
   return (
     <div className="min-h-screen p-3 md:p-5">
+      {/* Mobile Navigation Drawer / Overlay */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Portal Navigation">
+          {/* Backdrop Overlay */}
+          <div
+            className="fixed inset-0 bg-[#001035]/65 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
+            onClick={() => setMobileSidebarOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Slide-in Drawer Panel */}
+          <aside className="fixed inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-gradient-to-b from-[#002583] via-[#001d68] to-[#001548] p-5 text-white shadow-2xl transition-transform animate-in slide-in-from-left duration-300 z-50 overflow-y-auto">
+            {/* Top Brand & Close Button */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex-1 rounded-2xl bg-white/95 p-2.5 shadow-sm" onClick={() => setMobileSidebarOpen(false)}>
+                <Brand />
+              </div>
+              <button
+                onClick={() => setMobileSidebarOpen(false)}
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white/10 text-white hover:bg-white/20 active:scale-95 transition"
+                aria-label="Close navigation menu"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* User Badge */}
+            <div className="mt-5 flex items-center gap-3 rounded-2xl bg-white/10 p-3 backdrop-blur-md border border-white/10">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/20 text-2xl shadow-card">
+                {role === "student" ? "👩‍🎓" : "👨‍🏫"}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-black text-white truncate text-sm">{person}</p>
+                <p className="text-xs font-semibold text-[#FFB800] truncate">{subtitle}</p>
+              </div>
+            </div>
+
+            {/* Nav Links */}
+            <nav className="mt-5 flex flex-1 flex-col gap-1.5 overflow-y-auto pr-0.5">
+              {menu.map(([label, href]) => {
+                const selected = active === label;
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition-all duration-200 ${
+                      selected
+                        ? "bg-[#FFB800] text-[#002583] shadow-button scale-[1.02]"
+                        : "text-white/90 hover:bg-white/15 hover:text-white"
+                    }`}
+                  >
+                    {iconMap[label] || <LayoutDashboard size={19} />}
+                    <span>{label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Side Banner - Brand Yellow (#FFB800) */}
+            <div className="mt-4 rounded-2xl bg-gradient-to-br from-[#FFB800] via-[#ffa800] to-[#ffd44d] p-4 text-[#002583] shadow-card">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{role === "student" ? "⭐" : "🚀"}</span>
+                <p className="font-black text-sm">{role === "student" ? "Keep learning!" : "Grow your class"}</p>
+              </div>
+              <p className="mt-1 text-xs font-bold leading-4 text-[#002583]/80">
+                {role === "student" ? "Small progress every day creates big results." : "Everything you need is organised in one place."}
+              </p>
+            </div>
+
+            {/* Sign Out Button */}
+            <button
+              onClick={() => {
+                setMobileSidebarOpen(false);
+                handleSignOut();
+              }}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-red-400/30 bg-red-500/20 py-2.5 text-xs font-extrabold text-red-200 hover:bg-red-500/30 transition"
+            >
+              <LogOut size={15} />
+              <span>Sign Out</span>
+            </button>
+          </aside>
+        </div>
+      )}
+
       <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-[1480px] overflow-hidden rounded-[2.25rem] border border-white/80 bg-gradient-to-br from-[#f0f4ff]/90 via-white/80 to-[#fffdf0]/90 shadow-soft backdrop-blur-xl">
         
         {/* Sidebar - Brand Blue (#002583) theme */}
@@ -175,7 +289,12 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
         {/* Main Content View */}
         <div className="min-w-0 flex-1">
           <header className="flex items-center gap-3 border-b border-lavender-200/80 px-4 py-4 md:px-7">
-            <button className="grid h-11 w-11 place-items-center rounded-2xl bg-white shadow-card lg:hidden" aria-label="Open sidebar">
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="grid h-11 w-11 place-items-center rounded-2xl bg-white shadow-card hover:bg-lavender-50 active:scale-95 transition lg:hidden"
+              aria-label="Open sidebar navigation menu"
+              aria-expanded={mobileSidebarOpen}
+            >
               <Menu size={20} className="text-[#002583]" />
             </button>
 
@@ -235,3 +354,4 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
     </div>
   );
 }
+
