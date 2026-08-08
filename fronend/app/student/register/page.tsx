@@ -1204,7 +1204,6 @@ export default function StudentRegisterPage() {
                       </strong>
                     </div>
                   </div>
-                  </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
