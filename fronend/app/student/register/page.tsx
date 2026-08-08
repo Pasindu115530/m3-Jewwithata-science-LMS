@@ -300,7 +300,7 @@ export default function StudentRegisterPage() {
               <Sparkles size={14} className="text-[#FFB800]" /> NEW STUDENT ADMISSIONS 2026
             </div>
             <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#002583] drop-shadow-sm">
-              Student <span className="text-[#FFB800]">Registration</span>
+              Student Registration<span className="text-[#FFB800]">-ශිෂ්‍ය ලියාපදිංචිය</span>
             </h1>
             <p className="mt-2 text-sm sm:text-base text-ink/75 max-w-2xl mx-auto font-medium">
               Grade 6 – 11 Science Theory, Revision &amp; Paper Classes by <strong>Kalhara Nakandala</strong>.

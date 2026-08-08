@@ -11,6 +11,7 @@ import { siteConfig } from "@/lib/site";
 
 const links = [
   ["Home", "/"],
+  ["Gallery", "/gallery"],
   ["Time Table", "/timetable"],
   ["Student Login", "/student-login"],
 ] as const;
@@ -297,6 +298,11 @@ export function PublicFooter() {
             <li>
               <Link href="/classes" className="hover:text-[#FFB800] transition flex items-center gap-1.5">
                 <ChevronRight size={13} className="text-[#FFB800]" /> Classes &amp; Courses
+              </Link>
+            </li>
+            <li>
+              <Link href="/gallery" className="hover:text-[#FFB800] transition flex items-center gap-1.5">
+                <ChevronRight size={13} className="text-[#FFB800]" /> Class Gallery
               </Link>
             </li>
             <li>

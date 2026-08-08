@@ -17,12 +17,9 @@ export const metadata = createMetadata(
 export default function Page() {
   return (
     <PublicShell>
-      <PageHero
-        title="Class Gallery"
-        text="Explore class moments, seminars, practical science activities and student achievements with Kalhara Nakandala."
-        icon="📸"
-      />
-      <PublicContent page="gallery" />
+      <div className="py-6 sm:py-10">
+        <PublicContent page="gallery" />
+      </div>
     </PublicShell>
   );
 }

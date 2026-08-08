@@ -24,11 +24,12 @@ function Info({icon,title,text}:{icon:string;title:string;text:string}){return <
 
 function Lessons(){return <Wrap><div className="mb-7 grid gap-3 md:grid-cols-[1fr_auto_auto]"><div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/35" size={18}/><input className="pastel-input pl-11" placeholder="Search free lessons..."/></div><button className="pill">All grades</button><button className="pill">All topics</button></div><div className="grid gap-5 md:grid-cols-3">{[...lessons,...lessons].map((l,i)=><Card key={i} className="overflow-hidden"><div className={`grid h-48 place-items-center text-7xl ${i%3===0?"bg-lavender-200":i%3===1?"bg-peach-100":"bg-butter"}`}>{l.icon}</div><div className="p-5"><div className="flex gap-2"><Badge>{l.grade}</Badge><Badge tone="blue">{l.duration}</Badge></div><h2 className="mt-4 text-xl font-black">{l.title}</h2><p className="mt-1 text-sm text-ink/50">{l.topic} • Pasindu Udana</p><div className="mt-5 flex gap-2"><button className="gradient-button flex-1"><Play size={16}/> Watch</button><button className="grid h-12 w-12 place-items-center rounded-2xl bg-white shadow-card"><Download size={17}/></button></div></div></Card>)}</div></Wrap>}
 
-function Gallery(){const items=["Physical class","Zoom revision","Practical activity","Model-paper seminar","Student achievement","Science exhibition","Award moment","Teacher session","Group discussion"];return <Wrap><div className="mb-7 flex flex-wrap gap-3">{["All","Classes","Seminars","Practical","Achievements"].map(x=><button className="pill" key={x}>{x}</button>)}</div><div className="grid auto-rows-[180px] gap-4 sm:grid-cols-2 lg:grid-cols-3">{items.map((x,i)=><Card key={x} className={`grid place-items-center overflow-hidden p-5 text-center ${i%4===0?"sm:row-span-2": ""} ${["bg-lavender-200","bg-peach-100","bg-butter","bg-skysoft","bg-mintsoft"][i%5]}`}><div><div className="text-6xl">{["🧑‍🏫","💻","🧪","📝","🏆","🔬","🥇","📚","👥"][i]}</div><p className="mt-4 font-black">{x}</p><p className="text-xs text-ink/45">Photo placeholder</p></div></Card>)}</div></Wrap>}
-
 import { TimetablePoster } from "@/components/timetable-poster";
 import { ClassesPoster } from "@/components/classes-poster";
 import { ContactPoster } from "@/components/contact-poster";
+import { GalleryPoster } from "@/components/gallery-poster";
+
+function Gallery(){return <Wrap><GalleryPoster/></Wrap>}
 
 function Timetable(){return <Wrap><TimetablePoster/></Wrap>}
 
