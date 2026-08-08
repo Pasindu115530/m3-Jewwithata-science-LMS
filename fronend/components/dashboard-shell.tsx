@@ -161,14 +161,15 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
             </div>
 
             <div className="ml-auto flex items-center gap-3">
-              <button
+              <Link
+                href={role === "student" ? "/student/notifications" : "/teacher/announcements"}
                 className="relative grid h-11 w-11 place-items-center rounded-2xl bg-white shadow-card hover:bg-lavender-50 transition"
                 aria-label="Notifications"
                 title="Notifications"
               >
                 <Bell size={19} className="text-[#002583]"/>
-                <span className="absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-[#FFB800] text-[9px] font-black text-[#002583]">3</span>
-              </button>
+                <span className="absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-[#FFB800] text-[9px] font-black text-[#002583]">!</span>
+              </Link>
 
               <button
                 onClick={toggleFullscreen}

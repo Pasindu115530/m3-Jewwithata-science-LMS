@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import {
   ArrowRight, CalendarDays, CheckCircle2, MessageCircle,
   Play, Sparkles, Star, Atom, TrendingUp, QrCode, Heart, ArrowUpRight, Trophy,
-  UserPlus, LogIn, PhoneCall
+  UserPlus, LogIn, PhoneCall, Radio, FileText, GraduationCap, UserCheck
 } from "lucide-react";
 import { PublicShell } from "@/components/public-shell";
 import { Card, Badge, SectionHeading, TextLink } from "@/components/ui";
@@ -243,7 +243,7 @@ export default function HomePage() {
 
           {/* Right column — Quick Access Action Buttons */}
           <div className="flex flex-col items-center gap-3.5 lg:items-end order-3 lg:order-3 w-full max-w-sm mx-auto lg:max-w-[280px]">
-            
+
             {/* 1. REGISTER button */}
             <Link
               href="/student/register"
@@ -487,29 +487,7 @@ export default function HomePage() {
             </div>
 
 
-            {/* Floating badge 1 — Assignment submitted */}
-            <div className="float-badge hidden sm:block" style={{ bottom: "5rem", left: "-1.5rem", animationDelay: "0.5s" }}>
-              <div className="flex items-center gap-2.5">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-mintsoft text-base">✅</div>
-                <div>
-                  <p className="text-xs font-extrabold text-emerald-700">Assignment Submitted</p>
-                  <p className="text-[11px] text-ink/50">Assignment 06 — Grade 11</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Floating badge 2 — Result improved */}
-            <div className="float-badge hidden sm:block" style={{ top: "4rem", right: "-1.5rem", animationDelay: "2.5s" }}>
-              <div className="flex items-center gap-2.5">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#FFB800]/15 text-base">
-                  <TrendingUp size={18} className="text-[#002583]" />
-                </div>
-                <div>
-                  <p className="text-xs font-extrabold text-[#002583]">Result Improved</p>
-                  <p className="text-[11px] font-bold text-emerald-600">+23 marks this term</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -517,12 +495,11 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════════════
           E. DARK NAVY CTA BLOCK — breakout icon, rounded, centered
       ══════════════════════════════════════════════════════════════ */}
-      <section className="mx-auto max-w-7xl px-4 py-4 lg:px-8 overflow-hidden lg:overflow-visible">
-        <div className="dark-cta-block px-8 pb-14 pt-20 text-center md:px-16">
+      <section className="mx-auto max-w-7xl px-4 pt-14 pb-8 lg:px-8">
+        <div className="dark-cta-block relative px-8 pb-14 pt-16 text-center md:px-16 shadow-2xl">
           {/* Breakout atom at top */}
           <div
-            className="absolute left-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[1.6rem] bg-[#FFB800] shadow-button"
-            style={{ top: 0 }}
+            className="absolute -top-10 left-1/2 -translate-x-1/2 flex h-20 w-20 items-center justify-center rounded-[1.6rem] bg-[#FFB800] shadow-button ring-4 ring-white z-20"
           >
             <Atom size={38} className="text-[#002583]" />
           </div>
@@ -645,29 +622,85 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════
-          TESTIMONIALS
+          SPECIAL FEATURES (පන්තියේ විශේෂතා)
       ══════════════════════════════════════════════════════════════ */}
-      <section className="mx-auto max-w-7xl px-4 py-14 lg:px-8">
-        <SectionHeading eyebrow="Student success" title="What our learners say" />
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((t) => (
-            <Card key={t.name} className="p-6 flex flex-col justify-between">
-              <div>
-                <div className="flex text-amber-400 mb-3">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} size={15} fill="currentColor" />
-                  ))}
-                </div>
-                <p className="text-sm leading-6 text-ink/65">&ldquo;{t.text}&rdquo;</p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-ink/10 flex items-center justify-between">
-                <div>
-                  <p className="font-black text-sm">{t.name}</p>
-                  <p className="text-xs text-ink/45">{t.grade}</p>
-                </div>
-              </div>
-            </Card>
-          ))}
+      <section className="mx-auto max-w-7xl px-4 py-16 lg:px-8">
+        <div className="text-center mb-12">
+          <p className="text-xs sm:text-sm font-extrabold uppercase tracking-[.25em] text-[#FFB800]">
+            Class Highlights &amp; Methodology
+          </p>
+          <h2 className="mt-2 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#002583]">
+            පන්තියේ විශේෂතා <span className="font-sans text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#FFB800]">(Special Features)</span>
+          </h2>
+          <p className="mt-3 text-sm sm:text-base text-zinc-600 max-w-2xl mx-auto font-medium">
+            සිසුන්ගේ විශිෂ්ට ජයග්‍රහණ වෙනුවෙන් සැකසුණු අපගේ වැඩපිළිවෙළ
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Card 1: Live Zoom */}
+          <div className="relative overflow-hidden rounded-[1.8rem] border border-white/80 bg-white/80 p-6 sm:p-7 shadow-[0_10px_30px_rgba(0,37,131,0.06)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,37,131,0.12)] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-gradient-to-b before:from-[#6366F1] before:to-[#4F46E5]">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 border border-indigo-100/80 text-indigo-600 shadow-sm">
+              <Radio size={24} className="stroke-[2.2]" />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-[#002583]">
+              සජීවී Zoom දේශන
+            </h3>
+            <p className="mt-1 text-xs font-bold text-zinc-500 font-sans">
+              (Interactive Live Classes)
+            </p>
+            <p className="mt-4 text-xs sm:text-sm leading-relaxed text-zinc-600">
+              සෑම සතියකම පැවැත්වෙන සජීවී Zoom පන්ති මගින් සිසුන්ට ඕනෑම ගැටළුවක් සෘජුවම සර් වෙත යොමුකර විසඳා ගැනීමට අවස්ථාව සලසා ඇත.
+            </p>
+          </div>
+
+          {/* Card 2: Premium Materials */}
+          <div className="relative overflow-hidden rounded-[1.8rem] border border-white/80 bg-white/80 p-6 sm:p-7 shadow-[0_10px_30px_rgba(0,37,131,0.06)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,37,131,0.12)] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-gradient-to-b before:from-[#0EA5E9] before:to-[#0284C7]">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 border border-sky-100/80 text-sky-600 shadow-sm">
+              <FileText size={24} className="stroke-[2.2]" />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-[#002583]">
+              විධිමත් නිබන්ධන පෙළ
+            </h3>
+            <p className="mt-1 text-xs font-bold text-zinc-500 font-sans">
+              (Premium Materials)
+            </p>
+            <p className="mt-4 text-xs sm:text-sm leading-relaxed text-zinc-600">
+              සියලුම සිද්ධාන්ත සහ විභාග ගැටළු අඩංගු උසස් ප්‍රමිතියෙන් යුත් නිබන්ධන PDF ආකාරයෙන් හෝ මුද්‍රිතව ලබාදේ.
+            </p>
+          </div>
+
+          {/* Card 3: Paper Discussions */}
+          <div className="relative overflow-hidden rounded-[1.8rem] border border-white/80 bg-white/80 p-6 sm:p-7 shadow-[0_10px_30px_rgba(0,37,131,0.06)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,37,131,0.12)] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-gradient-to-b before:from-[#EC4899] before:to-[#DB2777]">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-50 border border-pink-100/80 text-pink-600 shadow-sm">
+              <GraduationCap size={24} className="stroke-[2.2]" />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-[#002583]">
+              විභාග ප්‍රශ්න පත්‍ර සාකච්ඡා
+            </h3>
+            <p className="mt-1 text-xs font-bold text-zinc-500 font-sans">
+              (Paper Discussions)
+            </p>
+            <p className="mt-4 text-xs sm:text-sm leading-relaxed text-zinc-600">
+              පසුගිය විභාග ප්‍රශ්න පත්‍ර සහ ආදර්ශ ප්‍රශ්න පත්‍ර ලියවා, ලකුණු ලබාදී, ක්‍රමවත්ව සාකච්ඡා කර සිසුන් විභාගයට සූදානම් කෙරේ.
+            </p>
+          </div>
+
+          {/* Card 4: Individual Attention */}
+          <div className="relative overflow-hidden rounded-[1.8rem] border border-white/80 bg-white/80 p-6 sm:p-7 shadow-[0_10px_30px_rgba(0,37,131,0.06)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(0,37,131,0.12)] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-gradient-to-b before:from-[#8B5CF6] before:to-[#7C3AED]">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 border border-purple-100/80 text-purple-600 shadow-sm">
+              <UserCheck size={24} className="stroke-[2.2]" />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-[#002583]">
+              පෞද්ගලික අවධානය
+            </h3>
+            <p className="mt-1 text-xs font-bold text-zinc-500 font-sans">
+              (Individual Attention)
+            </p>
+            <p className="mt-4 text-xs sm:text-sm leading-relaxed text-zinc-600">
+              සෑම ශිෂ්‍යයෙකුගේම ලකුණු මට්ටම් නිරීක්ෂණය කරමින් දුර්වලතා හඳුනාගෙන ඒවා මගහරවා ගැනීමට අවශ්‍ය පෞද්ගලික මගපෙන්වීම ලබාදේ.
+            </p>
+          </div>
         </div>
       </section>
     </PublicShell>

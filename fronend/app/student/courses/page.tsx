@@ -28,9 +28,12 @@ import {
   AlertCircle,
   CreditCard,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Megaphone,
+  Bell
 } from "lucide-react";
 import Link from "next/link";
+import { fetchStudentAnnouncements, AnnouncementItem } from "@/lib/services/announcements";
 
 interface CourseItem {
   id: string;
@@ -74,6 +77,9 @@ export default function StudentCoursesPage() {
   // Selected Course for Detailed Content View (Tutes + Recordings)
   const [selectedCourse, setSelectedCourse] = useState<CourseItem | null>(null);
 
+  // Recent class announcements
+  const [recentAnnouncements, setRecentAnnouncements] = useState<AnnouncementItem[]>([]);
+
   // Enrolling state
   const [enrollingId, setEnrollingId] = useState<string | null>(null);
   const [enrollError, setEnrollError] = useState<string | null>(null);
@@ -101,11 +107,15 @@ export default function StudentCoursesPage() {
           setEnrolledIds(enrolled);
           setEnrollmentsMap(map);
 
-          // 2. Check Monthly Payment Status from `payments` collection
-          const now = new Date();
-          const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+          // 2. Fetch Targeted Announcements for student
+          try {
+            const notifs = await fetchStudentAnnouncements(grade, enrolled);
+            setRecentAnnouncements(notifs.slice(0, 2));
+          } catch (e) {
+            console.error("Error fetching announcements:", e);
+          }
 
-          // 2. Check Monthly Payment Status from `payments` collection for this student only
+          // 3. Check Monthly Payment Status from `payments` collection
           const paymentsQuery = query(
             collection(db, "payments"),
             where("studentUid", "==", user.uid)
@@ -120,7 +130,7 @@ export default function StudentCoursesPage() {
           setIsPaid(paidStatus);
           setCheckingPayment(false);
 
-          // 3. Fetch All Classes directly from Firestore
+          // 4. Fetch All Classes directly from Firestore
           const classesSnap = await getDocs(collection(db, "classes"));
           const allFirestoreClasses = classesSnap.docs.map((docSnap) => ({
             id: docSnap.id,
@@ -251,6 +261,47 @@ export default function StudentCoursesPage() {
                 )}
               </div>
             </div>
+
+            {/* Latest Announcements Alert Strip */}
+            {recentAnnouncements.length > 0 && (
+              <div className="mt-6 rounded-3xl border border-amber-300 bg-gradient-to-r from-amber-50/95 via-amber-100/70 to-orange-50/95 p-4 sm:p-5 shadow-card backdrop-blur-md">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3.5">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#FFB800] text-[#002583] shadow-sm">
+                      <Megaphone size={22} className="stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-[#002583]/15 px-2.5 py-0.5 text-[10px] font-black text-[#002583]">
+                          {recentAnnouncements[0].targetClass}
+                        </span>
+                        <span className="text-[11px] font-black uppercase tracking-wider text-amber-900">
+                          {recentAnnouncements[0].category}
+                        </span>
+                        {recentAnnouncements[0].priority === "Urgent" && (
+                          <span className="rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-black text-white animate-pulse">
+                            URGENT
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm sm:text-base font-black text-[#002583] mt-0.5 line-clamp-1">
+                        {recentAnnouncements[0].title}
+                      </p>
+                      <p className="text-xs text-zinc-700 line-clamp-1">
+                        {recentAnnouncements[0].message}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/student/notifications"
+                    className="inline-flex items-center justify-center gap-1.5 shrink-0 rounded-xl bg-[#002583] px-4 py-2 text-xs font-black text-white shadow-button transition hover:brightness-110 active:scale-95"
+                  >
+                    <Bell size={13} /> View Notifications <ChevronRight size={14} />
+                  </Link>
+                </div>
+              </div>
+            )}
 
             {/* Error / Success Notifications */}
             {enrollError && (

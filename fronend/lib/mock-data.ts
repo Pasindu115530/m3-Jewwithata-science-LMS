@@ -41,6 +41,7 @@ export const testimonials = [
 
 export const studentMenu = [
   ["My Courses", "/student/courses"],
+  ["Notifications", "/student/notifications"],
   ["Live Classes", "/student/live-classes"],
   ["Recordings", "/student/recordings"],
   ["Payments", "/student/payments"],
