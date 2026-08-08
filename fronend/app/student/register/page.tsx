@@ -82,7 +82,7 @@ export default function StudentRegisterPage() {
   const [paperClassFee, setPaperClassFee] = useState<number>(2500);
 
   // STEP 7: Completion Data
-  const [registeredData, setRegisteredData] = useState<{ studentId: string; email: string } | null>(null);
+  const [registeredData, setRegisteredData] = useState<{ studentId: string } | null>(null);
 
   // Sync WhatsApp number with Mobile number if sameAsPhone is checked
   useEffect(() => {
@@ -267,8 +267,12 @@ export default function StudentRegisterPage() {
       setGlobalError(res.error || "Registration failed. Please review your details and try again.");
     } else {
       setRegisteredData({
+<<<<<<< HEAD
         studentId: res.studentId || "STU-2026-NEW",
         email: res.email || `${mobileNumber}@scienceacademy.lk`,
+=======
+        studentId: res.studentId || "STU-NEW",
+>>>>>>> 7100099 (refactor: migrate email-by-phone API to client-side Firebase SDK and remove email display from student registration UI)
       });
       setStep(7); // Registration Complete!
     }
@@ -1181,7 +1185,6 @@ export default function StudentRegisterPage() {
                       STUDENT PASS
                     </span>
                   </div>
-
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between">
                       <span className="text-blue-200/70 font-semibold">Student ID:</span>
@@ -1205,6 +1208,7 @@ export default function StudentRegisterPage() {
                         {studentType === "physical_online" ? "Sadarn - Bombuwela & Zoom" : "Zoom Online Only"}
                       </strong>
                     </div>
+                  </div>
                   </div>
                 </div>
 

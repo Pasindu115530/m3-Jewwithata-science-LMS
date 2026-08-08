@@ -1,27 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initializeApp, getApps, cert } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 
-// Initialize Firebase Admin SDK lazily
-if (!getApps().length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY || "{}");
-  if (serviceAccount.project_id) {
-    initializeApp({
-      credential: cert(serviceAccount),
-    });
-  } else {
-    // Fallback if environment variable is not formatted or provided
-    try {
-      const saPath = require("path").join(process.cwd(), "serviceAccountKey.json");
-      const sa = require(saPath);
-      initializeApp({
-        credential: cert(sa),
-      });
-    } catch (e) {
-      console.error("Firebase Admin initialization error:", e);
-    }
-  }
-}
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
+
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,12 +31,14 @@ export async function POST(req: NextRequest) {
       cleanedPhone = "0" + cleanedPhone;
     }
 
-    const db = getFirestore();
-    const usersRef = db.collection("users");
+    const usersRef = collection(db, "users");
 
-    let snap = await usersRef.where("mobileNumber", "==", cleanedPhone).get();
+    let q = query(usersRef, where("mobileNumber", "==", cleanedPhone));
+    let snap = await getDocs(q);
+
     if (snap.empty) {
-      snap = await usersRef.where("whatsappNumber", "==", cleanedPhone).get();
+      q = query(usersRef, where("whatsappNumber", "==", cleanedPhone));
+      snap = await getDocs(q);
     }
 
     if (snap.empty) {

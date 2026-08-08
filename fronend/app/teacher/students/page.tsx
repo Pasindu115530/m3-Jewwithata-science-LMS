@@ -487,7 +487,6 @@ export default function StudentsManagementPage() {
                 <h3 className="mt-4 text-2xl font-black">Student Registered Successfully!</h3>
                 <div className="mx-auto mt-4 max-w-md rounded-2xl bg-emerald-50 p-4 text-left text-sm text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200 space-y-1.5">
                   <p><strong>Student ID:</strong> {successData.studentId}</p>
-                  <p><strong>Generated Email:</strong> {successData.email}</p>
                   <p><strong>User UID:</strong> {successData.uid}</p>
                 </div>
                 <button
