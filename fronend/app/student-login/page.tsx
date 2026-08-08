@@ -14,7 +14,7 @@ import { sendStudentOtpService, verifyStudentOtpService } from "@/lib/services/o
 export default function StudentLoginPage() {
 
 
-  const [activeTab, setActiveTab] = useState<"otp" | "credentials">("otp");
+  const [activeTab, setActiveTab] = useState<"credentials" | "otp">("credentials");
   const router = useRouter();
 
   // Password Login state (using Phone Number + Password)
@@ -51,41 +51,23 @@ export default function StudentLoginPage() {
     setCredLoading(true);
 
     try {
-      // Normalize entered phone number (e.g. 0771234567 or 94771234567)
-      let cleanedPhone = phoneInput.replace(/\D/g, "");
-      if (cleanedPhone.startsWith("94")) {
-        cleanedPhone = "0" + cleanedPhone.substring(2);
-      }
-      if (!cleanedPhone.startsWith("0")) {
-        cleanedPhone = "0" + cleanedPhone;
-      }
+      // 1. Fetch user's registered email via secure server API endpoint
+      const res = await fetch("/api/auth/get-email-by-phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: phoneInput }),
+      });
 
-      // Query Firestore users collection by mobileNumber or whatsappNumber
-      const { collection, query, where, getDocs } = await import("firebase/firestore");
-      const { db } = await import("@/lib/firebase");
-      
-      const usersRef = collection(db, "users");
-      let snap = await getDocs(query(usersRef, where("mobileNumber", "==", cleanedPhone)));
-      if (snap.empty) {
-        snap = await getDocs(query(usersRef, where("whatsappNumber", "==", cleanedPhone)));
-      }
+      const data = await res.json();
 
-      if (snap.empty) {
-        setCredError("No student account found registered with this mobile number.");
+      if (!res.ok) {
+        setCredError(data.error || "No student account found registered with this mobile number.");
         setCredLoading(false);
         return;
       }
 
-      const userData = snap.docs[0].data();
-      const userEmail = userData.email;
-
-      if (!userEmail) {
-        setCredError("Account record missing email key. Please sign in via SMS OTP.");
-        setCredLoading(false);
-        return;
-      }
-
-      await signInWithEmailAndPassword(auth, userEmail, password);
+      // 2. Sign in with Email and Password via Firebase Auth client SDK
+      await signInWithEmailAndPassword(auth, data.email, password);
       router.push("/student/dashboard");
     } catch (err: any) {
       console.error("Student login error:", err);

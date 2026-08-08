@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={poppins.variable}>
-      <body className={poppins.className}>{children}</body>
+      <body className={poppins.className} suppressHydrationWarning>{children}</body>
     </html>
   );
 }
