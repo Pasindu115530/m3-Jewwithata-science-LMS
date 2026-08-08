@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { 
   Phone, 
   ShieldCheck, 
@@ -35,11 +34,6 @@ import { PublicShell } from "@/components/public-shell";
 import { sendRegistrationOtpService, verifyRegistrationOtpService } from "@/lib/services/registration-otp";
 import { verifyPhysicalStudentService, verifyActivationCodeService } from "@/lib/services/physical-verification";
 import { registerStudentService, getServiceConfigService } from "@/lib/services/register-student";
-
-const DynamicNeuralLinkBackground = dynamic(
-  () => import("@/components/lightswind/neural-link-background"),
-  { ssr: false }
-);
 
 export default function StudentRegisterPage() {
   const router = useRouter();
@@ -297,20 +291,6 @@ export default function StudentRegisterPage() {
         <div className="pointer-events-none absolute -right-32 top-20 h-96 w-96 rounded-full bg-peach-200/35 blur-3xl" />
         <div className="pointer-events-none absolute left-1/3 bottom-10 h-80 w-80 rounded-full bg-[#FFB800]/10 blur-3xl" />
 
-        {/* Interactive Neural Link Background (Desktop only for performance, no running text) */}
-        <div className="hidden lg:block pointer-events-none absolute inset-0 overflow-hidden">
-          <DynamicNeuralLinkBackground
-            nodeColor="#002583"
-            lineColor="#002853"
-            packetColor="#FFB800"
-            nodeCount={30}
-            maxDistance={125}
-            interactionMode="router"
-            interactive={true}
-            packetFrequency={8000}
-            className="z-0 opacity-30"
-          />
-        </div>
 
         <div className="relative z-10 mx-auto max-w-4xl">
           
@@ -629,8 +609,7 @@ export default function StudentRegisterPage() {
                           <option value="Grade 8">Grade 8 Science (8 ශ්‍රේණිය)</option>
                           <option value="Grade 9">Grade 9 Science (9 ශ්‍රේණිය)</option>
                           <option value="Grade 10">Grade 10 Science (10 ශ්‍රේණිය)</option>
-                          <option value="Grade 11">Grade 11 Science (O/L - 11 ශ්‍රේණිය)</option>
-                          <option value="A/L Science">A/L Science (උසස් පෙළ)</option>
+                          <option value="Grade 11">Grade 11 Science (11 ශ්‍රේණිය)</option>
                         </select>
                       </div>
                     </div>
