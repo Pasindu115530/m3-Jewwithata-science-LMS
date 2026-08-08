@@ -137,16 +137,6 @@ export default function StudentProfilePage() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-700">
-                    <Mail size={18} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-extrabold uppercase text-ink/40">Email Address</p>
-                    <p className="mt-0.5 text-sm font-black text-ink">{profile?.email || "SMS Auth User"}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-100 text-violet-700">
                     <Calendar size={18} />
                   </div>

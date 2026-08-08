@@ -11,8 +11,9 @@ import { Brand } from "@/components/brand";
 import { studentMenu, teacherMenu } from "@/lib/mock-data";
 import ProfileDropdown from "@/components/ui/profile-dropdown";
 import { StudentWebappPrompt } from "@/components/student-webapp-prompt";
-import { auth } from "@/lib/firebase";
-import { signOut } from "firebase/auth";
+import { auth, db } from "@/lib/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 const iconMap: Record<string, ReactNode> = {
   Dashboard: <LayoutDashboard size={19}/>, "My Courses": <BookOpen size={19}/>, Tutes: <FileText size={19}/>,
@@ -26,8 +27,31 @@ const iconMap: Record<string, ReactNode> = {
 export function DashboardShell({ role, active, children }: { role: "student" | "teacher"; active: string; children: ReactNode }) {
   const router = useRouter();
   const menu = role === "student" ? studentMenu : teacherMenu;
-  const person = role === "student" ? "Mia Perera" : "Kalhara Nakandala";
-  const subtitle = role === "student" ? "Grade 10 Student" : "Science Teacher";
+  const [userName, setUserName] = useState<string>(role === "student" ? "Student" : "Kalhara Nakandala");
+  const [userGrade, setUserGrade] = useState<string>(role === "student" ? "Grade 10 Student" : "Science Teacher");
+  const subtitle = userGrade;
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.studentName) setUserName(data.studentName);
+            if (data.grade) setUserGrade(`${data.grade} Student`);
+          } else if (user.displayName) {
+            setUserName(user.displayName);
+          }
+        } catch (err) {
+          console.error("Error loading header user profile:", err);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [role]);
+
+  const person = userName;
 
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -90,9 +114,9 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
 
   const profileData = {
     name: person,
-    email: role === "student" ? "mia.perera@student.kalaharascience.lk" : "lms.kalhara@gmail.com",
+    email: "",
     role: role,
-    grade: role === "student" ? "Grade 10" : "Teacher",
+    grade: userGrade,
     status: role === "student" ? "Active Student" : "Verified Teacher",
   };
 

@@ -107,9 +107,11 @@ export default function ProfileDropdown({
                 <div className="font-black text-sm text-ink leading-tight">
                   {data.name}
                 </div>
-                <div className="text-xs font-bold text-lavender-600/80 leading-tight">
-                  {data.email}
-                </div>
+                {data.email ? (
+                  <div className="text-xs font-bold text-lavender-600/80 leading-tight">
+                    {data.email}
+                  </div>
+                ) : null}
               </div>
               <div className="relative">
                 {/* Yellow / Gold Glowing Avatar Ring */}
