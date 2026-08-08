@@ -28,7 +28,7 @@ export function PublicHeader() {
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
     const updateDimensions = () => {
       const selectedButton = buttonRefs.current.get(pathname);
       const container = containerRef.current;
