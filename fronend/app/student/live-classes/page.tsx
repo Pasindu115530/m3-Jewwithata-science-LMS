@@ -83,28 +83,55 @@ export default function StudentLiveClassesPage() {
           setEnrolledIds(enrolled);
           setStudentFormattedName(formattedName);
 
-          // 2. Check Monthly Payment Status
-          const paymentsQuery = query(
-            collection(db, "payments"),
-            where("studentUid", "==", user.uid)
-          );
-          const paymentsSnap = await getDocs(paymentsQuery);
-          const approvedPayments = paymentsSnap.docs
-            .map((d) => d.data())
-            .filter((p) => p.status === "Approved");
+          // 2. Check Monthly Payment Status & Free Card / Temp Access Grants
+          let paidAccess = false;
+          if (studentDoc.exists()) {
+            const uData = studentDoc.data();
+            if (
+              uData.freeCardAssigned ||
+              uData.freePhysicalCardAssigned ||
+              uData.freeCard ||
+              uData.isPhysicalStudent ||
+              uData.physicalStudentId ||
+              uData.studentType === "physical_online" ||
+              uData.temporaryAccessGranted
+            ) {
+              paidAccess = true;
+            }
+          }
 
-          setIsPaid(approvedPayments.length > 0);
+          if (!paidAccess) {
+            const paymentsQuery = query(
+              collection(db, "payments"),
+              where("studentUid", "==", user.uid)
+            );
+            const paymentsSnap = await getDocs(paymentsQuery);
+            const approvedPayments = paymentsSnap.docs
+              .map((d) => d.data())
+              .filter((p) => p.status === "Approved");
 
-          // 3. Load Live Classes for enrolled courses
+            paidAccess = approvedPayments.length > 0;
+          }
+
+          setIsPaid(paidAccess);
+
+          // 3. Load Live Classes for enrolled courses or grade matching
           const snapshot = await getDocs(collection(db, "liveClasses"));
           let items = snapshot.docs.map((docSnap) => ({
             id: docSnap.id,
             ...docSnap.data(),
           })) as LiveClassItem[];
 
-          // Filter for student's enrolled classes
+          // Filter for student's enrolled classes (or student grade if enrolled array is empty)
           if (enrolled.length > 0) {
-            items = items.filter((c) => enrolled.includes(c.courseId));
+            items = items.filter((c) => enrolled.includes(c.courseId) || enrolled.includes(c.id));
+          } else if (studentDoc.exists() && studentDoc.data()?.grade) {
+            const studentGrade = String(studentDoc.data()?.grade).toLowerCase().replace(/grade\s*/g, "").trim();
+            items = items.filter((c) => {
+              if (!c.grade) return true;
+              const classGrade = String(c.grade).toLowerCase().replace(/grade\s*/g, "").trim();
+              return classGrade === studentGrade;
+            });
           }
 
           items.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());

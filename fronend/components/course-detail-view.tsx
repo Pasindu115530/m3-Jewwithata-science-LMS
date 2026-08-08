@@ -83,12 +83,12 @@ export function CourseDetailView({
           ...d.data(),
         })) as (TuteItem & { courseId?: string })[];
 
-        // Filter: ONLY show Tutes uploaded on or after enrollment date AND matching this course
+        // Filter Tutes: If enrolledAtTime exists, show Tutes on or after enrollment date (or if isPaid via free card / temp access, show all grade tutes)
         const filteredTutes = allTutes.filter((t) => {
           if (t.courseId && t.courseId !== course.id) return false;
-          if (!t.uploadedAt) return true;
+          if (!enrolledAtTime || !t.uploadedAt) return true;
           const uploadTime = new Date(t.uploadedAt).getTime();
-          return uploadTime >= enrolledAtTime;
+          return uploadTime >= enrolledAtTime || isPaid;
         });
 
         setTutes(filteredTutes);
@@ -103,12 +103,12 @@ export function CourseDetailView({
           ...d.data(),
         })) as (RecordingItem & { courseId?: string })[];
 
-        // Filter: ONLY show Recordings uploaded on or after enrollment date AND matching this course
+        // Filter Recordings: Show all grade recordings for course if access is unlocked
         const filteredRecs = allRecs.filter((r) => {
           if (r.courseId && r.courseId !== course.id) return false;
-          if (!r.uploadedAt) return true;
+          if (!enrolledAtTime || !r.uploadedAt) return true;
           const uploadTime = new Date(r.uploadedAt).getTime();
-          return uploadTime >= enrolledAtTime;
+          return uploadTime >= enrolledAtTime || isPaid;
         });
 
         setRecordings(filteredRecs);

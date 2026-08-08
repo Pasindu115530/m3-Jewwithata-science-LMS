@@ -59,6 +59,12 @@ interface StudentProfile {
   grade?: string;
   enrolledClasses?: string[];
   enrollments?: Record<string, EnrollmentData>;
+  freeCardAssigned?: boolean;
+  freePhysicalCardAssigned?: boolean;
+  freeCard?: boolean;
+  isPhysicalStudent?: boolean;
+  studentType?: string;
+  temporaryAccessGranted?: boolean;
 }
 
 export default function StudentCoursesPage() {
@@ -115,18 +121,36 @@ export default function StudentCoursesPage() {
             console.error("Error fetching announcements:", e);
           }
 
-          // 3. Check Monthly Payment Status from `payments` collection
-          const paymentsQuery = query(
-            collection(db, "payments"),
-            where("studentUid", "==", user.uid)
-          );
-          const paymentsSnap = await getDocs(paymentsQuery);
-          const studentPayments = paymentsSnap.docs
-            .map((d) => d.data())
-            .filter((p) => p.status === "Approved");
+          // 3. Check Monthly Payment Status & Free Card / Temp Access Grants
+          let paidStatus = false;
+          if (studentDoc.exists()) {
+            const uData = studentDoc.data();
+            if (
+              uData.freeCardAssigned ||
+              uData.freePhysicalCardAssigned ||
+              uData.freeCard ||
+              uData.isPhysicalStudent ||
+              uData.physicalStudentId ||
+              uData.studentType === "physical_online" ||
+              uData.temporaryAccessGranted
+            ) {
+              paidStatus = true;
+            }
+          }
 
-          // Valid if any approved payment exists for student
-          const paidStatus = studentPayments.length > 0;
+          if (!paidStatus) {
+            const paymentsQuery = query(
+              collection(db, "payments"),
+              where("studentUid", "==", user.uid)
+            );
+            const paymentsSnap = await getDocs(paymentsQuery);
+            const studentPayments = paymentsSnap.docs
+              .map((d) => d.data())
+              .filter((p) => p.status === "Approved");
+
+            paidStatus = studentPayments.length > 0;
+          }
+
           setIsPaid(paidStatus);
           setCheckingPayment(false);
 
@@ -139,16 +163,21 @@ export default function StudentCoursesPage() {
 
           // Filter classes by Student's Grade (if grade is specified, match grade; otherwise show all available classes)
           const matchingGradeClasses = allFirestoreClasses.filter((c) => {
-            if (!c.grade) return true;
-            if (!grade) return true; // Show all if student grade is not set on profile
+            if (!c.grade || !grade) return true;
             const cleanCGrade = String(c.grade).toLowerCase().replace(/grade\s*/g, "").trim();
             const cleanSGrade = String(grade).toLowerCase().replace(/grade\s*/g, "").trim();
-            return cleanCGrade === cleanSGrade || c.grade === grade;
+            return cleanCGrade === cleanSGrade || cleanCGrade.includes(cleanSGrade) || cleanSGrade.includes(cleanCGrade);
           });
 
           // Separate into Enrolled and Available based on exact ID matches
-          const enrolledList = matchingGradeClasses.filter((c) => enrolled.includes(c.id));
-          const availableList = matchingGradeClasses.filter((c) => !enrolled.includes(c.id));
+          let enrolledList = matchingGradeClasses.filter((c) => enrolled.includes(c.id));
+          let availableList = matchingGradeClasses.filter((c) => !enrolled.includes(c.id));
+
+          // AUTO-ENROLL for Free Card / Temporary Access / Physical card students if enrolled array is empty
+          if (paidStatus && enrolledList.length === 0 && matchingGradeClasses.length > 0) {
+            enrolledList = matchingGradeClasses;
+            availableList = [];
+          }
 
           setEnrolledCourses(enrolledList);
           setAvailableCourses(availableList);
@@ -176,7 +205,8 @@ export default function StudentCoursesPage() {
       // Direct Firestore update for instant, guaranteed enrollment
       const userRef = doc(db, "users", userUid);
       const newEnrolled = [...enrolledIds, courseId];
-      const nowIso = new Date().toISOString();
+      // If student is paid / free card / temp access granted, set enrollment date to earlier so all tutes/recordings unlock
+      const nowIso = isPaid ? "2020-01-01T00:00:00.000Z" : new Date().toISOString();
       const newEnrollments = {
         ...enrollmentsMap,
         [courseId]: {
@@ -252,7 +282,7 @@ export default function StudentCoursesPage() {
                 <Badge tone={studentGrade ? "purple" : "yellow"}>{studentGrade || "Grade 10"}</Badge>
                 {isPaid ? (
                   <Badge tone="green" className="flex items-center gap-1">
-                    <CheckCircle2 size={13} /> Monthly Fee Paid
+                    <CheckCircle2 size={13} /> Access Active (Unlocked)
                   </Badge>
                 ) : (
                   <Badge tone="pink" className="flex items-center gap-1">
@@ -326,8 +356,8 @@ export default function StudentCoursesPage() {
               </div>
             )}
 
-            {/* Monthly Payment Notice if Unpaid */}
-            {!loading && !isPaid && (
+            {/* Monthly Payment Notice if Unpaid and student is actually enrolled in courses */}
+            {!loading && !isPaid && enrolledCourses.length > 0 && (
               <Card className="mt-6 border-amber-200 bg-amber-50/70 p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-3">

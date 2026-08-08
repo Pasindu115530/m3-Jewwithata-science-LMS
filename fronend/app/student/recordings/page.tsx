@@ -106,12 +106,30 @@ export default function StudentRecordingsPage() {
           }
           setEnrolledIds(enrolled);
 
-          const paymentsQuery = query(
-            collection(db, "payments"),
-            where("studentUid", "==", user.uid)
-          );
-          const paymentsSnap = await getDocs(paymentsQuery);
-          const approved = paymentsSnap.docs.some((d) => d.data().status === "Approved");
+          let approved = false;
+          if (studentDoc.exists()) {
+            const uData = studentDoc.data();
+            if (
+              uData.freeCardAssigned ||
+              uData.freePhysicalCardAssigned ||
+              uData.freeCard ||
+              uData.isPhysicalStudent ||
+              uData.physicalStudentId ||
+              uData.studentType === "physical_online" ||
+              uData.temporaryAccessGranted
+            ) {
+              approved = true;
+            }
+          }
+
+          if (!approved) {
+            const paymentsQuery = query(
+              collection(db, "payments"),
+              where("studentUid", "==", user.uid)
+            );
+            const paymentsSnap = await getDocs(paymentsQuery);
+            approved = paymentsSnap.docs.some((d) => d.data().status === "Approved");
+          }
           setIsPaid(approved);
 
           const snapshot = await getDocs(collection(db, "recordings"));
@@ -122,6 +140,13 @@ export default function StudentRecordingsPage() {
 
           if (enrolled.length > 0) {
             items = items.filter((r) => enrolled.includes(r.courseId));
+          } else if (studentDoc.exists() && studentDoc.data()?.grade) {
+            const studentGrade = String(studentDoc.data()?.grade).toLowerCase().replace(/grade\s*/g, "").trim();
+            items = items.filter((r) => {
+              if (!r.grade) return true;
+              const recGrade = String(r.grade).toLowerCase().replace(/grade\s*/g, "").trim();
+              return recGrade === studentGrade;
+            });
           }
 
           items.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
