@@ -267,12 +267,7 @@ export default function StudentRegisterPage() {
       setGlobalError(res.error || "Registration failed. Please review your details and try again.");
     } else {
       setRegisteredData({
-<<<<<<< HEAD
         studentId: res.studentId || "STU-2026-NEW",
-        email: res.email || `${mobileNumber}@scienceacademy.lk`,
-=======
-        studentId: res.studentId || "STU-NEW",
->>>>>>> 7100099 (refactor: migrate email-by-phone API to client-side Firebase SDK and remove email display from student registration UI)
       });
       setStep(7); // Registration Complete!
     }
