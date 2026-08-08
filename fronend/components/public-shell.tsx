@@ -271,7 +271,7 @@ export function PublicFooter() {
             </div>
           </div>
           <p className="text-xs leading-relaxed text-blue-100/70">
-            Personal Science tuition program dedicated to building conceptual understanding, exam success, and scientific confidence for Grades 8 through 11.
+            Personal Science tuition program dedicated to building conceptual understanding, exam success, and scientific confidence for Grades 6 through 11.
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
             <span className="rounded-full bg-blue-900/60 border border-blue-700/50 px-2.5 py-1 text-[11px] font-bold text-amber-200">
