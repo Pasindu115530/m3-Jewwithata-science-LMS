@@ -106,6 +106,7 @@ export default function StudentNotificationsPage() {
       next.add(id);
       try {
         localStorage.setItem(`read_notifs_${userUid}`, JSON.stringify(Array.from(next)));
+        window.dispatchEvent(new Event("notifications-read"));
       } catch (e) {}
       return next;
     });
@@ -118,6 +119,7 @@ export default function StudentNotificationsPage() {
     setReadIds(next);
     try {
       localStorage.setItem(`read_notifs_${userUid}`, JSON.stringify(allIds));
+      window.dispatchEvent(new Event("notifications-read"));
     } catch (e) {}
   };
 

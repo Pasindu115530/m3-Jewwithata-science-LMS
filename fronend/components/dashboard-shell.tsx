@@ -13,7 +13,7 @@ import ProfileDropdown from "@/components/ui/profile-dropdown";
 import { StudentWebappPrompt } from "@/components/student-webapp-prompt";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, onSnapshot } from "firebase/firestore";
 
 const iconMap: Record<string, ReactNode> = {
   Dashboard: <LayoutDashboard size={19}/>, "My Courses": <BookOpen size={19}/>, Tutes: <FileText size={19}/>,
@@ -31,6 +31,7 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
   const [userGrade, setUserGrade] = useState<string>(role === "student" ? "Grade 10 Student" : "Science Teacher");
   const subtitle = userGrade;
 
+  const [notificationCount, setNotificationCount] = useState<number>(0);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -62,24 +63,120 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Fetch user profile and realtime notification count
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
+    let unsubscribeSnap: (() => void) | null = null;
+    let removeSyncListeners: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (unsubscribeSnap) {
+        unsubscribeSnap();
+        unsubscribeSnap = null;
+      }
+      if (removeSyncListeners) {
+        removeSyncListeners();
+        removeSyncListeners = null;
+      }
+
+      if (!user) {
+        setNotificationCount(0);
+        return;
+      }
+
+      if (role === "student") {
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          let studentGrade = "Grade 10";
+          let enrolledClasses: string[] = [];
+
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.studentName) setUserName(data.studentName);
+            if (data.grade) {
+              studentGrade = data.grade;
+              setUserGrade(`${data.grade} Student`);
+            }
+            if (data.enrolledClasses) enrolledClasses = data.enrolledClasses;
+          } else if (user.displayName) {
+            setUserName(user.displayName);
+          }
+
+          const updateCount = (docs: any[]) => {
+            let readSet = new Set<string>();
+            try {
+              const stored = localStorage.getItem(`read_notifs_${user.uid}`);
+              if (stored) readSet = new Set(JSON.parse(stored));
+            } catch (e) {}
+
+            const targeted = docs.filter((a) => {
+              if (a.targetGrade === "All Classes" || a.targetClass === "All Classes") return true;
+              if (studentGrade && (a.targetGrade === studentGrade || a.targetClass?.toLowerCase().includes(studentGrade.toLowerCase()))) {
+                return true;
+              }
+              if (enrolledClasses && enrolledClasses.length > 0) {
+                return enrolledClasses.some(
+                  (c: string) => c === a.targetClass || c.toLowerCase().includes(a.targetClass?.toLowerCase()) || a.targetClass?.toLowerCase().includes(c.toLowerCase())
+                );
+              }
+              return false;
+            });
+
+            const unread = targeted.filter((a) => a.id && !readSet.has(a.id)).length;
+            setNotificationCount(unread);
+          };
+
+          let cachedDocs: any[] = [];
+          const q = query(collection(db, "announcements"));
+          unsubscribeSnap = onSnapshot(q, (snapshot) => {
+            cachedDocs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+            updateCount(cachedDocs);
+          }, (err) => {
+            console.warn("Error listening to student announcements:", err);
+          });
+
+          const handleSync = () => {
+            updateCount(cachedDocs);
+          };
+
+          window.addEventListener("notifications-read", handleSync);
+          window.addEventListener("storage", handleSync);
+
+          removeSyncListeners = () => {
+            window.removeEventListener("notifications-read", handleSync);
+            window.removeEventListener("storage", handleSync);
+          };
+        } catch (err) {
+          console.error("Error loading student profile or notifications:", err);
+        }
+      } else {
+        // Teacher role
         try {
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists()) {
             const data = userDoc.data();
-            if (data.studentName) setUserName(data.studentName);
-            if (data.grade) setUserGrade(`${data.grade} Student`);
+            if (data.studentName || data.name) setUserName(data.studentName || data.name);
+            if (data.grade) setUserGrade(`${data.grade}`);
           } else if (user.displayName) {
             setUserName(user.displayName);
           }
+
+          const q = query(collection(db, "announcements"));
+          unsubscribeSnap = onSnapshot(q, (snapshot) => {
+            setNotificationCount(snapshot.docs.length);
+          }, (err) => {
+            console.warn("Error listening to teacher announcements:", err);
+          });
         } catch (err) {
-          console.error("Error loading header user profile:", err);
+          console.error("Error setting up teacher announcements listener:", err);
         }
       }
     });
-    return () => unsubscribe();
+
+    return () => {
+      if (unsubscribeSnap) unsubscribeSnap();
+      if (removeSyncListeners) removeSyncListeners();
+      unsubscribeAuth();
+    };
   }, [role]);
 
   const person = userName;
@@ -192,34 +289,31 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
             <nav className="mt-5 flex flex-1 flex-col gap-1.5 overflow-y-auto pr-0.5">
               {menu.map(([label, href]) => {
                 const selected = active === label;
+                const isNotif = label === "Notifications" || label === "Announcements";
                 return (
                   <Link
                     key={href}
                     href={href}
                     onClick={() => setMobileSidebarOpen(false)}
-                    className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition-all duration-200 ${
+                    className={`flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition-all duration-200 ${
                       selected
                         ? "bg-[#FFB800] text-[#002583] shadow-button scale-[1.02]"
                         : "text-white/90 hover:bg-white/15 hover:text-white"
                     }`}
                   >
-                    {iconMap[label] || <LayoutDashboard size={19} />}
-                    <span>{label}</span>
+                    <div className="flex items-center gap-3">
+                      {iconMap[label] || <LayoutDashboard size={19} />}
+                      <span>{label}</span>
+                    </div>
+                    {isNotif && notificationCount > 0 && (
+                      <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">
+                        {notificationCount > 99 ? "99+" : notificationCount}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
             </nav>
-
-            {/* Side Banner - Brand Yellow (#FFB800) */}
-            <div className="mt-4 rounded-2xl bg-gradient-to-br from-[#FFB800] via-[#ffa800] to-[#ffd44d] p-4 text-[#002583] shadow-card">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">{role === "student" ? "⭐" : "🚀"}</span>
-                <p className="font-black text-sm">{role === "student" ? "Keep learning!" : "Grow your class"}</p>
-              </div>
-              <p className="mt-1 text-xs font-bold leading-4 text-[#002583]/80">
-                {role === "student" ? "Small progress every day creates big results." : "Everything you need is organised in one place."}
-              </p>
-            </div>
 
             {/* Sign Out Button */}
             <button
@@ -227,7 +321,7 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
                 setMobileSidebarOpen(false);
                 handleSignOut();
               }}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-red-400/30 bg-red-500/20 py-2.5 text-xs font-extrabold text-red-200 hover:bg-red-500/30 transition"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-red-400/30 bg-red-500/20 py-2.5 text-xs font-extrabold text-red-200 hover:bg-red-500/30 transition"
             >
               <LogOut size={15} />
               <span>Sign Out</span>
@@ -259,18 +353,28 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
           <nav className="mt-6 flex flex-1 flex-col gap-1.5">
             {menu.map(([label, href]) => {
               const selected = active === label;
+              const isNotif = label === "Notifications" || label === "Announcements";
               return (
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition-all duration-200 ${
+                  className={`flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-extrabold transition-all duration-200 ${
                     selected
                       ? "bg-[#FFB800] text-[#002583] shadow-button scale-[1.02]"
                       : "text-white/90 hover:bg-white/15 hover:text-white"
                   }`}
                 >
-                  {iconMap[label]}
-                  {label}
+                  <div className="flex items-center gap-3">
+                    {iconMap[label]}
+                    <span>{label}</span>
+                  </div>
+                  {isNotif && notificationCount > 0 && (
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                      selected ? "bg-red-500 text-white" : "bg-[#FFB800] text-[#002583]"
+                    }`}>
+                      {notificationCount > 99 ? "99+" : notificationCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -308,10 +412,14 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
                 href={role === "student" ? "/student/notifications" : "/teacher/announcements"}
                 className="relative grid h-11 w-11 place-items-center rounded-2xl bg-white shadow-card hover:bg-lavender-50 transition"
                 aria-label="Notifications"
-                title="Notifications"
+                title={notificationCount > 0 ? `${notificationCount} new notifications` : "Notifications"}
               >
                 <Bell size={19} className="text-[#002583]"/>
-                <span className="absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-[#FFB800] text-[9px] font-black text-[#002583]">!</span>
+                {notificationCount > 0 && (
+                  <span className="absolute -right-1 -top-1 grid min-w-[20px] h-5 px-1 place-items-center rounded-full bg-red-500 text-[10px] font-black text-white ring-2 ring-white shadow-sm animate-in zoom-in-50 duration-200">
+                    {notificationCount > 99 ? "99+" : notificationCount}
+                  </span>
+                )}
               </Link>
 
               <button
@@ -354,4 +462,5 @@ export function DashboardShell({ role, active, children }: { role: "student" | "
     </div>
   );
 }
+
 
