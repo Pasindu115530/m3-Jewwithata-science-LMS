@@ -83,7 +83,7 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════════════
           A. HERO — layered, watermark, floating badges
       ══════════════════════════════════════════════════════════════ */}
-      <section className="relative mx-auto max-w-7xl overflow-visible px-4 pb-0 pt-10 lg:px-8">
+      <section className="relative mx-auto max-w-7xl overflow-hidden lg:overflow-visible px-4 pb-0 pt-10 lg:px-8">
         {/* Ambient blobs */}
         <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-lavender-300/25 blur-3xl" />
         <div className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full bg-peach-200/30 blur-3xl" />
@@ -488,7 +488,7 @@ export default function HomePage() {
 
 
             {/* Floating badge 1 — Assignment submitted */}
-            <div className="float-badge" style={{ bottom: "5rem", left: "-1.5rem", animationDelay: "0.5s" }}>
+            <div className="float-badge hidden sm:block" style={{ bottom: "5rem", left: "-1.5rem", animationDelay: "0.5s" }}>
               <div className="flex items-center gap-2.5">
                 <div className="grid h-9 w-9 place-items-center rounded-xl bg-mintsoft text-base">✅</div>
                 <div>
@@ -499,7 +499,7 @@ export default function HomePage() {
             </div>
 
             {/* Floating badge 2 — Result improved */}
-            <div className="float-badge" style={{ top: "4rem", right: "-1.5rem", animationDelay: "2.5s" }}>
+            <div className="float-badge hidden sm:block" style={{ top: "4rem", right: "-1.5rem", animationDelay: "2.5s" }}>
               <div className="flex items-center gap-2.5">
                 <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#FFB800]/15 text-base">
                   <TrendingUp size={18} className="text-[#002583]" />
@@ -517,7 +517,7 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════════════
           E. DARK NAVY CTA BLOCK — breakout icon, rounded, centered
       ══════════════════════════════════════════════════════════════ */}
-      <section className="mx-auto max-w-7xl px-4 py-4 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-4 lg:px-8 overflow-hidden lg:overflow-visible">
         <div className="dark-cta-block px-8 pb-14 pt-20 text-center md:px-16">
           {/* Breakout atom at top */}
           <div

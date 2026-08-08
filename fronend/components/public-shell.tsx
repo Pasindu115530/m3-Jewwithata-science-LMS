@@ -389,7 +389,13 @@ export function PublicFooter() {
 
 
 export function PublicShell({ children }: { children: ReactNode }) {
-  return <><PublicHeader /><main>{children}</main><PublicFooter /></>;
+  return (
+    <>
+      <PublicHeader />
+      <main className="w-full max-w-full overflow-x-clip">{children}</main>
+      <PublicFooter />
+    </>
+  );
 }
 
 export function PageHero({ title, text, icon = "🔬" }: { title: string; text: string; icon?: string }) {
